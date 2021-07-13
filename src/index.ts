@@ -1,0 +1,1568 @@
+
+import * as utf8 from 'utf8'
+import * as express from 'express'
+import * as helmet from 'helmet'
+import * as cors from 'cors'
+import * as RateLimit from 'express-rate-limit'
+import * as bodyParser from 'body-parser'
+import * as morgan from 'morgan'
+import * as crypto from 'crypto'
+import * as jetpack from 'fs-jetpack'
+import middleware from './middleware'
+import * as database from './db'
+import * as services from './services'
+import { decodeItem } from './decodeItem'
+import { sendRune, sendItem } from './rune'
+
+const server = express()
+const http = require('http').Server(server)
+const io = require('socket.io')(http)
+const shortId = require('shortid')
+const path = require('path')
+
+const anticheatEnabled = false
+const playerWhitelist = ['Botter', 'Bin Zy']
+
+const eventCache: any = {
+  'OnUpdatePosAndRot': {},
+  'OnUpdatePlayer': {}
+}
+const db: any = {}
+
+db.config = jetpack.read(path.resolve('./public/data/config.json'), 'json')
+db.leaderHistory = jetpack.read(path.resolve('./public/data/leaderHistory.json'), 'json')
+db.achievementHistory = jetpack.read(path.resolve('./public/data/achievementHistory.json'), 'json')
+db.rewardHistory = jetpack.read(path.resolve('./public/data/rewardHistory.json'), 'json')
+db.rewards = jetpack.read(path.resolve('./public/data/rewards.json'), 'json')
+db.leaderboardHistory = jetpack.read(path.resolve('./public/data/leaderboardHistory.json'), 'json')
+db.banList = jetpack.read(path.resolve('./public/data/banList.json'), 'json')
+db.playerRewards = jetpack.read(path.resolve('./public/data/playerRewards.json'), 'json')
+
+const savePlayerRewards = () => {
+  jetpack.write(path.resolve('./public/data/playerRewards.json'), JSON.stringify(db.playerRewards, null, 2))
+}
+
+const saveLeaderboardHistory = () => {
+  jetpack.write(path.resolve('./public/data/leaderboardHistory.json'), JSON.stringify(db.leaderboardHistory, null, 2))
+}
+
+const saveRewardHistory = () => {
+  jetpack.write(path.resolve('./public/data/rewardHistory.json'), JSON.stringify(db.rewardHistory, null, 2))
+}
+
+const saveRewards = () => {
+  jetpack.write(path.resolve('./public/data/rewards.json'), JSON.stringify(db.rewards, null, 2))
+}
+
+const saveBanList = () => {
+  jetpack.write(path.resolve('./public/data/banList.json'), JSON.stringify(db.banList, null, 2))
+}
+
+const testMode = false
+
+const baseConfig = {
+  avatarDecayPower0: 1,
+  avatarDecayPower1: 1,
+  avatarDecayPower2: 1,
+  avatarTouchDistance0: 0.15,
+  avatarTouchDistance1: 0.15,
+  avatarTouchDistance2: 0.15,
+  avatarSpeedMultiplier0: 1,
+  avatarSpeedMultiplier1: 0.85,
+  avatarSpeedMultiplier2: 0.65,
+  baseSpeed: 3,
+  cameraSize: 3,
+  checkConnectionLoopSeconds: 2,
+  checkInterval: 0.1,
+  checkPositionDistance: 0.5,
+  claimingRewards: false,
+  decayPower: 1.4,
+  disconnectPlayerSeconds: testMode ? 999 : 10,
+  fastestLoopSeconds: 0.005,
+  fastLoopSeconds: 0.020,
+  gameMode: 'Standard',
+  immunitySeconds: 5,
+  isMaintenance: false,
+  lazycap: false, // gameModeLazycap gameModeAbsoluteMadness
+  maxEvolves: 3,
+  noBoot: testMode,
+  noDecay: testMode,
+  orbOnDeathPercent: 25,
+  orbTimeoutSeconds: testMode ? 1 : 10,
+  pointsPerEvolve: 1,
+  pointsPerKill: 20,
+  pointsPerOrb: 1,
+  pointsPerPowerup: 1,
+  pointsPerReward: 5,
+  resetInterval: 1,
+  rewardSpawnLoopSeconds: testMode ? 1 : 3 * 60 / 20,
+  roundLoopSeconds: testMode ? 60 : 5 * 60,
+  sendUpdateLoopSeconds: 2,
+  slowLoopSeconds: 1,
+  spritesPerPlayerCount: 1,
+  spritesStartCount: 50,
+  spritesTotal: 50
+}
+
+let config = {
+  ...baseConfig
+}
+
+const presets = [
+  // Standard
+  {
+    gameMode: 'Standard',
+    pointsPerEvolve: 1,
+    pointsPerPowerup: 1,
+    pointsPerKill: 20,
+    pointsPerReward: 5,
+  },
+  // Mix 1
+  {
+    gameMode: 'Mix Game 1',
+    pointsPerEvolve: 2,
+    pointsPerPowerup: 2,
+    pointsPerKill: 50,
+    pointsPerReward: 10,
+  },
+  // Mix 2
+  {
+    gameMode: 'Mix Game 2',
+    pointsPerEvolve: 10,
+    pointsPerKill: 200,
+    pointsPerReward: 20,
+  },
+  // Kill game
+  {
+    gameMode: 'Deathmatch',
+    pointsPerKill: 200,
+    orbOnDeathPercent: 0,
+    orbTimeoutSeconds: 9999,
+    pointsPerEvolve: 1,
+    pointsPerPowerup: 1,
+    pointsPerReward: 1,
+  },
+  // Evolve game
+  {
+    gameMode: 'Evolution',
+    pointsPerEvolve: 10,
+  },
+  // Orb game
+  {
+    gameMode: 'Orb Master',
+    orbOnDeathPercent: 50,
+    orbTimeoutSeconds: 3,
+    pointsPerOrb: 200
+  },
+  // Fast game
+  // {
+  //   gameMode: 'Speedy',
+  //   baseSpeed: 6,
+  // },
+  // Sprite game
+  {
+    gameMode: 'Sprite Leader',
+    spritesPerPlayerCount: 20,
+    decayPower: 4,
+    pointsPerEvolve: 0,
+    pointsPerPowerup: 1,
+    pointsPerReward: 0,
+    pointsPerKill: 0,
+    orbTimeoutSeconds: 0,
+  },
+  // Lazy cap game
+  {
+    gameMode: 'Lazycap',
+    lazycap: true
+  },
+  // Fast Drake
+  {
+    gameMode: 'Fast Drake',
+    avatarSpeedMultiplier2: 1.5,
+    decayPower: 4,
+    immunitySeconds: 30
+  },
+  // Zoom
+  {
+    gameMode: 'Bird Eye',
+    cameraSize: 6
+  },
+]
+
+let runeRewardAmount = 0.05
+let winnerRewardAmount = 0.2
+const debug = false
+const killOldClients = false
+const sockets = {} // to storage sockets
+const clientLookup = {}
+const powerUpSpawnPoints = []
+const powerUpLookup = {}
+const rewardLookup = {}
+let eventQueue = []
+let clients = [] // to storage clients
+let recentPlayers = []
+let leaderboard = []
+let lastReward
+let currentReward
+let round = {
+  index: 0,
+  startedAt: Math.round(Date.now() / 1000)
+}
+
+let powerupXp = {
+  0: 2,
+  1: 4,
+  2: 8,
+  3: 16
+}
+
+const mapBoundary = {
+  x: {min: -15, max: 0},
+  y: {min: -13, max: -4}
+}
+
+const rewardSpawnPoints = [
+  {x: -16.32, y: -15.7774},
+  {x: -9.420004, y: -6.517404},
+  {x: -3.130003, y: -7.537404},
+  {x: -7.290003, y: -12.9074},
+  {x: -16.09, y: -2.867404},
+  {x: -6.920003, y: -1.527404},
+  {x: -7.28, y: -15.36},
+  {x: -13.46, y: -13.92},
+  {x: -12.81, y: -7.99},
+  {x: -12.66, y: -1.527404},
+]
+
+const playerSpawnPoints = [
+  {x: -4.14, y: -11.66},
+  {x: -11.14, y: -8.55},
+  {x: -12.27, y: -14.24},
+  {x: -7.08, y: -12.75},
+  {x: -7.32, y: -15.29},
+]
+
+const log = (...msgs) => {
+  if (!debug) return
+
+  console.log(...msgs)
+}
+
+//auxiliary function to sort the best players
+function comparePlayers(a, b) {
+  if (a.points > b.points) {
+    // if (a.isDead) {
+    //   return 1
+    // }
+    return -1
+  }
+  if (a.points < b.points) {
+    // if (b.isDead) {
+    //   return -1
+    // }
+    return 1
+  }
+
+  return 0
+}
+
+const howManyRewardsPerHour = (playerCount) => {
+    return Math.ceil(playerCount / 5)
+}
+
+const rewardWinner = (player) => {
+
+}
+
+
+const emitAll = (...args) => {
+  log('emitAll', ...args)
+  io.emit(...args)
+}
+
+const emitElse = (socket, ...args) => {
+  log('emitElse', ...args)
+
+  if (!socket || !socket.emit) {
+    io.emit(...args)
+    return
+  }
+
+  socket.broadcast.emit('Events', getPayload([[...args]].map(e => `["${e[0]}","${e.slice(1).join(':')}"]`)))
+  // socket.broadcast.emit(...args)
+}
+
+const emitDirect = (socket, ...args) => {
+  log('emitDirect', ...args)
+
+  if (!socket || !socket.emit) return
+
+  socket.emit('Events', getPayload([[...args]].map(e => `["${e[0]}","${e.slice(1).join(':')}"]`)))
+  // socket.emit(...args)
+}
+
+const emitAllFast = (socket, ...args) => {
+  log('emitAllFast', ...args)
+
+  if (!socket || !socket.emit) {
+    io.emit(...args)
+    return
+  }
+
+  socket.emit(...args)
+  socket.broadcast.emit(...args)
+}
+
+const publishEvent = (...args) => {
+  eventQueue.push(args)
+}
+
+const spawnRandomReward = () => {
+  if (currentReward) return
+
+  const odds = [
+    'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
+    'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
+    'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
+    'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
+    'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
+    'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
+    'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
+    'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
+    'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
+    'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
+    'items'
+  ]
+
+  const rewardType = db.rewards[odds[random(0, odds.length-1)]]
+
+  if (rewardType.length === 0) return spawnRandomReward()
+
+  const reward = rewardType[random(0, rewardType.length-1)]
+
+  if (reward.type === 'rune' && reward.quantity <= 0) return spawnRandomReward()
+
+  currentReward = JSON.parse(JSON.stringify(reward))
+  currentReward.id = 'current'
+  currentReward.pos = rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)]
+
+  rewardLookup[currentReward.id] = currentReward
+
+  if (currentReward.type === 'rune') {
+    publishEvent('OnSpawnReward', currentReward.id, 0, currentReward.symbol, currentReward.pos.x, currentReward.pos.y)
+  } else if (currentReward.type === 'item') {
+    const item = decodeItem(currentReward.tokenId)
+    publishEvent('OnSpawnReward', currentReward.id, 1, item.name, currentReward.pos.x, currentReward.pos.y)
+  }
+}
+
+const claimReward = async (currentPlayer) => {
+  if (!currentReward) return
+
+  if (anticheatEnabled && lastReward?.winner.name === currentPlayer.name) return
+
+  currentReward.winner = currentPlayer
+
+  const newReward = JSON.parse(JSON.stringify(currentReward))
+
+  // db.rewardHistory.push(newReward)
+
+  // saveRewardHistory()
+
+  try {
+    if (currentPlayer.address) {
+      if (currentReward.type === 'item') {
+        log('Transfer item')
+
+        try {
+          sendItem(currentReward.tokenId, currentPlayer.address).then(tx => {
+            newReward.tx = tx
+            // saveRewardHistory()
+          })
+        } catch(e) {
+          console.log(e)
+        }
+
+        db.rewards.items = db.rewards.items.filter(i => i.tokenId !== currentReward.tokenId)
+        saveRewards()
+      } else if (currentReward.type === 'rune') {
+        if (!db.playerRewards[currentPlayer.address]) db.playerRewards[currentPlayer.address] = {}
+        if (!db.playerRewards[currentPlayer.address].pending) db.playerRewards[currentPlayer.address].pending = {}
+        if (!db.playerRewards[currentPlayer.address].pending[currentReward.symbol]) db.playerRewards[currentPlayer.address].pending[currentReward.symbol] = 0
+
+        db.playerRewards[currentPlayer.address].pending[currentReward.symbol] = Math.round((db.playerRewards[currentPlayer.address].pending[currentReward.symbol] + runeRewardAmount) * 100) / 100
+        savePlayerRewards()
+        
+        db.rewards.runes.find(r => r.symbol === currentReward.symbol).quantity -= runeRewardAmount
+        saveRewards()
+      }
+    }
+  } catch(e) {
+    console.log(e)
+  }
+
+  publishEvent('OnUpdateReward', currentPlayer.id, currentReward.id)
+
+  currentPlayer.rewards += 1
+  currentPlayer.points += config.pointsPerReward
+
+  lastReward = currentReward
+  currentReward = undefined
+}
+
+const random = (min, max) => {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+const randomPosition = (min, max) => {
+  return Math.random() * (max - min) + min
+}
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+  }
+
+  return array
+}
+
+function randomizePowerupXp() {
+  const shuffledValues = shuffleArray([2, 4, 8, 16])
+  powerupXp[0] = shuffledValues[0]
+  powerupXp[1] = shuffledValues[1]
+  powerupXp[2] = shuffledValues[2]
+  powerupXp[3] = shuffledValues[3]
+}
+
+function convertToDecimal(byte) {
+  let result = 0;
+
+  byte = byte.split('');
+
+  byte.reverse();
+
+  for (let a = 0; a < byte.length; a++){
+    if (byte[a] === '1'){
+      result += 2 ** a;
+    }
+  }
+
+  return result;
+}
+
+function binaryAgent(str) {
+  let bytes = str.split(' ');
+  let output = '';
+    
+  for (let k = 0; k < bytes.length; k++){
+      if (bytes[k]) output += String.fromCharCode(convertToDecimal(bytes[k]));
+  }
+
+  return output;
+}
+
+function decodePayload(msg) {
+  // @ts-ignore
+  let json = binaryAgent(msg) //String.fromCharCode.apply(null, new Uint8Array(msg));
+
+  try {
+    // explicitly decode the String as UTF-8 for Unicode
+    //   https://github.com/mathiasbynens/utf8.js
+    // json = utf8.decode(json)
+    // const buffer = Buffer.from(json, "binary");
+    const data = JSON.parse(json)
+
+    return data
+  }
+  catch (err) {
+    // ...
+    console.log(err)
+  }
+  
+}
+
+function distanceBetweenPoints(x1, y1, x2, y2) {
+  var a = x1 - x2
+  var b = y1 - y2
+
+  return Math.hypot(a,b)
+}
+
+function syncSprites() {
+  const deletedPoints = powerUpSpawnPoints.splice(0, powerUpSpawnPoints.length - (config.spritesStartCount + clients.filter(c => !c.isDead && !c.isSpectating && !c.isInvincible).length * config.spritesPerPlayerCount))
+
+  for (let i = 0; i < deletedPoints.length; i++) {
+    publishEvent('OnUpdatePickup', 'null', deletedPoints[i].id, 0)
+  }
+
+  config.spritesTotal = powerUpSpawnPoints.length
+}
+
+
+function disconnectPlayer(player) {
+  if (player.isDisconnected) return
+
+  try {
+    player.isDisconnected = true
+    player.isDead = true
+    player.joinedAt = null
+    player.latency = 0
+    publishEvent('OnUserDisconnected', player.id)
+
+    for (let i = 0; i < clients.length; i++) {
+      if (clients[i].id == player.id) {
+        clients.splice(i, 1)
+      }
+    }
+
+    emitDirect(sockets[player.id], 'OnUserDisconnected', player.id)
+    
+    if (sockets[player.id]) {
+      sockets[player.id].disconnect()
+
+      delete sockets[player.id]
+    }
+
+    delete clientLookup[player.id]
+
+    db.clientTotal = clients.length
+    db.recentPlayersTotal = recentPlayers.length
+
+    syncSprites()
+  } catch(e) {
+    console.log(e)
+  }
+}
+
+function randomRoundPreset() {
+  config = {
+    ...baseConfig,
+    ...presets[random(0, presets.length-1)]
+  }
+}
+
+function removeSprite(id) {
+  if (powerUpLookup[id]) {
+    delete powerUpLookup[id]
+  }
+  
+  for (let i = 0; i < powerUpSpawnPoints.length; i++) {
+    if (powerUpSpawnPoints[i].id == id) {
+      powerUpSpawnPoints.splice(i, 1)
+    }
+  }
+}
+
+function spawnSprites(amount) {
+  for (let i = 0; i < amount; i++) {
+    const spawnX = randomPosition(mapBoundary.x.min, mapBoundary.x.max)
+    const spawnY = randomPosition(mapBoundary.y.min, mapBoundary.y.max)
+
+    const powerUpSpawnPoint = {
+      id: shortId.generate(),
+      type: (Math.floor(Math.random() * 4)),
+      posx: spawnX,
+      posy: spawnY
+    }
+
+    powerUpSpawnPoints.push(powerUpSpawnPoint) // add power up on the list
+
+    powerUpLookup[powerUpSpawnPoint.id] = powerUpSpawnPoint //add powerUp in search engine
+
+    publishEvent('OnSpawnPowerUp', powerUpSpawnPoint.id, powerUpSpawnPoint.type, powerUpSpawnPoint.posx, powerUpSpawnPoint.posy)
+  }
+
+  config.spritesTotal = powerUpSpawnPoints.length
+}
+
+function addToRecentPlayers(player) {
+  if (!player.name) return
+
+  recentPlayers = recentPlayers.filter(r => r.name !== player.name)
+
+  recentPlayers.push(player)
+
+  db.recentPlayersTotal = recentPlayers.length
+}
+
+function roundEndingSoon() {
+  const roundTimer = (round.startedAt + config.roundLoopSeconds) - Math.round(Date.now() / 1000)
+  return roundTimer < 60
+}
+
+function sha256(str) {
+  return crypto.createHash("sha256").update(str, "utf8").digest("base64")
+}
+
+const registerKill = (winner, loser) => {
+  if (loser.isInvincible) return
+
+  winner.kills += 1
+  winner.points += (parseInt(loser.avatar) == 0 && loser.xp < 50 ? 0 : config.pointsPerKill * parseInt(loser.avatar))
+  winner.log.kills.push(loser.hash)
+
+  const orbOnDeathPercent = loser.name === 'Lazy' ? 75 : config.orbOnDeathPercent
+  const powerPoints = Math.floor(loser.points * (orbOnDeathPercent / 100))
+
+  loser.deaths += 1
+  loser.points = Math.floor(loser.points * ((100 - orbOnDeathPercent) / 100))
+  loser.isDead = true
+  loser.log.deaths.push(winner.hash)
+
+  if (winner.log.deaths.length && winner.log.deaths[winner.log.deaths-1] === loser.hash) {
+    winner.log.revenge += 1
+  }
+
+  const powerUpSpawnPoint = {
+    id: shortId.generate(),
+    type: powerPoints,
+    posx: loser.position.x,
+    posy: loser.position.y
+  }
+
+  powerUpLookup[powerUpSpawnPoint.id] = powerUpSpawnPoint //add powerUp in search engine
+
+  publishEvent('OnGameOver', loser.id, winner.id)
+  disconnectPlayer(loser)
+
+  if (!roundEndingSoon()) {
+    const currentRound = round.index
+    setTimeout(function() {
+      if (currentRound !== round.index) return
+      publishEvent('OnSpawnPowerUp', powerUpSpawnPoint.id, powerUpSpawnPoint.type, powerUpSpawnPoint.posx, powerUpSpawnPoint.posy)
+    }, config.orbTimeoutSeconds * 1000)
+  }
+}
+
+
+io.on('connection', function(socket) {
+  const ip = socket.handshake.headers['x-forwarded-for']?.split(',')[0] || socket.conn.remoteAddress?.split(":")[3]
+  // socket.request.connection.remoteAddress ::ffff:127.0.0.1
+  // socket.conn.remoteAddress ::ffff:127.0.0.1
+  // socket.conn.transport.socket._socket.remoteAddress ::ffff:127.0.0.1
+  const hash = ip ? sha256(ip.slice(ip.length/2)) : ''
+
+  const spawnPoint = playerSpawnPoints[(Math.floor(Math.random() * playerSpawnPoints.length))]
+
+  let currentPlayer = {
+    name: 'Unknown' + Math.floor(Math.random() * 999),
+    id: socket.id,
+    avatar: null,
+    network: null,
+    address: null,
+    device: null,
+    position: spawnPoint,
+    target: spawnPoint,
+    rotation: null,
+    xp: 0,
+    latency: 0,
+    kills: 0,
+    deaths: 0,
+    points: 0,
+    evolves: 0,
+    powerups: 0,
+    rewards: 0,
+    isMasterClient: false,
+    isDisconnected: false,
+    isDead: true,
+    isSpectating: false,
+    overrideSpeed: null,
+    overrideCameraSize: null,
+    cameraSize: config.cameraSize,
+    speed: config.baseSpeed * config.avatarSpeedMultiplier0,
+    joinedAt: null,
+    hash: hash.slice(hash.length - 10, hash.length - 1),
+    lastReportedTime: Date.now(),
+    log: {
+      kills: [],
+      deaths: [],
+      revenge: 0
+    }
+  }
+
+  log('User connected from ' + ip + ' with hash ' + hash)
+
+  sockets[currentPlayer.id] = socket
+  clientLookup[currentPlayer.id] = currentPlayer
+
+  if (Object.keys(clientLookup).length == 1) {
+    currentPlayer.isMasterClient = true // first client to join the game
+  }
+
+  clients.push(currentPlayer)
+
+  db.clientTotal = clients.length
+
+  spawnSprites(config.spritesPerPlayerCount)
+
+  socket.on('Passthrough', function(msg) {
+    const pack = decodePayload(msg)
+    const data = JSON.parse(unescape(pack.data))
+
+    try {
+      if (data.event === 'Ban') {
+        if (!playerWhitelist.includes(currentPlayer?.name)) return
+    
+        const offender = data.value
+    
+        db.banList.push(offender)
+    
+        saveBanList()
+      } else if (data.event === 'SetBroadcast') {
+        if (!playerWhitelist.includes(currentPlayer?.name)) return
+    
+        publishEvent('OnBroadcast', escape(JSON.stringify(data.value)))
+      } else if (data.event === 'SetMaintenance') {
+        if (!playerWhitelist.includes(currentPlayer?.name)) return
+    
+        config.isMaintenance = data.value
+    
+        publishEvent('OnMaintenance', config.isMaintenance)
+      } else if (data.event === 'SetConfig') {
+        if (!playerWhitelist.includes(currentPlayer?.name)) return
+    
+        for (const item of data.value) {
+          baseConfig[item.key] = item.value
+      
+          if (item.publish) {
+            publishEvent(item.publish.eventName, ...item.publish.eventArgs)
+          }
+        }
+      } else if (data.event === 'SetClaiming') {
+        if (!playerWhitelist.includes(currentPlayer?.name)) return
+    
+        db.playerRewards[data.value.address].claiming = data.value.value
+      } else if (data.event === 'ResetClaiming') {
+        if (!playerWhitelist.includes(currentPlayer?.name)) return
+    
+        for (const address in db.playerRewards) {
+          db.playerRewards[address].claiming = false
+        }
+      } else if (data.event === 'SetPreset') {
+        if (!playerWhitelist.includes(currentPlayer?.name)) return
+    
+        presets[data.value.index] = data.value.config
+      } else if (data.event === 'SetGodmode') {
+        if (!playerWhitelist.includes(currentPlayer?.name)) return
+    
+        let client
+        for (let i = 0; i < clients.length; i++) {
+          if (clients[i].name == data.value) {
+            client = clients[i]
+            break;
+          }
+        }
+    
+        if (client) {
+          client.isInvincible = true
+        }
+      }
+    } catch (e) {
+      console.log(e)
+    }
+  })
+
+  socket.on('Load', function() {
+    emitDirect(socket, 'OnLoaded', 1)
+  })
+
+  socket.on('Spectate', function() {
+    if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) {
+      return
+    }
+
+    currentPlayer.isSpectating = true
+    currentPlayer.points = 0
+    currentPlayer.xp = 0
+    currentPlayer.avatar = '0'
+    currentPlayer.speed = 5
+    currentPlayer.overrideSpeed = 5
+    currentPlayer.cameraSize = 6
+    currentPlayer.overrideCameraSize = 6
+
+    syncSprites()
+
+    publishEvent('OnSpectate', currentPlayer.id, currentPlayer.speed, currentPlayer.cameraSize)
+  })
+
+  socket.on('Ping', function() {
+    if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) {
+      return
+    }
+
+    emitDirect(socket, 'Pong', "pong!!!")
+  })
+
+  socket.on('SetInfo', function(msg) {
+    const pack = decodePayload(msg)
+
+    if (config.isMaintenance && !playerWhitelist.includes(pack.name)) {
+      emitDirect(socket, 'OnMaintenance', true)
+      disconnectPlayer(currentPlayer)
+      return
+    }
+
+    if (currentPlayer.name !== pack.name || currentPlayer.address !== pack.address) {
+      currentPlayer.name = pack.name
+      currentPlayer.address = pack.address
+      currentPlayer.network = pack.network
+      currentPlayer.device = pack.device
+
+      currentPlayer.kills = recentPlayers.find(r => r.name === pack.name)?.kills || currentPlayer.kills
+      currentPlayer.deaths = recentPlayers.find(r => r.name === pack.name)?.deaths || currentPlayer.deaths
+      currentPlayer.points = recentPlayers.find(r => r.name === pack.name)?.points || currentPlayer.points
+      currentPlayer.evolves = recentPlayers.find(r => r.name === pack.name)?.evolves || currentPlayer.evolves
+      currentPlayer.powerups = recentPlayers.find(r => r.name === pack.name)?.powerups || currentPlayer.powerups
+      currentPlayer.rewards = recentPlayers.find(r => r.name === pack.name)?.rewards || currentPlayer.rewards
+
+      addToRecentPlayers(currentPlayer)
+  
+      publishEvent('OnSetInfo', currentPlayer.id, pack.name, pack.address, pack.network, pack.device)
+    }
+  })
+
+  socket.on('JoinRoom', function(msg) {
+    const pack = decodePayload(msg)
+
+    if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) {
+      emitDirect(socket, 'OnMaintenance', true)
+      disconnectPlayer(currentPlayer)
+      return
+    }
+
+    if (db.banList.includes(pack.name)) {
+      emitDirect(socket, 'OnBanned', true)
+      disconnectPlayer(currentPlayer)
+      return
+    }
+
+    log('JoinRoom')
+
+    currentPlayer.isDead = false
+    currentPlayer.avatar = '0'
+    currentPlayer.joinedAt = Math.round(Date.now() / 1000)
+
+    log("[INFO] player " + currentPlayer.id + ": logged!")
+
+    const oldClient = clients.find(r => r.name === pack.name)
+    if (oldClient && killOldClients) {
+      disconnectPlayer(oldClient)
+    }
+
+    log("[INFO] Total players: " + Object.keys(clientLookup).length)
+    const roundTimer = (round.startedAt + config.roundLoopSeconds) - Math.round(Date.now() / 1000)
+    emitDirect(socket, 'OnJoinGame', currentPlayer.id, currentPlayer.name, currentPlayer.avatar, currentPlayer.isMasterClient ? 'true' : 'false', roundTimer, spawnPoint.x, spawnPoint.y)
+    emitDirect(socket, 'OnSetInfo', currentPlayer.id, currentPlayer.name, currentPlayer.address, currentPlayer.network, currentPlayer.device)
+    emitDirect(socket, 'OnSetRoundInfo', roundTimer + ':' + getRoundInfo().join(':'))
+    emitDirect(socket, 'OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
+
+    // spawn all connected clients for currentUser client 
+    clients.forEach(function(i) {
+      if (i.id === currentPlayer.id) return
+      if (i.isDisconnected || i.isDead || i.isSpectating) return
+
+      emitDirect(socket, 'OnSpawnPlayer', i.id, i.name, i.speed, i.avatar, i.position.x, i.position.y, i.position.x, i.position.y)
+    })
+
+    for (let c = 0; c < powerUpSpawnPoints.length; c++) {
+      emitDirect(socket, 'OnSpawnPowerUp', powerUpSpawnPoints[c].id, powerUpSpawnPoints[c].type, powerUpSpawnPoints[c].posx, powerUpSpawnPoints[c].posy) // spawn power up in unity scene
+    }
+
+    if (currentReward) {
+      if (currentReward.type === 'rune') {
+        emitDirect(socket, 'OnSpawnReward', currentReward.id, 0, currentReward.symbol, currentReward.pos.x, currentReward.pos.y)
+      } else if (currentReward.type === 'item') {
+        const item = decodeItem(currentReward.tokenId)
+        emitDirect(socket, 'OnSpawnReward', currentReward.id, 1, item.name, currentReward.pos.x, currentReward.pos.y)
+      }
+    }
+
+    // spawn currentPlayer client on clients in broadcast
+    publishEvent('OnSpawnPlayer', currentPlayer.id, currentPlayer.name, currentPlayer.speed, currentPlayer.avatar, currentPlayer.position.x, currentPlayer.position.y, currentPlayer.position.x, currentPlayer.position.y)
+  })
+
+  socket.on('Pickup', async function (msg) {
+    if (currentPlayer.isDead) return
+    if (currentPlayer.isSpectating) return
+    if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) return
+
+    const pack = decodePayload(msg)
+
+    const powerUp = powerUpLookup[pack.id]
+    const reward = rewardLookup[pack.id]
+
+    log('Pickup', msg, powerUp, reward)
+
+    if (powerUp) {
+      removeSprite(pack.id)
+
+      if (powerUp.type > 3) {
+        currentPlayer.points += powerUp.type
+        currentPlayer.points += config.pointsPerOrb
+
+        publishEvent('OnUpdatePickup', currentPlayer.id, pack.id, 0)
+        
+        return
+      }
+
+      let value = 0
+
+      if (powerUp.type == 0) value = powerupXp[0]
+      if (powerUp.type == 1) value = powerupXp[1]
+      if (powerUp.type == 2) value = powerupXp[2]
+      if (powerUp.type == 3) value = powerupXp[3]
+
+      currentPlayer.powerups += 1
+      currentPlayer.points += config.pointsPerPowerup
+      currentPlayer.xp += value
+  
+      publishEvent('OnUpdatePickup', currentPlayer.id, pack.id, value)
+
+      removeSprite(pack.id)
+      spawnSprites(1)
+    }
+
+    if (reward) {
+      await claimReward(currentPlayer)
+    }
+
+  })
+
+  socket.on('PosAndRot', function(msg) {
+    if (currentPlayer.isDead) return
+    if (currentPlayer.isSpectating) return
+    if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) return
+
+    const pack = decodePayload(msg)
+    clientLookup[currentPlayer.id].position = {x: parseFloat(parseFloat(pack.position.split(':')[0]).toFixed(2)), y: parseFloat(parseFloat(pack.position.split(':')[1]).toFixed(2))}
+    clientLookup[currentPlayer.id].target = {x: parseFloat(parseFloat(pack.target.split(':')[0]).toFixed(2)), y: parseFloat(parseFloat(pack.target.split(':')[1]).toFixed(2))}
+    clientLookup[currentPlayer.id].lastReportedTime = pack.time
+
+    const cacheKey = Math.floor(pack.target.split(':')[0])
+
+    if (eventCache['OnUpdatePosAndRot'][socket.id] !== cacheKey) {
+      clientLookup[currentPlayer.id].lastUpdate = Math.round(Date.now() / 1000)
+
+      // publishEvent('OnUpdatePosAndRot', data.id, data.position, data.target)
+      eventCache['OnUpdatePosAndRot'][socket.id] = cacheKey
+    }
+  })
+
+  // socket.on('PlayerDamage', function(msg) {
+  //   if (currentPlayer.isDead) return
+  //   if (currentPlayer.isSpectating) return
+
+  //   const pack = decodePayload(msg)
+
+  //   if (!clientLookup[pack.id]) return
+
+  //   const player1 = currentPlayer
+  //   const player2 = clientLookup[pack.id]
+
+  //   if (player1.isDead || player2.isDead) return
+
+  //   const now = Date.now()
+  //   const currentTime = Math.round(now / 1000)
+
+  //   if (player1.joinedAt >= currentTime - 10) return
+  //   if (player2.joinedAt >= currentTime - 10) return
+
+  //   const distanceMap = {
+  //     0: 0.15,
+  //     1: 0.3,
+  //     2: 0.5
+  //   }
+    
+  //   const player1Avatar = parseInt(player1.avatar)
+  //   const player2Avatar = parseInt(player2.avatar)
+  //   const player1Position = {x: parseFloat(player1.position.split(':')[0]), y: parseFloat(player1.position.split(':')[1])}
+  //   const player2Position = {x: parseFloat(player2.position.split(':')[0]), y: parseFloat(player2.position.split(':')[1])}
+
+  //   // console.log(player1Position, player2Position, distanceBetweenPoints(player1Position.x, player1Position.y, player2Position.x, player2Position.y))
+
+  //   const distance = distanceMap[player1Avatar] + distanceMap[player2Avatar] //Math.max(distanceMap[player1Avatar], distanceMap[player2Avatar]) + Math.min(distanceMap[player1Avatar], distanceMap[player2Avatar])
+  
+  //   if (distanceBetweenPoints(player1Position.x, player1Position.y, player2Position.x, player2Position.y) > distance) return
+
+  //   if (player2Avatar > player1Avatar) {
+  //     // playerDamageGiven[currentPlayer.id + pack.id] = now
+  //     // // console.log('Player Damage Given', currentPlayer.id + pack.id)
+  //     // if (playerDamageTaken[currentPlayer.id + pack.id] > now - 500) {
+  //       registerKill(player2, player1)
+  //     // }
+  //   } else if (player1Avatar > player2Avatar) {
+  //     // playerDamageGiven[pack.id + currentPlayer.id] = now
+  //     // // console.log('Player Damage Given', pack.id + currentPlayer.id)
+  //     // if (playerDamageTaken[pack.id + currentPlayer.id] > now - 500) {
+  //       registerKill(player1, player2)
+  //     // }
+  //   }
+  // })
+
+  socket.on('GetBestKillers', function(pack) {
+    for (let j = 0; j < leaderboard.length; j++) {
+      emitDirect(socket, 'OnUpdateBestKiller', leaderboard[j].name, j, leaderboard[j].points, leaderboard[j].kills, leaderboard[j].deaths, leaderboard[j].powerups, leaderboard[j].evolves, leaderboard[j].rewards, leaderboard[j].isDead ? '-' : Math.round(leaderboard[j].latency))
+    }
+  })
+
+  socket.on('disconnect', function() {
+    log("User has disconnected")
+
+    disconnectPlayer(currentPlayer)
+  })
+})
+
+function sendUpdates() {
+  publishEvent('OnClearLeaderboard')
+  for (let j = 0; j < leaderboard.length; j++) {
+    publishEvent('OnUpdateBestKiller', leaderboard[j].name, j, leaderboard[j].points, leaderboard[j].kills, leaderboard[j].deaths, leaderboard[j].powerups, leaderboard[j].evolves, leaderboard[j].rewards, leaderboard[j].isDead ? '-' : Math.round(leaderboard[j].latency))
+  }
+  
+  setTimeout(sendUpdates, config.sendUpdateLoopSeconds * 1000)
+}
+
+function spawnRewards() {
+  spawnRandomReward()
+
+  setTimeout(spawnRewards, config.rewardSpawnLoopSeconds * 1000)
+}
+
+function sendLeaderReward(leader) {
+  log('Leader: ', leader)
+  // send zod to leader.address
+  if (leader.address) {
+    try {
+      if (!db.playerRewards[leader.address]) db.playerRewards[leader.address] = {}
+      if (!db.playerRewards[leader.address].pending) db.playerRewards[leader.address].pending = {}
+      if (!db.playerRewards[leader.address].pending.zod) db.playerRewards[leader.address].pending.zod = 0
+    
+      db.playerRewards[leader.address].pending.zod  = Math.round((db.playerRewards[leader.address].pending.zod + winnerRewardAmount) * 10) / 10
+      savePlayerRewards()
+    } catch(e) {
+      console.log(e)
+    }
+  }
+
+  publishEvent('OnRoundWinner', leader.name)
+}
+
+function getRoundInfo() {
+  return Object.keys(config).sort().reduce(
+    (obj, key) => {
+      obj.push(config[key])
+      return obj;
+    }, 
+    []
+  )
+}
+
+function calcRoundRewards() {
+  let totalLegitPlayers = 0
+
+  for (const client of clients) {
+    if (client.points > 500 && client.kills > 1 && client.deaths > 1 && client.evolves > 50 && client.powerups > 300) {
+      totalLegitPlayers += 1
+    }
+  }
+
+  runeRewardAmount = Math.min(totalLegitPlayers * 0.01, 0.05)
+  winnerRewardAmount = Math.min(totalLegitPlayers * 0.05, 0.3)
+}
+
+function resetLeaderboard() {
+  let leader
+  for (const player of recentPlayers) {
+    if (player.isDead) continue
+    if (player.isSpectating) continue
+
+    if (!leader || player.points > leader.points) {
+      leader = player
+    }
+  }
+
+  if (leader) {
+    sendLeaderReward(leader)
+  }
+
+  db.leaderboardHistory.push(JSON.parse(JSON.stringify(leaderboard)))
+
+  saveLeaderboardHistory()
+
+  calcRoundRewards()
+
+  randomRoundPreset()
+
+  recentPlayers = []
+
+  for (const client of clients) {
+    client.points = 0
+    client.kills = 0
+    client.deaths = 0
+    client.evolves = 0
+    client.rewards = 0
+    client.powerups = 0
+    client.avatar = '0'
+    client.xp = 0
+    client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
+    client.cameraSize = client.overrideCameraSize || config.cameraSize
+
+    recentPlayers.push(client)
+
+    publishEvent('OnUpdateRegression', client.id, client.avatar, client.speed)
+  }
+
+  for (let i = 0; i < powerUpSpawnPoints.length; i++) {
+    if (powerUpSpawnPoints[i].type > 3) {
+      publishEvent('OnUpdatePickup', 'null', powerUpSpawnPoints[i].id, 0)
+      // socket.broadcast.emit('UpdatePickup', currentPlayer.id, pack.id)
+      powerUpSpawnPoints.splice(i, 1)
+    }
+  }
+
+  randomizePowerupXp()
+
+  round.startedAt = Math.round(Date.now() / 1000)
+  round.index++
+
+  publishEvent('OnSetRoundInfo', config.roundLoopSeconds + ':' + getRoundInfo().join(':'))
+
+  setTimeout(resetLeaderboard, config.roundLoopSeconds * 1000)
+}
+
+function checkConnectionLoop() {
+  if (!config.noBoot) {
+    const oneMinuteAgo = Math.round(Date.now() / 1000) - config.disconnectPlayerSeconds
+    // const oneMinuteAgo = Math.round(Date.now() / 1000) - config.disconnectPlayerSeconds
+
+    for (let i = 0; i < clients.length; i++) {
+      const client = clients[i]
+
+      if (client.isSpectating) continue
+      if (client.isInvincible) continue
+      // if (client.isDead) continue
+
+      if (client.lastUpdate <= oneMinuteAgo) {
+        disconnectPlayer(client)
+      }
+    }
+  }
+  
+  setTimeout(checkConnectionLoop, config.checkConnectionLoopSeconds * 1000)
+}
+
+function getPayload(messages) {
+  // super-cheap JSON Array construction
+  return Buffer.from([ '[', messages.join(','), ']' ].join(''));
+}
+
+//updates the list of best players every 1000 milliseconds
+function slowGameloop() {
+  if (recentPlayers.length !== 0) {
+    const topPlayers = recentPlayers.filter(p => !p.isSpectating).sort(comparePlayers).slice(0, 10)
+  
+    // @ts-ignore
+    if (isNaN(leaderboard) || leaderboard.length !== topPlayers.length) {
+      leaderboard = topPlayers
+    } else {
+      for (let i = 0; i < leaderboard.length; i++) {
+        if (leaderboard[i].name !== topPlayers[i].name) {
+          leaderboard = topPlayers
+          break
+        }
+      }
+    }
+  }
+  
+  setTimeout(slowGameloop, config.slowLoopSeconds * 1000)
+}
+
+function detectCollisions() {
+  const now = Date.now()
+  const currentTime = Math.round(now / 1000)
+
+  const distanceMap = {
+    0: config.avatarTouchDistance0,
+    1: config.avatarTouchDistance1,
+    2: config.avatarTouchDistance2
+  }
+
+  for (let i = 0; i < clients.length; i++) {
+    const player1 = clients[i]
+
+    if (player1.isDead) continue
+    if (player1.isSpectating) continue
+    if (player1.joinedAt >= currentTime - config.immunitySeconds) continue
+
+    const player1Avatar = parseInt(player1.avatar)
+  
+    for (let j = 0; j < clients.length; j++) {
+      const player2 = clients[j]
+
+      if (player1.id === player2.id) continue
+      if (player2.isDead) continue
+      if (player2.isSpectating) continue
+      if (player2.joinedAt >= currentTime - config.immunitySeconds) continue
+      
+      const player2Avatar = parseInt(player2.avatar)
+
+      if (player2Avatar === player1Avatar) continue
+
+      // console.log(player1.position, player2.position, distanceBetweenPoints(player1.position.x, player1.position.y, player2.position.x, player2.position.y))
+
+      const distance = distanceMap[player1Avatar] + distanceMap[player2Avatar] //Math.max(distanceMap[player1Avatar], distanceMap[player2Avatar]) + Math.min(distanceMap[player1Avatar], distanceMap[player2Avatar])
+
+      if (distanceBetweenPoints(player1.position.x, player1.position.y, player2.position.x, player2.position.y) > distance) continue
+
+      if (player2Avatar > player1Avatar) {
+        // playerDamageGiven[currentPlayer.id + pack.id] = now
+        // // console.log('Player Damage Given', currentPlayer.id + pack.id)
+        // if (playerDamageTaken[currentPlayer.id + pack.id] > now - 500) {
+          registerKill(player2, player1)
+        // }
+      } else if (player1Avatar > player2Avatar) {
+        // playerDamageGiven[pack.id + currentPlayer.id] = now
+        // // console.log('Player Damage Given', pack.id + currentPlayer.id)
+        // if (playerDamageTaken[pack.id + currentPlayer.id] > now - 500) {
+          registerKill(player1, player2)
+        // }
+      }
+    }
+  }
+}
+
+function fastestGameloop() {
+  detectCollisions()
+
+  setTimeout(fastestGameloop, config.fastestLoopSeconds * 1000)
+}
+
+let lastFastGameloopTime = Date.now()
+
+function fastGameloop() {
+  const now = Date.now()
+
+  for (let i = 0; i < clients.length; i++) {
+    const client = clients[i]
+
+    if (client.isDisconnected) continue
+    if (client.isDead) continue
+    if (client.isSpectating) continue
+
+    const avatar = parseInt(client.avatar)
+
+    if (client.xp > 100) {
+      if (avatar < (config.maxEvolves - 1)) {
+        client.xp = client.xp - 100
+        client.avatar = (avatar + 1).toString()
+        client.evolves += 1
+        client.points += config.pointsPerEvolve
+        client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
+
+        publishEvent('OnUpdateEvolution', client.id, client.avatar, client.speed)
+      } else {
+        client.xp = 100
+      }
+    } else {
+      let decay = config.noDecay ? 0 : (avatar + 1) / (1 / config.fastLoopSeconds) * ((avatar + 1) * (config['avatarDecayPower' + avatar] || 1) * config.decayPower)
+  
+      client.xp -= decay
+  
+      if (client.xp <= 0) {
+        client.xp = 0
+  
+        if (avatar > 0) {
+          client.xp = 100
+          client.avatar = (avatar - 1).toString()
+          client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
+  
+          publishEvent('OnUpdateRegression', client.id, client.avatar, client.speed)
+        }
+      }
+    }
+
+    const currentTime = Math.round(now / 1000)
+    const isInvincible = client.isInvincible ? true : (client.joinedAt >= currentTime - config.immunitySeconds)
+    const cacheKey = client.position.x + client.position.y + client.target.x + client.target.y
+  
+    if (eventCache['OnUpdatePlayer'][client.id] !== cacheKey) {
+      client.latency = ((now - client.lastReportedTime) / 2)// - (now - lastFastGameloopTime)
+
+      if (Number.isNaN(client.latency)) {
+        client.latency = 0
+      }
+  
+      publishEvent('OnUpdatePlayer', client.id, client.speed, client.cameraSize, client.position.x, client.position.y, client.target.x, client.target.y, Math.floor(client.xp), now, Math.round(client.latency), isInvincible ? '1': '0')
+
+      eventCache['OnUpdatePlayer'][client.id] = cacheKey
+    }
+  }
+
+  if (eventQueue.length) {
+    // log('Sending queue', eventQueue)
+    emitAll('Events', getPayload(eventQueue.map(e => `["${e[0]}","${e.slice(1).join(':')}"]`)))
+  
+    eventQueue = []
+  }
+
+  lastFastGameloopTime = now
+
+  setTimeout(fastGameloop, config.fastLoopSeconds * 1000)
+}
+
+const initWebServer = async () => {
+  // @ts-ignore
+  const rateLimiter = new RateLimit({
+    windowMs: 2,
+    max: 5,
+  })
+
+  // Security related
+  server.set('trust proxy', 1)
+  server.use(helmet())
+  server.use(
+    cors({
+      allowedHeaders: ['Accept', 'Authorization', 'Cache-Control', 'X-Requested-With', 'Content-Type', 'applicationId'],
+    })
+  )
+
+  // Accept json and other formats in the body
+  server.use(bodyParser.urlencoded({ extended: true }))
+  server.use(bodyParser.json())
+
+  // Apply ratelimit
+  server.use(rateLimiter)
+
+  // Logging
+  server.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'))
+
+  server.use(express.static(path.join(__dirname, '/../public')))
+}
+
+const initRoutes = async () => {
+  const api = {}
+
+  const routes = [
+    // require('./routes/info/get')
+  ]
+
+  for (const route of routes) {
+    api[route.operationId] = function (options, db, req, res) {
+      return route.run(options, db, req, res).catch((error) => {
+        log(`Route error:`, error.stack)
+
+        res.status(500).json({ message: `Error encountered: ${error}` })
+      })
+    }
+  }
+
+  const notFound = (options, db, req, res) => res.status(404).end()
+  const notImplemented = (options, db, req, res) => res.status(501).end()
+
+  const paths = [
+    // {
+    //   operationId: 'getInfo',
+    //   method: 'get',
+    //   route: '/info',
+    // },
+  ]
+
+  paths.forEach((p: any) => {
+    const runSequence = []
+    const options = {
+      body: p.body || [],
+      parameters: p.parameters || [],
+      responses: p.responses || {},
+      security: p.security || {},
+    }
+
+    let routeRun = notFound
+
+    if (p.operationId) {
+      if (typeof api[p.operationId] === 'function') {
+        routeRun = api[p.operationId]
+      } else {
+        routeRun = notImplemented
+      }
+    }
+
+    for (const item of middleware) {
+      runSequence.push(item.bind(null, options, db))
+    }
+
+    runSequence.push(routeRun.bind(null, options, db))
+
+    server[p.method](p.route, ...runSequence)
+  })
+
+  server.get('/info', async function(req, res) {
+    return res.json({
+      version: '0.12.1',
+      clientTotal: clients.length,
+      recentPlayersTotal: recentPlayers.length,
+      spritesTotal: config.spritesTotal,
+      leaderboard: leaderboard,
+      connectedPlayers: clients.map(c => c.name)
+    })
+  })
+
+  server.get('/db', async function(req, res) {
+    return res.json(db)
+  })
+
+  server.get('/config', async function(req, res) {
+    return res.json(config)
+  })
+
+  server.get('/buff/binzy', async function(req, res) {
+    db.playerRewards['0xa987f487639920A3c2eFe58C8FBDedB96253ed9B'].pending = {
+      "ral": 1,
+      "tir": 0.9,
+      "amn": 0.9,
+      "thul": 0.9,
+      "zod": 0.9,
+      "sol": 1.1,
+      "tal": 0.9,
+      "ort": 1.2,
+      "shael": 0.9,
+      "nef": 0.9
+    }
+
+    config.claimingRewards = false
+    db.playerRewards['0xa987f487639920A3c2eFe58C8FBDedB96253ed9B'].claiming = false
+
+    savePlayerRewards()
+  
+    res.json(db.playerRewards['0xa987f487639920A3c2eFe58C8FBDedB96253ed9B'].pending)
+  })
+
+  server.get('/user/:address', function(req, res) {
+    if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
+    if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
+
+    res.json(db.playerRewards[req.params.address].pending)
+  })
+
+  server.get('/claim/:address', async function(req, res) {
+    if (config.isMaintenance) return res.json({error: 'Maintenance. Try again later.'})
+    if (config.claimingRewards) return res.json({error: 'Busy. Try again later.'})
+
+    if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
+    if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
+
+    if (db.playerRewards[req.params.address].claiming) return res.json({error: 'Youre already claiming. Try again later.'})
+
+    config.claimingRewards = true
+    db.playerRewards[req.params.address].claiming = true
+
+    const transactions = []
+
+    for (const id in db.playerRewards[req.params.address].pending) {
+      const pr = db.playerRewards[req.params.address].pending[id]
+
+      if (pr && pr >= 1) {
+        try {
+          const tx = await sendRune(id, req.params.address, pr)
+          if (tx) {
+            db.playerRewards[req.params.address].pending[id] = 0
+            savePlayerRewards()
+  
+            if (!db.playerRewards[req.params.address].tx) db.playerRewards[req.params.address].tx = []
+    
+            transactions.push(tx)
+            db.playerRewards[req.params.address].tx.push(tx)
+            savePlayerRewards()
+
+            const newReward = {
+              type: "rune",
+              symbol: id,
+              quantity: pr,
+              winner: {
+                address: req.params.address
+              },
+              tx
+            }
+
+            db.rewardHistory.push(newReward)
+
+            saveRewardHistory()
+          } else {
+            db.playerRewards[req.params.address].claiming = false
+            savePlayerRewards()
+
+            config.claimingRewards = false
+            return res.json({error: 'Transaction failed. Try again later.'})
+          }
+        } catch(e) {
+          console.log(e)
+
+          db.playerRewards[req.params.address].claiming = false
+          savePlayerRewards()
+
+          config.claimingRewards = false
+          return res.json({error: 'Error: ' + e + '. Try again later.'})
+        }
+      }
+    }
+
+    db.playerRewards[req.params.address].claiming = false
+    savePlayerRewards()
+
+    config.claimingRewards = false
+    return res.json(transactions)
+  })
+
+  server.get('/readiness_check', (req, res) => res.sendStatus(200))
+  server.get('/liveness_check', (req, res) => res.sendStatus(200))
+}
+
+function clearSprites() {
+  powerUpSpawnPoints.splice(0, powerUpSpawnPoints.length) // clear the powerup list
+}
+
+const initGameServer = async () => {
+  if (Object.keys(clientLookup).length == 0) {
+    randomRoundPreset()
+    clearSprites()
+    spawnSprites(config.spritesStartCount)
+  }
+
+  setTimeout(fastestGameloop, config.fastestLoopSeconds * 1000)
+  setTimeout(fastGameloop, config.fastLoopSeconds * 1000)
+  setTimeout(slowGameloop, config.slowLoopSeconds * 1000)
+  setTimeout(sendUpdates, config.sendUpdateLoopSeconds * 1000)
+  setTimeout(spawnRewards, config.rewardSpawnLoopSeconds * 1000)
+  setTimeout(checkConnectionLoop, config.checkConnectionLoopSeconds * 1000)
+  setTimeout(resetLeaderboard, config.roundLoopSeconds * 1000)
+}
+
+const initServices = async () => {
+  // db.initCollections('crawler', {
+  //   config: {
+  //     fromBlock: 10961240,
+  //     lastUpdated: 0
+  //   },
+  // })
+  await services.init(db)
+  await services.crawl(db)
+}
+
+const init = async () => {
+  // db = await database.init()
+  // db.initCollections('app', {
+  //   leaderHistory: [],
+  // })
+
+  await initServices()
+  await initGameServer()
+  await initWebServer()
+  await initRoutes()
+
+  const port = process.env.PORT || 3001
+
+  http.listen(port, function() {
+    log(`:: Backend ready and listening on *: ${port}`)
+  })
+}
+
+init()

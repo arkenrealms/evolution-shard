@@ -1,0 +1,31 @@
+service: default
+runtime: nodejs
+env: flex
+manual_scaling:
+  instances: 1
+
+resources:
+  cpu: 2
+  memory_gb: 3
+  disk_size_gb: 10
+
+vm_health_check:
+  enable_health_check: False
+
+env_variables:
+  SCRIPT: server.js
+
+readiness_check:
+  path: "/readiness_check"
+  check_interval_sec: 10
+  timeout_sec: 4
+  failure_threshold: 2
+  success_threshold: 2
+  app_start_timeout_sec: 300
+
+liveness_check:
+  path: "/liveness_check"
+  check_interval_sec: 30
+  timeout_sec: 4
+  failure_threshold: 2
+  success_threshold: 2

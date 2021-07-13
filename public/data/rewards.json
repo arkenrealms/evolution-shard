@@ -1,0 +1,66 @@
+{
+  "runes": [
+    {
+      "type": "rune",
+      "symbol": "sol",
+      "quantity": 0
+    },
+    {
+      "type": "rune",
+      "symbol": "tir",
+      "quantity": 88.35000000000066
+    },
+    {
+      "type": "rune",
+      "symbol": "nef",
+      "quantity": 87.50000000000071
+    },
+    {
+      "type": "rune",
+      "symbol": "ith",
+      "quantity": 85.9000000000008
+    },
+    {
+      "type": "rune",
+      "symbol": "ral",
+      "quantity": 285.69999999999675
+    },
+    {
+      "type": "rune",
+      "symbol": "thul",
+      "quantity": 0
+    },
+    {
+      "type": "rune",
+      "symbol": "amn",
+      "quantity": 87.35000000000072
+    },
+    {
+      "type": "rune",
+      "symbol": "ort",
+      "quantity": 0
+    },
+    {
+      "type": "rune",
+      "symbol": "shael",
+      "quantity": 357.09999999999707
+    },
+    {
+      "type": "rune",
+      "symbol": "dol",
+      "quantity": 86.25000000000078
+    },
+    {
+      "type": "rune",
+      "symbol": "tal",
+      "quantity": 87.35000000000072
+    }
+  ],
+  "items": [],
+  "characters": [
+    {
+      "type": "character",
+      "tokenId": "1"
+    }
+  ]
+}
