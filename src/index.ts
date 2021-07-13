@@ -61,9 +61,10 @@ const saveBanList = () => {
 const testMode = false
 
 const baseConfig = {
-  avatarDecayPower0: 1,
-  avatarDecayPower1: 1,
-  avatarDecayPower2: 1,
+  antifeed1: true,
+  avatarDecayPower0: 2,
+  avatarDecayPower1: 2.5,
+  avatarDecayPower2: 3,
   avatarTouchDistance0: 0.15,
   avatarTouchDistance1: 0.15,
   avatarTouchDistance2: 0.15,
@@ -87,6 +88,7 @@ const baseConfig = {
   maxEvolves: 3,
   noBoot: testMode,
   noDecay: testMode,
+  orbCutoffSeconds: 60,
   orbOnDeathPercent: 25,
   orbTimeoutSeconds: testMode ? 1 : 10,
   pointsPerEvolve: 1,
@@ -117,6 +119,24 @@ const presets = [
     pointsPerKill: 20,
     pointsPerReward: 5,
   },
+  // Decay
+  {
+    gameMode: 'Decay 2X',
+    decayPower: 2.8,
+  },
+  // Orb
+  {
+    gameMode: 'Orb 50%',
+    orbOnDeathPercent: 50,
+    orbCutoffSeconds: 0
+  },
+  // Pacifism
+  {
+    gameMode: 'Lets Be Friends',
+    pointsPerKill: -200,
+    orbTimeoutSeconds: 9999,
+    orbOnDeathPercent: 0,
+  },
   // Mix 1
   {
     gameMode: 'Mix Game 1',
@@ -135,12 +155,14 @@ const presets = [
   // Kill game
   {
     gameMode: 'Deathmatch',
-    pointsPerKill: 200,
+    pointsPerKill: 300,
     orbOnDeathPercent: 0,
     orbTimeoutSeconds: 9999,
-    pointsPerEvolve: 1,
+    pointsPerEvolve: 0,
     pointsPerPowerup: 1,
-    pointsPerReward: 1,
+    pointsPerReward: 0,
+    baseSpeed: 4,
+    antifeed1: false
   },
   // Evolve game
   {
@@ -150,9 +172,13 @@ const presets = [
   // Orb game
   {
     gameMode: 'Orb Master',
-    orbOnDeathPercent: 50,
+    // orbOnDeathPercent: 25,
     orbTimeoutSeconds: 3,
-    pointsPerOrb: 200
+    pointsPerOrb: 200,
+    pointsPerEvolve: 0,
+    pointsPerReward: 0,
+    pointsPerKill: 0,
+    orbCutoffSeconds: 0
   },
   // Fast game
   // {
@@ -163,12 +189,13 @@ const presets = [
   {
     gameMode: 'Sprite Leader',
     spritesPerPlayerCount: 20,
-    decayPower: 4,
+    decayPower: 7,
     pointsPerEvolve: 0,
     pointsPerPowerup: 1,
     pointsPerReward: 0,
     pointsPerKill: 0,
-    orbTimeoutSeconds: 0,
+    orbTimeoutSeconds: 9999,
+    orbOnDeathPercent: 0,
   },
   // Lazy cap game
   {
@@ -180,17 +207,22 @@ const presets = [
     gameMode: 'Fast Drake',
     avatarSpeedMultiplier2: 1.5,
     decayPower: 4,
-    immunitySeconds: 30
+    immunitySeconds: 20,
+    orbOnDeathPercent: 0,
+    orbTimeoutSeconds: 9999,
   },
   // Zoom
   {
     gameMode: 'Bird Eye',
-    cameraSize: 6
+    cameraSize: 6,
+    baseSpeed: 4,
+    decayPower: 2.8,
   },
 ]
 
+let totalLegitPlayers = 0
 let runeRewardAmount = 0.05
-let winnerRewardAmount = 0.2
+let winnerRewardAmount = 0.1
 const debug = false
 const killOldClients = false
 const sockets = {} // to storage sockets
@@ -586,9 +618,9 @@ function addToRecentPlayers(player) {
   db.recentPlayersTotal = recentPlayers.length
 }
 
-function roundEndingSoon() {
+function roundEndingSoon(sec) {
   const roundTimer = (round.startedAt + config.roundLoopSeconds) - Math.round(Date.now() / 1000)
-  return roundTimer < 60
+  return roundTimer < sec
 }
 
 function sha256(str) {
@@ -599,16 +631,19 @@ const registerKill = (winner, loser) => {
   if (loser.isInvincible) return
 
   winner.kills += 1
-  winner.points += (parseInt(loser.avatar) == 0 && loser.xp < 50 ? 0 : config.pointsPerKill * parseInt(loser.avatar))
+  winner.points += config.antifeed1 && ((loser.deaths > 0 && loser.rewards < 2) || (loser.deaths > 0 && loser.powerups < 100)) ? 0 : config.pointsPerKill * (parseInt(loser.avatar) + 1)
   winner.log.kills.push(loser.hash)
 
-  const orbOnDeathPercent = loser.name === 'Lazy' ? 75 : config.orbOnDeathPercent
+  const orbOnDeathPercent = config.lazycap && loser.name === 'Lazy' ? 75 : config.orbOnDeathPercent
   const powerPoints = Math.floor(loser.points * (orbOnDeathPercent / 100))
 
   loser.deaths += 1
   loser.points = Math.floor(loser.points * ((100 - orbOnDeathPercent) / 100))
   loser.isDead = true
   loser.log.deaths.push(winner.hash)
+
+  if (winner.points < 0) winner.points = 0
+  if (winner.loser < 0) winner.loser = 0
 
   if (winner.log.deaths.length && winner.log.deaths[winner.log.deaths-1] === loser.hash) {
     winner.log.revenge += 1
@@ -626,7 +661,7 @@ const registerKill = (winner, loser) => {
   publishEvent('OnGameOver', loser.id, winner.id)
   disconnectPlayer(loser)
 
-  if (!roundEndingSoon()) {
+  if (!roundEndingSoon(config.orbCutoffSeconds)) { // TODO: add config to skip for Orb games
     const currentRound = round.index
     setTimeout(function() {
       if (currentRound !== round.index) return
@@ -655,7 +690,7 @@ io.on('connection', function(socket) {
     position: spawnPoint,
     target: spawnPoint,
     rotation: null,
-    xp: 0,
+    xp: 50,
     latency: 0,
     kills: 0,
     deaths: 0,
@@ -743,6 +778,8 @@ io.on('connection', function(socket) {
         if (!playerWhitelist.includes(currentPlayer?.name)) return
     
         presets[data.value.index] = data.value.config
+      } else if (data.event === 'ClaimRewards') {
+        claimRewards(socket, currentPlayer)
       } else if (data.event === 'SetGodmode') {
         if (!playerWhitelist.includes(currentPlayer?.name)) return
     
@@ -1058,16 +1095,16 @@ function getRoundInfo() {
 }
 
 function calcRoundRewards() {
-  let totalLegitPlayers = 0
+  totalLegitPlayers = 0
 
   for (const client of clients) {
-    if (client.points > 500 && client.kills > 1 && client.deaths > 1 && client.evolves > 50 && client.powerups > 300) {
+    if ((client.points > 100 && client.kills > 1) || (client.points > 300 && client.evolves > 20 && client.powerups > 200) || (client.rewards > 5 && client.powerups > 200) || (client.evolves > 100) || (client.points > 1000)) {
       totalLegitPlayers += 1
     }
   }
 
-  runeRewardAmount = Math.min(totalLegitPlayers * 0.01, 0.05)
-  winnerRewardAmount = Math.min(totalLegitPlayers * 0.05, 0.3)
+  runeRewardAmount = Math.min(totalLegitPlayers * 0.005, 0.05)
+  winnerRewardAmount = Math.min(totalLegitPlayers * 0.02, 0.2)
 }
 
 function resetLeaderboard() {
@@ -1103,7 +1140,7 @@ function resetLeaderboard() {
     client.rewards = 0
     client.powerups = 0
     client.avatar = '0'
-    client.xp = 0
+    client.xp = 50
     client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
     client.cameraSize = client.overrideCameraSize || config.cameraSize
 
@@ -1259,22 +1296,32 @@ function fastGameloop() {
         client.points += config.pointsPerEvolve
         client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
 
+        if (config.lazycap && client.name === 'Lazy') {
+          client.speed = client.speed * 0.9
+        }
+
         publishEvent('OnUpdateEvolution', client.id, client.avatar, client.speed)
       } else {
         client.xp = 100
       }
     } else {
-      let decay = config.noDecay ? 0 : (avatar + 1) / (1 / config.fastLoopSeconds) * ((avatar + 1) * (config['avatarDecayPower' + avatar] || 1) * config.decayPower)
+      let decay = config.noDecay ? 0 : (avatar + 1) / (1 / config.fastLoopSeconds) * ((config['avatarDecayPower' + avatar] || 1) * config.decayPower)
   
       client.xp -= decay
   
       if (client.xp <= 0) {
         client.xp = 0
   
-        if (avatar > 0) {
+        if (avatar === 0) {
+          disconnectPlayer(client)
+        } else {
           client.xp = 100
           client.avatar = (avatar - 1).toString()
           client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
+
+          if (config.lazycap && client.name === 'Lazy') {
+            client.speed = client.speed * 0.9
+          }
   
           publishEvent('OnUpdateRegression', client.id, client.avatar, client.speed)
         }
@@ -1308,6 +1355,83 @@ function fastGameloop() {
   lastFastGameloopTime = now
 
   setTimeout(fastGameloop, config.fastLoopSeconds * 1000)
+}
+
+async function claimRewards(socket, player) {
+  if (config.isMaintenance) {
+    emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Maintenance. Try again later.' })))
+    return
+  }
+  if (config.claimingRewards) {
+    emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Busy. Try again later.' })))
+    return
+  }
+  if (!db.playerRewards[player.address]) db.playerRewards[player.address] = {}
+  if (!db.playerRewards[player.address].pending) db.playerRewards[player.address].pending = {}
+
+  if (db.playerRewards[player.address].claiming) {
+    emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Youre already claiming. Try again later.' })))
+    return
+  }
+  config.claimingRewards = true
+  db.playerRewards[player.address].claiming = true
+
+  const transactions = []
+
+  for (const id in db.playerRewards[player.address].pending) {
+    const pr = db.playerRewards[player.address].pending[id]
+    if (pr && pr >= 1) {
+      try {
+        const tx = await sendRune(id, player.address, pr)
+        if (tx) {
+          db.playerRewards[player.address].pending[id] = 0
+          savePlayerRewards()
+
+          if (!db.playerRewards[player.address].tx) db.playerRewards[player.address].tx = []
+  
+          transactions.push(tx)
+          db.playerRewards[player.address].tx.push(tx)
+          savePlayerRewards()
+
+          const newReward = {
+            type: "rune",
+            symbol: id,
+            quantity: pr,
+            winner: {
+              address: player.address
+            },
+            tx
+          }
+
+          db.rewardHistory.push(newReward)
+
+          saveRewardHistory()
+        } else {
+          db.playerRewards[player.address].claiming = false
+          savePlayerRewards()
+
+          config.claimingRewards = false
+          emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Transaction failed. Try again later.' })))
+          return
+        }
+      } catch(e) {
+        console.log(e)
+
+        db.playerRewards[player.address].claiming = false
+        savePlayerRewards()
+
+        config.claimingRewards = false
+        emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Error: ' + e + '. Try again later.' })))
+        return
+      }
+    }
+  }
+
+  db.playerRewards[player.address].claiming = false
+  savePlayerRewards()
+
+  config.claimingRewards = false
+  emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Done.' })))
 }
 
 const initWebServer = async () => {
@@ -1402,7 +1526,10 @@ const initRoutes = async () => {
       recentPlayersTotal: recentPlayers.length,
       spritesTotal: config.spritesTotal,
       leaderboard: leaderboard,
-      connectedPlayers: clients.map(c => c.name)
+      connectedPlayers: clients.map(c => c.name),
+      runeRewardAmount: runeRewardAmount,
+      winnerRewardAmount: winnerRewardAmount,
+      totalLegitPlayers: totalLegitPlayers
     })
   })
 
@@ -1443,74 +1570,74 @@ const initRoutes = async () => {
     res.json(db.playerRewards[req.params.address].pending)
   })
 
-  server.get('/claim/:address', async function(req, res) {
-    if (config.isMaintenance) return res.json({error: 'Maintenance. Try again later.'})
-    if (config.claimingRewards) return res.json({error: 'Busy. Try again later.'})
+  // server.get('/claim/:address', async function(req, res) {
+    // if (config.isMaintenance) return res.json({error: 'Maintenance. Try again later.'})
+    // if (config.claimingRewards) return res.json({error: 'Busy. Try again later.'})
 
-    if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
-    if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
+    // if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
+    // if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
 
-    if (db.playerRewards[req.params.address].claiming) return res.json({error: 'Youre already claiming. Try again later.'})
+    // if (db.playerRewards[req.params.address].claiming) return res.json({error: 'Youre already claiming. Try again later.'})
 
-    config.claimingRewards = true
-    db.playerRewards[req.params.address].claiming = true
+    // config.claimingRewards = true
+    // db.playerRewards[req.params.address].claiming = true
 
-    const transactions = []
+    // const transactions = []
 
-    for (const id in db.playerRewards[req.params.address].pending) {
-      const pr = db.playerRewards[req.params.address].pending[id]
+    // for (const id in db.playerRewards[req.params.address].pending) {
+    //   const pr = db.playerRewards[req.params.address].pending[id]
 
-      if (pr && pr >= 1) {
-        try {
-          const tx = await sendRune(id, req.params.address, pr)
-          if (tx) {
-            db.playerRewards[req.params.address].pending[id] = 0
-            savePlayerRewards()
+    //   if (pr && pr >= 1) {
+    //     try {
+    //       const tx = await sendRune(id, req.params.address, pr)
+    //       if (tx) {
+    //         db.playerRewards[req.params.address].pending[id] = 0
+    //         savePlayerRewards()
   
-            if (!db.playerRewards[req.params.address].tx) db.playerRewards[req.params.address].tx = []
+    //         if (!db.playerRewards[req.params.address].tx) db.playerRewards[req.params.address].tx = []
     
-            transactions.push(tx)
-            db.playerRewards[req.params.address].tx.push(tx)
-            savePlayerRewards()
+    //         transactions.push(tx)
+    //         db.playerRewards[req.params.address].tx.push(tx)
+    //         savePlayerRewards()
 
-            const newReward = {
-              type: "rune",
-              symbol: id,
-              quantity: pr,
-              winner: {
-                address: req.params.address
-              },
-              tx
-            }
+    //         const newReward = {
+    //           type: "rune",
+    //           symbol: id,
+    //           quantity: pr,
+    //           winner: {
+    //             address: req.params.address
+    //           },
+    //           tx
+    //         }
 
-            db.rewardHistory.push(newReward)
+    //         db.rewardHistory.push(newReward)
 
-            saveRewardHistory()
-          } else {
-            db.playerRewards[req.params.address].claiming = false
-            savePlayerRewards()
+    //         saveRewardHistory()
+    //       } else {
+    //         db.playerRewards[req.params.address].claiming = false
+    //         savePlayerRewards()
 
-            config.claimingRewards = false
-            return res.json({error: 'Transaction failed. Try again later.'})
-          }
-        } catch(e) {
-          console.log(e)
+    //         config.claimingRewards = false
+    //         return res.json({error: 'Transaction failed. Try again later.'})
+    //       }
+    //     } catch(e) {
+    //       console.log(e)
 
-          db.playerRewards[req.params.address].claiming = false
-          savePlayerRewards()
+    //       db.playerRewards[req.params.address].claiming = false
+    //       savePlayerRewards()
 
-          config.claimingRewards = false
-          return res.json({error: 'Error: ' + e + '. Try again later.'})
-        }
-      }
-    }
+    //       config.claimingRewards = false
+    //       return res.json({error: 'Error: ' + e + '. Try again later.'})
+    //     }
+    //   }
+    // }
 
-    db.playerRewards[req.params.address].claiming = false
-    savePlayerRewards()
+    // db.playerRewards[req.params.address].claiming = false
+    // savePlayerRewards()
 
-    config.claimingRewards = false
-    return res.json(transactions)
-  })
+    // config.claimingRewards = false
+    // return res.json(transactions)
+  // })
 
   server.get('/readiness_check', (req, res) => res.sendStatus(200))
   server.get('/liveness_check', (req, res) => res.sendStatus(200))
