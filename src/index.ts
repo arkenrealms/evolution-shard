@@ -1098,8 +1098,12 @@ function calcRoundRewards() {
   totalLegitPlayers = 0
 
   for (const client of clients) {
-    if ((client.points > 100 && client.kills > 1) || (client.points > 300 && client.evolves > 20 && client.powerups > 200) || (client.rewards > 5 && client.powerups > 200) || (client.evolves > 100) || (client.points > 1000)) {
-      totalLegitPlayers += 1
+    try {
+      if ((client.points > 100 && client.kills > 1) || (client.points > 300 && client.evolves > 20 && client.powerups > 200) || (client.rewards > 5 && client.powerups > 200) || (client.evolves > 100) || (client.points > 1000)) {
+        totalLegitPlayers += 1
+      }
+    } catch (e) {
+      console.log(e)
     }
   }
 
@@ -1286,6 +1290,8 @@ function fastGameloop() {
     if (client.isDead) continue
     if (client.isSpectating) continue
 
+    const currentTime = Math.round(now / 1000)
+    const isInvincible = client.isInvincible ? true : (client.joinedAt >= currentTime - config.immunitySeconds)
     const avatar = parseInt(client.avatar)
 
     if (client.xp > 100) {
@@ -1313,7 +1319,9 @@ function fastGameloop() {
         client.xp = 0
   
         if (avatar === 0) {
-          disconnectPlayer(client)
+          if (!isInvincible) {
+            disconnectPlayer(client)
+          }
         } else {
           client.xp = 100
           client.avatar = (avatar - 1).toString()
@@ -1328,8 +1336,6 @@ function fastGameloop() {
       }
     }
 
-    const currentTime = Math.round(now / 1000)
-    const isInvincible = client.isInvincible ? true : (client.joinedAt >= currentTime - config.immunitySeconds)
     const cacheKey = client.position.x + client.position.y + client.target.x + client.target.y
   
     if (eventCache['OnUpdatePlayer'][client.id] !== cacheKey) {
@@ -1570,74 +1576,68 @@ const initRoutes = async () => {
     res.json(db.playerRewards[req.params.address].pending)
   })
 
-  // server.get('/claim/:address', async function(req, res) {
-    // if (config.isMaintenance) return res.json({error: 'Maintenance. Try again later.'})
-    // if (config.claimingRewards) return res.json({error: 'Busy. Try again later.'})
-
-    // if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
-    // if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
-
-    // if (db.playerRewards[req.params.address].claiming) return res.json({error: 'Youre already claiming. Try again later.'})
-
-    // config.claimingRewards = true
-    // db.playerRewards[req.params.address].claiming = true
-
-    // const transactions = []
-
-    // for (const id in db.playerRewards[req.params.address].pending) {
-    //   const pr = db.playerRewards[req.params.address].pending[id]
-
-    //   if (pr && pr >= 1) {
-    //     try {
-    //       const tx = await sendRune(id, req.params.address, pr)
-    //       if (tx) {
-    //         db.playerRewards[req.params.address].pending[id] = 0
-    //         savePlayerRewards()
-  
-    //         if (!db.playerRewards[req.params.address].tx) db.playerRewards[req.params.address].tx = []
+  server.get('/claim/all', async function(req, res) {
+    if (config.isMaintenance) return res.json({error: 'Maintenance. Try again later.'})
+    if (config.claimingRewards) return res.json({error: 'Busy. Try again later.'})
     
-    //         transactions.push(tx)
-    //         db.playerRewards[req.params.address].tx.push(tx)
-    //         savePlayerRewards()
+    for (const address in db.playerRewards) {
+      if (!db.playerRewards[address]) db.playerRewards[address] = {}
+      if (!db.playerRewards[address].pending) db.playerRewards[address].pending = {}
 
-    //         const newReward = {
-    //           type: "rune",
-    //           symbol: id,
-    //           quantity: pr,
-    //           winner: {
-    //             address: req.params.address
-    //           },
-    //           tx
-    //         }
+      if (db.playerRewards[address].claiming) continue
 
-    //         db.rewardHistory.push(newReward)
+      config.claimingRewards = true
+      db.playerRewards[address].claiming = true
 
-    //         saveRewardHistory()
-    //       } else {
-    //         db.playerRewards[req.params.address].claiming = false
-    //         savePlayerRewards()
+      const transactions = []
 
-    //         config.claimingRewards = false
-    //         return res.json({error: 'Transaction failed. Try again later.'})
-    //       }
-    //     } catch(e) {
-    //       console.log(e)
+      for (const id in db.playerRewards[address].pending) {
+        const pr = db.playerRewards[address].pending[id]
 
-    //       db.playerRewards[req.params.address].claiming = false
-    //       savePlayerRewards()
+        if (pr && pr >= 1) {
+          try {
+            const tx = await sendRune(id, address, pr)
+            if (tx) {
+              db.playerRewards[address].pending[id] = 0
+              savePlayerRewards()
+    
+              if (!db.playerRewards[address].tx) db.playerRewards[address].tx = []
+      
+              transactions.push(tx)
+              db.playerRewards[address].tx.push(tx)
+              savePlayerRewards()
 
-    //       config.claimingRewards = false
-    //       return res.json({error: 'Error: ' + e + '. Try again later.'})
-    //     }
-    //   }
-    // }
+              const newReward = {
+                type: "rune",
+                symbol: id,
+                quantity: pr,
+                winner: {
+                  address: address
+                },
+                tx
+              }
 
-    // db.playerRewards[req.params.address].claiming = false
-    // savePlayerRewards()
+              db.rewardHistory.push(newReward)
 
-    // config.claimingRewards = false
-    // return res.json(transactions)
-  // })
+              saveRewardHistory()
+
+              console.log('Sent ' + pr + ' ' + id + ' to ' + address)
+            } else {
+              console.log('Transaction failed. Try again later. ' + pr + ' ' + id + ' to ' + address)
+            }
+          } catch(e) {
+            console.log('Error: ' + e + '. Try again later. ' + pr + ' ' + id + ' to ' + address)
+          }
+        }
+      }
+
+      db.playerRewards[address].claiming = false
+      savePlayerRewards()
+    }
+
+    config.claimingRewards = false
+    return res.json({ success: 1 })
+  })
 
   server.get('/readiness_check', (req, res) => res.sendStatus(200))
   server.get('/liveness_check', (req, res) => res.sendStatus(200))

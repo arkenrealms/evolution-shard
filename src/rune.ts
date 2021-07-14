@@ -17,7 +17,7 @@ export const getAddress = (address) => {
 // app.use("/public/Build", express.static(__dirname + "/public/Build"))
 
 const getRandomProvider = () => {
-  return ethers.getDefaultProvider("wss://thrumming-still-leaf.bsc.quiknode.pro/b2f8a5b1bd0809dbf061112e1786b4a8e53c9a83/")
+  return ethers.getDefaultProvider("https://bsc-dataseed1.ninicoin.io") //"wss://thrumming-still-leaf.bsc.quiknode.pro/b2f8a5b1bd0809dbf061112e1786b4a8e53c9a83/")
   // return new HDWalletProvider(
   //   secrets.mnemonic,
   //   "wss://thrumming-still-leaf.bsc.quiknode.pro/b2f8a5b1bd0809dbf061112e1786b4a8e53c9a83/" //"https://bsc.getblock.io/mainnet/?api_key=3f594a5f-d0ed-48ca-b0e7-a57d04f76332" //networks[Math.floor(Math.random() * networks.length)]
@@ -58,9 +58,7 @@ export const sendItem = async (tokenId, address) => {
 
   nonce++
 
-  const tx = await arcaneItemsContract.transferFrom(secrets.address, address, ethers.utils.hexlify(ethers.BigNumber.from(tokenId)), { nonce, gasLimit: 200000, gasPrice: ethers.utils.parseUnits(gasPrice + "", "gwei") }).catch((e) => {
-    console.log(e)
-  })
+  const tx = await arcaneItemsContract.transferFrom(secrets.address, address, ethers.utils.hexlify(ethers.BigNumber.from(tokenId)), { nonce, gasLimit: 200000, gasPrice: ethers.utils.parseUnits(gasPrice + "", "gwei") })
 
   nonce++
 
@@ -86,8 +84,8 @@ export const sendRune = async (symbol, address, amount) => {
 
   const now = Math.round(Date.now() / 1000)
 
-  if (!nonce || now > (lastUpdatedNonce + 60)) {
-    const newNonce = await signer.getTransactionCount()
+  if (!nonce) {// || now > (lastUpdatedNonce + 60)) {
+    const newNonce = await signer.getTransactionCount('pending')
 
     if (Number.isNaN(parseInt(newNonce + ''))) {
       console.log('Invalid nonce')
