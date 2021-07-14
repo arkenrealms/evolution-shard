@@ -751,6 +751,7 @@ io.on('connection', function(socket) {
       } else if (data.event === 'SetMaintenance') {
         if (!playerWhitelist.includes(currentPlayer?.name)) return
     
+        baseConfig.isMaintenance = data.value
         config.isMaintenance = data.value
     
         publishEvent('OnMaintenance', config.isMaintenance)
