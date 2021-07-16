@@ -14,6 +14,8 @@ import * as services from './services'
 import { decodeItem } from './decodeItem'
 import { sendRune, sendItem } from './rune'
 
+const serverVersion = "0.14.0"
+
 const server = express()
 const http = require('http').Server(server)
 const io = require('socket.io')(http)
@@ -24,7 +26,7 @@ const anticheatEnabled = false
 const playerWhitelist = ['Botter', 'Bin Zy']
 
 const eventCache: any = {
-  'OnUpdatePosAndRot': {},
+  'OnUpdateMyself': {},
   'OnUpdatePlayer': {}
 }
 const db: any = {}
@@ -65,9 +67,9 @@ const baseConfig = {
   avatarDecayPower0: 2,
   avatarDecayPower1: 2.5,
   avatarDecayPower2: 3,
-  avatarTouchDistance0: 0.15,
-  avatarTouchDistance1: 0.15,
-  avatarTouchDistance2: 0.15,
+  avatarTouchDistance0: 0.25,
+  avatarTouchDistance1: 0.35,
+  avatarTouchDistance2: 0.45,
   avatarSpeedMultiplier0: 1,
   avatarSpeedMultiplier1: 0.85,
   avatarSpeedMultiplier2: 0.65,
@@ -79,26 +81,37 @@ const baseConfig = {
   claimingRewards: false,
   decayPower: 1.4,
   disconnectPlayerSeconds: testMode ? 999 : 10,
+  disconnectPositionJumps: true,
   fastestLoopSeconds: 0.005,
   fastLoopSeconds: 0.020,
   gameMode: 'Standard',
   immunitySeconds: 5,
   isMaintenance: false,
-  lazycap: false, // gameModeLazycap gameModeAbsoluteMadness
+  lazycap: false,
   maxEvolves: 3,
   noBoot: testMode,
   noDecay: testMode,
-  orbCutoffSeconds: 60,
+  orbCutoffSeconds: testMode? 0 : 60,
   orbOnDeathPercent: 25,
-  orbTimeoutSeconds: testMode ? 1 : 10,
+  orbTimeoutSeconds: testMode ? 3 : 10,
+  pickupDistance: 0.2,
   pointsPerEvolve: 1,
   pointsPerKill: 20,
   pointsPerOrb: 1,
   pointsPerPowerup: 1,
   pointsPerReward: 5,
+  powerupXp0: 2,
+  powerupXp1: 4,
+  powerupXp2: 8,
+  powerupXp3: 16,
   resetInterval: 1,
+  rewardItemAmount: 0.01,
+  rewardItemName: '?',
+  rewardItemType: 0,
   rewardSpawnLoopSeconds: testMode ? 1 : 3 * 60 / 20,
-  roundLoopSeconds: testMode ? 60 : 5 * 60,
+  rewardWinnerAmount: 0.05,
+  rewardWinnerName: 'ZOD',
+  roundLoopSeconds: testMode ? 2 * 60 : 5 * 60,
   sendUpdateLoopSeconds: 2,
   slowLoopSeconds: 1,
   spritesPerPlayerCount: 1,
@@ -111,6 +124,16 @@ let config = {
 }
 
 const presets = [
+  // Lazy Mode
+  {
+    gameMode: 'Lazy Mode',
+    avatarDecayPower0: 2,
+    avatarDecayPower1: 2.5,
+    avatarDecayPower2: 5,
+    avatarSpeedMultiplier0: 1,
+    avatarSpeedMultiplier1: 0.85,
+    avatarSpeedMultiplier2: 0.85,
+  },
   // Standard
   {
     gameMode: 'Standard',
@@ -120,16 +143,16 @@ const presets = [
     pointsPerReward: 5,
   },
   // Decay
-  {
-    gameMode: 'Decay 2X',
-    decayPower: 2.8,
-  },
+  // {
+  //   gameMode: 'Decay 2X',
+  //   decayPower: 2.8,
+  // },
   // Orb
-  {
-    gameMode: 'Orb 50%',
-    orbOnDeathPercent: 50,
-    orbCutoffSeconds: 0
-  },
+  // {
+  //   gameMode: 'Orb 50%',
+  //   orbOnDeathPercent: 50,
+  //   orbCutoffSeconds: 0
+  // },
   // Pacifism
   {
     gameMode: 'Lets Be Friends',
@@ -221,31 +244,23 @@ const presets = [
 ]
 
 let totalLegitPlayers = 0
-let runeRewardAmount = 0.05
-let winnerRewardAmount = 0.1
-const debug = false
-const killOldClients = false
+const debug = testMode
+const killSameNetworkClients = false
 const sockets = {} // to storage sockets
 const clientLookup = {}
-const powerUpSpawnPoints = []
-const powerUpLookup = {}
-const rewardLookup = {}
+const powerups = []
+const powerupLookup = {}
+let currentReward
+const orbs = []
+const orbLookup = {}
 let eventQueue = []
 let clients = [] // to storage clients
 let recentPlayers = []
 let leaderboard = []
 let lastReward
-let currentReward
 let round = {
   index: 0,
   startedAt: Math.round(Date.now() / 1000)
-}
-
-let powerupXp = {
-  0: 2,
-  1: 4,
-  2: 8,
-  3: 16
 }
 
 const mapBoundary = {
@@ -301,11 +316,6 @@ function comparePlayers(a, b) {
 const howManyRewardsPerHour = (playerCount) => {
     return Math.ceil(playerCount / 5)
 }
-
-const rewardWinner = (player) => {
-
-}
-
 
 const emitAll = (...args) => {
   log('emitAll', ...args)
@@ -375,20 +385,44 @@ const spawnRandomReward = () => {
   if (reward.type === 'rune' && reward.quantity <= 0) return spawnRandomReward()
 
   currentReward = JSON.parse(JSON.stringify(reward))
-  currentReward.id = 'current'
-  currentReward.pos = rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)]
-
-  rewardLookup[currentReward.id] = currentReward
-
+  currentReward.id = shortId.generate()
+  currentReward.position = rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)]
+  
   if (currentReward.type === 'rune') {
-    publishEvent('OnSpawnReward', currentReward.id, 0, currentReward.symbol, currentReward.pos.x, currentReward.pos.y)
+    baseConfig.rewardItemType = 0
+    baseConfig.rewardItemName = currentReward.symbol.toUpperCase()
+    config.rewardItemName = baseConfig.rewardItemName
+    config.rewardItemType = baseConfig.rewardItemType
   } else if (currentReward.type === 'item') {
     const item = decodeItem(currentReward.tokenId)
-    publishEvent('OnSpawnReward', currentReward.id, 1, item.name, currentReward.pos.x, currentReward.pos.y)
+    baseConfig.rewardItemName = item.name
+    baseConfig.rewardItemType = 1
+    config.rewardItemName = baseConfig.rewardItemName
+    config.rewardItemType = baseConfig.rewardItemType
   }
+
+  publishEvent('OnSpawnReward', currentReward.id, config.rewardItemType, config.rewardItemName, config.rewardItemAmount, currentReward.position.x, currentReward.position.y)
 }
 
-const claimReward = async (currentPlayer) => {
+function moveTowards(current, target, maxDistanceDelta)
+ {
+     const a = {
+       x: target.x - current.x,
+       y: target.y - current.y
+     }
+
+     const magnitude = Math.sqrt(a.x * a.x + a.y * a.y)
+
+     if (magnitude <= maxDistanceDelta || magnitude == 0)
+         return target
+
+     return {
+       x: current.x + a.x / magnitude * maxDistanceDelta,
+       y: current.y + a.y / magnitude * maxDistanceDelta
+     }
+ }
+
+const claimReward = (currentPlayer) => {
   if (!currentReward) return
 
   if (anticheatEnabled && lastReward?.winner.name === currentPlayer.name) return
@@ -422,10 +456,10 @@ const claimReward = async (currentPlayer) => {
         if (!db.playerRewards[currentPlayer.address].pending) db.playerRewards[currentPlayer.address].pending = {}
         if (!db.playerRewards[currentPlayer.address].pending[currentReward.symbol]) db.playerRewards[currentPlayer.address].pending[currentReward.symbol] = 0
 
-        db.playerRewards[currentPlayer.address].pending[currentReward.symbol] = Math.round((db.playerRewards[currentPlayer.address].pending[currentReward.symbol] + runeRewardAmount) * 100) / 100
+        db.playerRewards[currentPlayer.address].pending[currentReward.symbol] = Math.round((db.playerRewards[currentPlayer.address].pending[currentReward.symbol] + config.rewardItemAmount) * 100) / 100
         savePlayerRewards()
         
-        db.rewards.runes.find(r => r.symbol === currentReward.symbol).quantity -= runeRewardAmount
+        db.rewards.runes.find(r => r.symbol === currentReward.symbol).quantity -= config.rewardItemAmount
         saveRewards()
       }
     }
@@ -439,7 +473,8 @@ const claimReward = async (currentPlayer) => {
   currentPlayer.points += config.pointsPerReward
 
   lastReward = currentReward
-  currentReward = undefined
+
+  removeReward(currentReward.id)
 }
 
 const random = (min, max) => {
@@ -459,12 +494,12 @@ function shuffleArray(array) {
   return array
 }
 
-function randomizePowerupXp() {
+function randomizeSpriteXp() {
   const shuffledValues = shuffleArray([2, 4, 8, 16])
-  powerupXp[0] = shuffledValues[0]
-  powerupXp[1] = shuffledValues[1]
-  powerupXp[2] = shuffledValues[2]
-  powerupXp[3] = shuffledValues[3]
+  config.powerupXp0 = shuffledValues[0]
+  config.powerupXp1 = shuffledValues[1]
+  config.powerupXp2 = shuffledValues[2]
+  config.powerupXp3 = shuffledValues[3]
 }
 
 function convertToDecimal(byte) {
@@ -514,21 +549,18 @@ function decodePayload(msg) {
   
 }
 
-function distanceBetweenPoints(x1, y1, x2, y2) {
-  var a = x1 - x2
-  var b = y1 - y2
-
-  return Math.hypot(a,b)
+function distanceBetweenPoints(pos1, pos2) {
+  return Math.hypot(pos1.x - pos2.x, pos1.y - pos2.y)
 }
 
 function syncSprites() {
-  const deletedPoints = powerUpSpawnPoints.splice(0, powerUpSpawnPoints.length - (config.spritesStartCount + clients.filter(c => !c.isDead && !c.isSpectating && !c.isInvincible).length * config.spritesPerPlayerCount))
+  const deletedPoints = powerups.splice(0, powerups.length - (config.spritesStartCount + clients.filter(c => !c.isDead && !c.isSpectating && !c.isInvincible).length * config.spritesPerPlayerCount))
 
   for (let i = 0; i < deletedPoints.length; i++) {
     publishEvent('OnUpdatePickup', 'null', deletedPoints[i].id, 0)
   }
 
-  config.spritesTotal = powerUpSpawnPoints.length
+  config.spritesTotal = powerups.length
 }
 
 
@@ -558,9 +590,6 @@ function disconnectPlayer(player) {
 
     delete clientLookup[player.id]
 
-    db.clientTotal = clients.length
-    db.recentPlayersTotal = recentPlayers.length
-
     syncSprites()
   } catch(e) {
     console.log(e)
@@ -568,22 +597,42 @@ function disconnectPlayer(player) {
 }
 
 function randomRoundPreset() {
-  config = {
-    ...baseConfig,
-    ...presets[random(0, presets.length-1)]
+  const gameMode = config.gameMode
+
+  while(config.gameMode === gameMode) {
+    config = {
+      ...baseConfig,
+      ...presets[random(0, presets.length-1)]
+    }
   }
 }
 
 function removeSprite(id) {
-  if (powerUpLookup[id]) {
-    delete powerUpLookup[id]
+  if (powerupLookup[id]) {
+    delete powerupLookup[id]
   }
   
-  for (let i = 0; i < powerUpSpawnPoints.length; i++) {
-    if (powerUpSpawnPoints[i].id == id) {
-      powerUpSpawnPoints.splice(i, 1)
+  for (let i = 0; i < powerups.length; i++) {
+    if (powerups[i].id == id) {
+      powerups.splice(i, 1)
     }
   }
+}
+
+function removeOrb(id) {
+  if (orbLookup[id]) {
+    delete orbLookup[id]
+  }
+  
+  for (let i = 0; i < orbs.length; i++) {
+    if (orbs[i].id == id) {
+      orbs.splice(i, 1)
+    }
+  }
+}
+
+function removeReward(id) {
+  currentReward = undefined
 }
 
 function spawnSprites(amount) {
@@ -591,21 +640,24 @@ function spawnSprites(amount) {
     const spawnX = randomPosition(mapBoundary.x.min, mapBoundary.x.max)
     const spawnY = randomPosition(mapBoundary.y.min, mapBoundary.y.max)
 
-    const powerUpSpawnPoint = {
+    const powerupSpawnPoint = {
       id: shortId.generate(),
       type: (Math.floor(Math.random() * 4)),
-      posx: spawnX,
-      posy: spawnY
+      scale: 1,
+      position: {
+        x: spawnX,
+        y: spawnY
+      }
     }
 
-    powerUpSpawnPoints.push(powerUpSpawnPoint) // add power up on the list
+    powerups.push(powerupSpawnPoint) // add power up on the list
 
-    powerUpLookup[powerUpSpawnPoint.id] = powerUpSpawnPoint //add powerUp in search engine
+    powerupLookup[powerupSpawnPoint.id] = powerupSpawnPoint //add powerup in search engine
 
-    publishEvent('OnSpawnPowerUp', powerUpSpawnPoint.id, powerUpSpawnPoint.type, powerUpSpawnPoint.posx, powerUpSpawnPoint.posy)
+    publishEvent('OnSpawnPowerUp', powerupSpawnPoint.id, powerupSpawnPoint.type, powerupSpawnPoint.position.x, powerupSpawnPoint.position.y, powerupSpawnPoint.scale)
   }
 
-  config.spritesTotal = powerUpSpawnPoints.length
+  config.spritesTotal = powerups.length
 }
 
 function addToRecentPlayers(player) {
@@ -631,11 +683,11 @@ const registerKill = (winner, loser) => {
   if (loser.isInvincible) return
 
   winner.kills += 1
-  winner.points += config.antifeed1 && ((loser.deaths > 0 && loser.rewards < 2) || (loser.deaths > 0 && loser.powerups < 100)) ? 0 : config.pointsPerKill * (parseInt(loser.avatar) + 1)
+  winner.points += config.antifeed1 && ((loser.deaths > 0 && loser.rewards < 2) || (loser.deaths > 0 && loser.powerups < 100)) ? 0 : config.pointsPerKill * (loser.avatar + 1)
   winner.log.kills.push(loser.hash)
 
   const orbOnDeathPercent = config.lazycap && loser.name === 'Lazy' ? 75 : config.orbOnDeathPercent
-  const powerPoints = Math.floor(loser.points * (orbOnDeathPercent / 100))
+  const orbPoints = Math.floor(loser.points * (orbOnDeathPercent / 100))
 
   loser.deaths += 1
   loser.points = Math.floor(loser.points * ((100 - orbOnDeathPercent) / 100))
@@ -649,14 +701,16 @@ const registerKill = (winner, loser) => {
     winner.log.revenge += 1
   }
 
-  const powerUpSpawnPoint = {
+  const orb = {
     id: shortId.generate(),
-    type: powerPoints,
-    posx: loser.position.x,
-    posy: loser.position.y
+    type: 4,
+    points: orbPoints,
+    scale: orbPoints,
+    position: {
+      x: loser.position.x,
+      y: loser.position.y
+    }
   }
-
-  powerUpLookup[powerUpSpawnPoint.id] = powerUpSpawnPoint //add powerUp in search engine
 
   publishEvent('OnGameOver', loser.id, winner.id)
   disconnectPlayer(loser)
@@ -665,11 +719,14 @@ const registerKill = (winner, loser) => {
     const currentRound = round.index
     setTimeout(function() {
       if (currentRound !== round.index) return
-      publishEvent('OnSpawnPowerUp', powerUpSpawnPoint.id, powerUpSpawnPoint.type, powerUpSpawnPoint.posx, powerUpSpawnPoint.posy)
+      
+      orbs.push(orb)
+      orbLookup[orb.id] = orb
+
+      publishEvent('OnSpawnPowerUp', orb.id, orb.type, orb.position.x, orb.position.y, orb.scale)
     }, config.orbTimeoutSeconds * 1000)
   }
 }
-
 
 io.on('connection', function(socket) {
   const ip = socket.handshake.headers['x-forwarded-for']?.split(',')[0] || socket.conn.remoteAddress?.split(":")[3]
@@ -709,6 +766,7 @@ io.on('connection', function(socket) {
     joinedAt: null,
     hash: hash.slice(hash.length - 10, hash.length - 1),
     lastReportedTime: Date.now(),
+    lastUpdate: Date.now(),
     log: {
       kills: [],
       deaths: [],
@@ -718,6 +776,14 @@ io.on('connection', function(socket) {
 
   log('User connected from ' + ip + ' with hash ' + hash)
 
+  if (!testMode && killSameNetworkClients) {
+    const sameNetworkClients = clients.filter(r => r.hash === currentPlayer.hash && r.id !== currentPlayer.id)
+
+    for (const client of sameNetworkClients) {
+      disconnectPlayer(client)
+    }
+  }
+
   sockets[currentPlayer.id] = socket
   clientLookup[currentPlayer.id] = currentPlayer
 
@@ -726,8 +792,6 @@ io.on('connection', function(socket) {
   }
 
   clients.push(currentPlayer)
-
-  db.clientTotal = clients.length
 
   spawnSprites(config.spritesPerPlayerCount)
 
@@ -813,7 +877,7 @@ io.on('connection', function(socket) {
     currentPlayer.isSpectating = true
     currentPlayer.points = 0
     currentPlayer.xp = 0
-    currentPlayer.avatar = '0'
+    currentPlayer.avatar = 0
     currentPlayer.speed = 5
     currentPlayer.overrideSpeed = 5
     currentPlayer.cameraSize = 6
@@ -824,13 +888,13 @@ io.on('connection', function(socket) {
     publishEvent('OnSpectate', currentPlayer.id, currentPlayer.speed, currentPlayer.cameraSize)
   })
 
-  socket.on('Ping', function() {
-    if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) {
-      return
-    }
+  // socket.on('Ping', function() {
+  //   if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) {
+  //     return
+  //   }
 
-    emitDirect(socket, 'Pong', "pong!!!")
-  })
+  //   emitDirect(socket, 'Pong', "pong!!!")
+  // })
 
   socket.on('SetInfo', function(msg) {
     const pack = decodePayload(msg)
@@ -878,15 +942,10 @@ io.on('connection', function(socket) {
     log('JoinRoom')
 
     currentPlayer.isDead = false
-    currentPlayer.avatar = '0'
+    currentPlayer.avatar = 0
     currentPlayer.joinedAt = Math.round(Date.now() / 1000)
 
     log("[INFO] player " + currentPlayer.id + ": logged!")
-
-    const oldClient = clients.find(r => r.name === pack.name)
-    if (oldClient && killOldClients) {
-      disconnectPlayer(oldClient)
-    }
 
     log("[INFO] Total players: " + Object.keys(clientLookup).length)
     const roundTimer = (round.startedAt + config.roundLoopSeconds) - Math.round(Date.now() / 1000)
@@ -896,28 +955,59 @@ io.on('connection', function(socket) {
     emitDirect(socket, 'OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
 
     // spawn all connected clients for currentUser client 
-    clients.forEach(function(i) {
-      if (i.id === currentPlayer.id) return
-      if (i.isDisconnected || i.isDead || i.isSpectating) return
+    for (const client of clients) {
+      if (client.id === currentPlayer.id) continue
+      if (client.isDisconnected || client.isDead || client.isSpectating) continue
 
-      emitDirect(socket, 'OnSpawnPlayer', i.id, i.name, i.speed, i.avatar, i.position.x, i.position.y, i.position.x, i.position.y)
-    })
+      emitDirect(socket, 'OnSpawnPlayer', client.id, client.name, client.speed, client.avatar, client.position.x, client.position.y, client.position.x, client.position.y)
+    }
 
-    for (let c = 0; c < powerUpSpawnPoints.length; c++) {
-      emitDirect(socket, 'OnSpawnPowerUp', powerUpSpawnPoints[c].id, powerUpSpawnPoints[c].type, powerUpSpawnPoints[c].posx, powerUpSpawnPoints[c].posy) // spawn power up in unity scene
+    for (let c = 0; c < powerups.length; c++) {
+      emitDirect(socket, 'OnSpawnPowerUp', powerups[c].id, powerups[c].type, powerups[c].position.x, powerups[c].position.y, powerups[c].scale) // spawn power up in unity scene
+    }
+
+    for (let c = 0; c < orbs.length; c++) {
+      emitDirect(socket, 'OnSpawnPowerUp', orbs[c].id, orbs[c].type, orbs[c].position.x, orbs[c].position.y, orbs[c].scale) // spawn power up in unity scene
     }
 
     if (currentReward) {
-      if (currentReward.type === 'rune') {
-        emitDirect(socket, 'OnSpawnReward', currentReward.id, 0, currentReward.symbol, currentReward.pos.x, currentReward.pos.y)
-      } else if (currentReward.type === 'item') {
-        const item = decodeItem(currentReward.tokenId)
-        emitDirect(socket, 'OnSpawnReward', currentReward.id, 1, item.name, currentReward.pos.x, currentReward.pos.y)
-      }
+      emitDirect(socket, 'OnSpawnReward', currentReward.id, config.rewardItemType, config.rewardItemName, config.rewardItemAmount, currentReward.position.x, currentReward.position.y)
     }
 
     // spawn currentPlayer client on clients in broadcast
     publishEvent('OnSpawnPlayer', currentPlayer.id, currentPlayer.name, currentPlayer.speed, currentPlayer.avatar, currentPlayer.position.x, currentPlayer.position.y, currentPlayer.position.x, currentPlayer.position.y)
+
+    currentPlayer.lastUpdate = Date.now()
+  })
+
+  socket.on('UpdateMyself', function(msg) {
+    if (currentPlayer.isDead) return
+    if (currentPlayer.isSpectating) return
+    if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) return
+
+    const pack = decodePayload(msg)
+
+    const newPosition = {x: parseFloat(parseFloat(pack.position.split(':')[0]).toFixed(2)), y: parseFloat(parseFloat(pack.position.split(':')[1]).toFixed(2))}
+    const newTarget = {x: parseFloat(parseFloat(pack.target.split(':')[0]).toFixed(2)), y: parseFloat(parseFloat(pack.target.split(':')[1]).toFixed(2))}
+
+    // console.log('a', newPosition)
+    // if (config.disconnectPositionJumps && distanceBetweenPoints(currentPlayer.position, newPosition) > 3) {
+    //   disconnectPlayer(currentPlayer)
+    //   return
+    // }
+
+    // currentPlayer.position = newPosition
+    currentPlayer.target = newTarget
+    currentPlayer.lastReportedTime = pack.time
+
+    const cacheKey = Math.floor(pack.target.split(':')[0])
+
+    if (eventCache['OnUpdateMyself'][socket.id] !== cacheKey) {
+      currentPlayer.lastUpdate = Math.round(Date.now() / 1000)
+
+      // publishEvent('OnUpdateMyself', data.id, data.position, data.target)
+      eventCache['OnUpdateMyself'][socket.id] = cacheKey
+    }
   })
 
   socket.on('Pickup', async function (msg) {
@@ -927,29 +1017,19 @@ io.on('connection', function(socket) {
 
     const pack = decodePayload(msg)
 
-    const powerUp = powerUpLookup[pack.id]
-    const reward = rewardLookup[pack.id]
+    const powerup = powerupLookup[pack.id]
 
-    log('Pickup', msg, powerUp, reward)
+    log('Pickup', msg, powerup)
 
-    if (powerUp) {
+    if (powerup) {
       removeSprite(pack.id)
-
-      if (powerUp.type > 3) {
-        currentPlayer.points += powerUp.type
-        currentPlayer.points += config.pointsPerOrb
-
-        publishEvent('OnUpdatePickup', currentPlayer.id, pack.id, 0)
-        
-        return
-      }
 
       let value = 0
 
-      if (powerUp.type == 0) value = powerupXp[0]
-      if (powerUp.type == 1) value = powerupXp[1]
-      if (powerUp.type == 2) value = powerupXp[2]
-      if (powerUp.type == 3) value = powerupXp[3]
+      if (powerup.type == 0) value = config.powerupXp0
+      if (powerup.type == 1) value = config.powerupXp1
+      if (powerup.type == 2) value = config.powerupXp2
+      if (powerup.type == 3) value = config.powerupXp3
 
       currentPlayer.powerups += 1
       currentPlayer.points += config.pointsPerPowerup
@@ -960,84 +1040,8 @@ io.on('connection', function(socket) {
       removeSprite(pack.id)
       spawnSprites(1)
     }
-
-    if (reward) {
-      await claimReward(currentPlayer)
-    }
-
   })
-
-  socket.on('PosAndRot', function(msg) {
-    if (currentPlayer.isDead) return
-    if (currentPlayer.isSpectating) return
-    if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) return
-
-    const pack = decodePayload(msg)
-    clientLookup[currentPlayer.id].position = {x: parseFloat(parseFloat(pack.position.split(':')[0]).toFixed(2)), y: parseFloat(parseFloat(pack.position.split(':')[1]).toFixed(2))}
-    clientLookup[currentPlayer.id].target = {x: parseFloat(parseFloat(pack.target.split(':')[0]).toFixed(2)), y: parseFloat(parseFloat(pack.target.split(':')[1]).toFixed(2))}
-    clientLookup[currentPlayer.id].lastReportedTime = pack.time
-
-    const cacheKey = Math.floor(pack.target.split(':')[0])
-
-    if (eventCache['OnUpdatePosAndRot'][socket.id] !== cacheKey) {
-      clientLookup[currentPlayer.id].lastUpdate = Math.round(Date.now() / 1000)
-
-      // publishEvent('OnUpdatePosAndRot', data.id, data.position, data.target)
-      eventCache['OnUpdatePosAndRot'][socket.id] = cacheKey
-    }
-  })
-
-  // socket.on('PlayerDamage', function(msg) {
-  //   if (currentPlayer.isDead) return
-  //   if (currentPlayer.isSpectating) return
-
-  //   const pack = decodePayload(msg)
-
-  //   if (!clientLookup[pack.id]) return
-
-  //   const player1 = currentPlayer
-  //   const player2 = clientLookup[pack.id]
-
-  //   if (player1.isDead || player2.isDead) return
-
-  //   const now = Date.now()
-  //   const currentTime = Math.round(now / 1000)
-
-  //   if (player1.joinedAt >= currentTime - 10) return
-  //   if (player2.joinedAt >= currentTime - 10) return
-
-  //   const distanceMap = {
-  //     0: 0.15,
-  //     1: 0.3,
-  //     2: 0.5
-  //   }
-    
-  //   const player1Avatar = parseInt(player1.avatar)
-  //   const player2Avatar = parseInt(player2.avatar)
-  //   const player1Position = {x: parseFloat(player1.position.split(':')[0]), y: parseFloat(player1.position.split(':')[1])}
-  //   const player2Position = {x: parseFloat(player2.position.split(':')[0]), y: parseFloat(player2.position.split(':')[1])}
-
-  //   // console.log(player1Position, player2Position, distanceBetweenPoints(player1Position.x, player1Position.y, player2Position.x, player2Position.y))
-
-  //   const distance = distanceMap[player1Avatar] + distanceMap[player2Avatar] //Math.max(distanceMap[player1Avatar], distanceMap[player2Avatar]) + Math.min(distanceMap[player1Avatar], distanceMap[player2Avatar])
   
-  //   if (distanceBetweenPoints(player1Position.x, player1Position.y, player2Position.x, player2Position.y) > distance) return
-
-  //   if (player2Avatar > player1Avatar) {
-  //     // playerDamageGiven[currentPlayer.id + pack.id] = now
-  //     // // console.log('Player Damage Given', currentPlayer.id + pack.id)
-  //     // if (playerDamageTaken[currentPlayer.id + pack.id] > now - 500) {
-  //       registerKill(player2, player1)
-  //     // }
-  //   } else if (player1Avatar > player2Avatar) {
-  //     // playerDamageGiven[pack.id + currentPlayer.id] = now
-  //     // // console.log('Player Damage Given', pack.id + currentPlayer.id)
-  //     // if (playerDamageTaken[pack.id + currentPlayer.id] > now - 500) {
-  //       registerKill(player1, player2)
-  //     // }
-  //   }
-  // })
-
   socket.on('GetBestKillers', function(pack) {
     for (let j = 0; j < leaderboard.length; j++) {
       emitDirect(socket, 'OnUpdateBestKiller', leaderboard[j].name, j, leaderboard[j].points, leaderboard[j].kills, leaderboard[j].deaths, leaderboard[j].powerups, leaderboard[j].evolves, leaderboard[j].rewards, leaderboard[j].isDead ? '-' : Math.round(leaderboard[j].latency))
@@ -1075,7 +1079,7 @@ function sendLeaderReward(leader) {
       if (!db.playerRewards[leader.address].pending) db.playerRewards[leader.address].pending = {}
       if (!db.playerRewards[leader.address].pending.zod) db.playerRewards[leader.address].pending.zod = 0
     
-      db.playerRewards[leader.address].pending.zod  = Math.round((db.playerRewards[leader.address].pending.zod + winnerRewardAmount) * 10) / 10
+      db.playerRewards[leader.address].pending.zod  = Math.round((db.playerRewards[leader.address].pending.zod + config.rewardWinnerAmount) * 100) / 100
       savePlayerRewards()
     } catch(e) {
       console.log(e)
@@ -1096,11 +1100,11 @@ function getRoundInfo() {
 }
 
 function calcRoundRewards() {
-  totalLegitPlayers = 0
+  totalLegitPlayers = 1
 
   for (const client of clients) {
     try {
-      if ((client.points > 100 && client.kills > 1) || (client.points > 300 && client.evolves > 20 && client.powerups > 200) || (client.rewards > 5 && client.powerups > 200) || (client.evolves > 100) || (client.points > 1000)) {
+      if ((client.points > 100 && client.kills > 1) || (client.points > 300 && client.evolves > 20 && client.powerups > 200) || (client.rewards > 3 && client.powerups > 200) || (client.evolves > 100) || (client.points > 1000)) {
         totalLegitPlayers += 1
       }
     } catch (e) {
@@ -1108,9 +1112,16 @@ function calcRoundRewards() {
     }
   }
 
-  runeRewardAmount = Math.min(totalLegitPlayers * 0.005, 0.05)
-  winnerRewardAmount = Math.min(totalLegitPlayers * 0.02, 0.2)
+  baseConfig.rewardItemAmount = Math.min(totalLegitPlayers * 0.005, 0.05)
+  baseConfig.rewardWinnerAmount = Math.min(totalLegitPlayers * 0.02, 0.2)
+
+  config.rewardItemAmount = baseConfig.rewardItemAmount
+  config.rewardWinnerAmount = baseConfig.rewardWinnerAmount
 }
+
+
+let lastFastGameloopTime = Date.now()
+let lastFastestGameloopTime = Date.now()
 
 function resetLeaderboard() {
   let leader
@@ -1144,7 +1155,7 @@ function resetLeaderboard() {
     client.evolves = 0
     client.rewards = 0
     client.powerups = 0
-    client.avatar = '0'
+    client.avatar = 0
     client.xp = 50
     client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
     client.cameraSize = client.overrideCameraSize || config.cameraSize
@@ -1154,15 +1165,15 @@ function resetLeaderboard() {
     publishEvent('OnUpdateRegression', client.id, client.avatar, client.speed)
   }
 
-  for (let i = 0; i < powerUpSpawnPoints.length; i++) {
-    if (powerUpSpawnPoints[i].type > 3) {
-      publishEvent('OnUpdatePickup', 'null', powerUpSpawnPoints[i].id, 0)
-      // socket.broadcast.emit('UpdatePickup', currentPlayer.id, pack.id)
-      powerUpSpawnPoints.splice(i, 1)
-    }
+  for (let i = 0; i < orbs.length; i++) {
+    publishEvent('OnUpdatePickup', 'null', orbs[i].id, 0)
+    // socket.broadcast.emit('UpdatePickup', currentPlayer.id, pack.id)
+    // orbs.splice(i, 1)
   }
 
-  randomizePowerupXp()
+  orbs.splice(0, orbs.length)
+
+  randomizeSpriteXp()
 
   round.startedAt = Math.round(Date.now() / 1000)
   round.index++
@@ -1222,22 +1233,31 @@ function slowGameloop() {
 function detectCollisions() {
   const now = Date.now()
   const currentTime = Math.round(now / 1000)
+  const deltaTime = (now - lastFastestGameloopTime) / 1000
 
   const distanceMap = {
     0: config.avatarTouchDistance0,
-    1: config.avatarTouchDistance1,
-    2: config.avatarTouchDistance2
+    1: config.avatarTouchDistance0,
+    2: config.avatarTouchDistance0
   }
 
+  // Update players
+  for (let i = 0; i < clients.length; i++) {
+    const player = clients[i]
+
+    if (player.isDead) continue
+    if (player.isSpectating) continue
+
+    player.position = moveTowards(player.position, player.target, player.speed * deltaTime)
+  }
+
+  // Check players
   for (let i = 0; i < clients.length; i++) {
     const player1 = clients[i]
-
-    if (player1.isDead) continue
     if (player1.isSpectating) continue
+    if (player1.isDead) continue
     if (player1.joinedAt >= currentTime - config.immunitySeconds) continue
 
-    const player1Avatar = parseInt(player1.avatar)
-  
     for (let j = 0; j < clients.length; j++) {
       const player2 = clients[j]
 
@@ -1246,31 +1266,96 @@ function detectCollisions() {
       if (player2.isSpectating) continue
       if (player2.joinedAt >= currentTime - config.immunitySeconds) continue
       
-      const player2Avatar = parseInt(player2.avatar)
-
-      if (player2Avatar === player1Avatar) continue
+      if (player2.avatar === player1.avatar) continue
 
       // console.log(player1.position, player2.position, distanceBetweenPoints(player1.position.x, player1.position.y, player2.position.x, player2.position.y))
 
-      const distance = distanceMap[player1Avatar] + distanceMap[player2Avatar] //Math.max(distanceMap[player1Avatar], distanceMap[player2Avatar]) + Math.min(distanceMap[player1Avatar], distanceMap[player2Avatar])
+      const distance = distanceMap[player1.avatar] + distanceMap[player2.avatar] //Math.max(distanceMap[player1.avatar], distanceMap[player2.avatar]) + Math.min(distanceMap[player1.avatar], distanceMap[player2.avatar])
 
-      if (distanceBetweenPoints(player1.position.x, player1.position.y, player2.position.x, player2.position.y) > distance) continue
+      if (distanceBetweenPoints(player1.position, player2.position) > distance) continue
 
-      if (player2Avatar > player1Avatar) {
+      if (player2.avatar > player1.avatar) {
         // playerDamageGiven[currentPlayer.id + pack.id] = now
         // // console.log('Player Damage Given', currentPlayer.id + pack.id)
         // if (playerDamageTaken[currentPlayer.id + pack.id] > now - 500) {
           registerKill(player2, player1)
+          break
         // }
-      } else if (player1Avatar > player2Avatar) {
+      } else if (player1.avatar > player2.avatar) {
         // playerDamageGiven[pack.id + currentPlayer.id] = now
         // // console.log('Player Damage Given', pack.id + currentPlayer.id)
         // if (playerDamageTaken[pack.id + currentPlayer.id] > now - 500) {
           registerKill(player1, player2)
+          break
         // }
       }
     }
   }
+
+  // Check pickups
+  for (let i = 0; i < clients.length; i++) {
+    const player = clients[i]
+
+    if (player.isDead) continue
+    if (player.isSpectating) continue
+
+    const touchDistance = config.pickupDistance + config['avatarTouchDistance' + player.avatar]
+
+    for (const powerup of powerups) {
+      if (distanceBetweenPoints(player.position, powerup.position) > touchDistance) continue
+
+      let value = 0
+
+      if (powerup.type == 0) value = config.powerupXp0
+      if (powerup.type == 1) value = config.powerupXp1
+      if (powerup.type == 2) value = config.powerupXp2
+      if (powerup.type == 3) value = config.powerupXp3
+
+      player.powerups += 1
+      player.points += config.pointsPerPowerup
+      player.xp += value
+  
+      publishEvent('OnUpdatePickup', player.id, powerup.id, value)
+
+      removeSprite(powerup.id)
+      spawnSprites(1)
+    }
+
+    const currentTime = Math.round(now / 1000)
+    const isNew = player.joinedAt >= currentTime - config.immunitySeconds
+
+    if (!isNew) {
+      for (const orb of orbs) {
+        if (distanceBetweenPoints(player.position, orb.position) > touchDistance) continue
+  
+        player.orbs += 1
+        player.points += orb.points
+        player.points += config.pointsPerOrb
+  
+        publishEvent('OnUpdatePickup', player.id, orb.id, 0)
+  
+        removeOrb(orb.id)
+      }
+  
+      const rewards = [currentReward]
+  
+      for (const reward of rewards) {
+        if (!reward) continue
+        if (distanceBetweenPoints(player.position, reward.position) > touchDistance) continue
+  
+        // player.rewards += 1
+        // player.points += config.pointsPerReward
+  
+        claimReward(player)
+  
+        // publishEvent('OnUpdatePickup', player.id, reward.id, 0)
+  
+        // removeReward(reward.id)
+      }
+    }
+  }
+
+  lastFastestGameloopTime = now
 }
 
 function fastestGameloop() {
@@ -1278,8 +1363,6 @@ function fastestGameloop() {
 
   setTimeout(fastestGameloop, config.fastestLoopSeconds * 1000)
 }
-
-let lastFastGameloopTime = Date.now()
 
 function fastGameloop() {
   const now = Date.now()
@@ -1293,12 +1376,11 @@ function fastGameloop() {
 
     const currentTime = Math.round(now / 1000)
     const isInvincible = client.isInvincible ? true : (client.joinedAt >= currentTime - config.immunitySeconds)
-    const avatar = parseInt(client.avatar)
 
     if (client.xp > 100) {
-      if (avatar < (config.maxEvolves - 1)) {
+      if (client.avatar < (config.maxEvolves - 1)) {
         client.xp = client.xp - 100
-        client.avatar = (avatar + 1).toString()
+        client.avatar = client.avatar + 1
         client.evolves += 1
         client.points += config.pointsPerEvolve
         client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
@@ -1312,20 +1394,23 @@ function fastGameloop() {
         client.xp = 100
       }
     } else {
-      let decay = config.noDecay ? 0 : (avatar + 1) / (1 / config.fastLoopSeconds) * ((config['avatarDecayPower' + avatar] || 1) * config.decayPower)
+      let decay = config.noDecay ? 0 : (client.avatar + 1) / (1 / config.fastLoopSeconds) * ((config['avatarDecayPower' + client.avatar] || 1) * config.decayPower)
   
       client.xp -= decay
   
       if (client.xp <= 0) {
         client.xp = 0
   
-        if (avatar === 0) {
-          if (!isInvincible) {
+        if (client.avatar === 0) {
+          const currentTime = Math.round(now / 1000)
+          const isNew = client.joinedAt >= currentTime - config.immunitySeconds
+            
+          if (!config.noBoot && !isInvincible && !isNew) {
             disconnectPlayer(client)
           }
         } else {
           client.xp = 100
-          client.avatar = (avatar - 1).toString()
+          client.avatar -= 1
           client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
 
           if (config.lazycap && client.name === 'Lazy') {
@@ -1337,7 +1422,7 @@ function fastGameloop() {
       }
     }
 
-    const cacheKey = client.position.x + client.position.y + client.target.x + client.target.y
+    const cacheKey = client.position.x + client.position.y + isInvincible
   
     if (eventCache['OnUpdatePlayer'][client.id] !== cacheKey) {
       client.latency = ((now - client.lastReportedTime) / 2)// - (now - lastFastGameloopTime)
@@ -1353,7 +1438,7 @@ function fastGameloop() {
   }
 
   if (eventQueue.length) {
-    // log('Sending queue', eventQueue)
+    log('Sending queue', eventQueue)
     emitAll('Events', getPayload(eventQueue.map(e => `["${e[0]}","${e.slice(1).join(':')}"]`)))
   
     eventQueue = []
@@ -1528,14 +1613,17 @@ const initRoutes = async () => {
 
   server.get('/info', async function(req, res) {
     return res.json({
-      version: '0.12.1',
+      version: serverVersion,
+      round: round,
       clientTotal: clients.length,
+      playerTotal: clients.filter(c => !c.isDead && !c.isSpectating).length,
+      spectatorTotal: clients.filter(c => c.isSpectating).length,
       recentPlayersTotal: recentPlayers.length,
       spritesTotal: config.spritesTotal,
       leaderboard: leaderboard,
       connectedPlayers: clients.map(c => c.name),
-      runeRewardAmount: runeRewardAmount,
-      winnerRewardAmount: winnerRewardAmount,
+      rewardItemAmount: config.rewardItemAmount,
+      rewardWinnerAmount: config.rewardWinnerAmount,
       totalLegitPlayers: totalLegitPlayers
     })
   })
@@ -1645,7 +1733,7 @@ const initRoutes = async () => {
 }
 
 function clearSprites() {
-  powerUpSpawnPoints.splice(0, powerUpSpawnPoints.length) // clear the powerup list
+  powerups.splice(0, powerups.length) // clear the powerup list
 }
 
 const initGameServer = async () => {
