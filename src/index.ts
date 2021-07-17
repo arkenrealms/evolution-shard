@@ -755,6 +755,7 @@ io.on('connection', function(socket) {
     evolves: 0,
     powerups: 0,
     rewards: 0,
+    orbs: 0,
     isMasterClient: false,
     isDisconnected: false,
     isDead: true,
@@ -1156,6 +1157,7 @@ function resetLeaderboard() {
     client.rewards = 0
     client.powerups = 0
     client.avatar = 0
+    client.orbs = 0
     client.xp = 50
     client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
     client.cameraSize = client.overrideCameraSize || config.cameraSize
