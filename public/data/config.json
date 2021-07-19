@@ -1,18 +1,2 @@
 {
-    "rewards": {
-        "items": [
-
-        ],
-        "runes": [
-            {
-                "el": 10,
-                "tir": 10
-            }
-        ]
-    },
-    "rewardHistory": [
-
-    ],
-    "rewardsSinceTime": 0,
-    "rewardsSinceTotal": 0
 }

@@ -12,7 +12,6 @@ import middleware from './middleware'
 import * as database from './db'
 import * as services from './services'
 import { decodeItem } from './decodeItem'
-import { sendRune, sendItem } from './rune'
 
 const serverVersion = "0.14.0"
 
@@ -32,8 +31,6 @@ const eventCache: any = {
 const db: any = {}
 
 db.config = jetpack.read(path.resolve('./public/data/config.json'), 'json')
-db.leaderHistory = jetpack.read(path.resolve('./public/data/leaderHistory.json'), 'json')
-db.achievementHistory = jetpack.read(path.resolve('./public/data/achievementHistory.json'), 'json')
 db.rewardHistory = jetpack.read(path.resolve('./public/data/rewardHistory.json'), 'json')
 db.rewards = jetpack.read(path.resolve('./public/data/rewards.json'), 'json')
 db.leaderboardHistory = jetpack.read(path.resolve('./public/data/leaderboardHistory.json'), 'json')
@@ -429,25 +426,19 @@ const claimReward = (currentPlayer) => {
 
   currentReward.winner = currentPlayer
 
-  const newReward = JSON.parse(JSON.stringify(currentReward))
-
-  // db.rewardHistory.push(newReward)
-
-  // saveRewardHistory()
-
   try {
     if (currentPlayer.address) {
       if (currentReward.type === 'item') {
         log('Transfer item')
 
-        try {
-          sendItem(currentReward.tokenId, currentPlayer.address).then(tx => {
-            newReward.tx = tx
-            // saveRewardHistory()
-          })
-        } catch(e) {
-          console.log(e)
-        }
+        // try {
+        //   sendItem(currentReward.tokenId, currentPlayer.address).then(tx => {
+        //     newReward.tx = tx
+        //     // saveRewardHistory()
+        //   })
+        // } catch(e) {
+        //   console.log(e)
+        // }
 
         db.rewards.items = db.rewards.items.filter(i => i.tokenId !== currentReward.tokenId)
         saveRewards()
@@ -715,7 +706,7 @@ const registerKill = (winner, loser) => {
   publishEvent('OnGameOver', loser.id, winner.id)
   disconnectPlayer(loser)
 
-  if (!roundEndingSoon(config.orbCutoffSeconds)) { // TODO: add config to skip for Orb games
+  if (!roundEndingSoon(config.orbCutoffSeconds)) {
     const currentRound = round.index
     setTimeout(function() {
       if (currentRound !== round.index) return
@@ -845,8 +836,6 @@ io.on('connection', function(socket) {
         if (!playerWhitelist.includes(currentPlayer?.name)) return
     
         presets[data.value.index] = data.value.config
-      } else if (data.event === 'ClaimRewards') {
-        claimRewards(socket, currentPlayer)
       } else if (data.event === 'SetGodmode') {
         if (!playerWhitelist.includes(currentPlayer?.name)) return
     
@@ -1457,83 +1446,6 @@ function fastGameloop() {
   setTimeout(fastGameloop, config.fastLoopSeconds * 1000)
 }
 
-async function claimRewards(socket, player) {
-  // if (config.isMaintenance) {
-  //   emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Maintenance. Try again later.' })))
-  //   return
-  // }
-  // if (config.claimingRewards) {
-  //   emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Busy. Try again later.' })))
-  //   return
-  // }
-  // if (!db.playerRewards[player.address]) db.playerRewards[player.address] = {}
-  // if (!db.playerRewards[player.address].pending) db.playerRewards[player.address].pending = {}
-
-  // if (db.playerRewards[player.address].claiming) {
-  //   emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Youre already claiming. Try again later.' })))
-  //   return
-  // }
-  // config.claimingRewards = true
-  // db.playerRewards[player.address].claiming = true
-
-  // const transactions = []
-
-  // for (const id in db.playerRewards[player.address].pending) {
-  //   const pr = db.playerRewards[player.address].pending[id]
-  //   if (pr && pr >= 1) {
-  //     try {
-  //       const tx = await sendRune(id, player.address, pr)
-  //       if (tx) {
-  //         db.playerRewards[player.address].pending[id] = 0
-  //         savePlayerRewards()
-
-  //         if (!db.playerRewards[player.address].tx) db.playerRewards[player.address].tx = []
-  
-  //         transactions.push(tx)
-  //         db.playerRewards[player.address].tx.push(tx)
-  //         savePlayerRewards()
-
-  //         const newReward = {
-  //           type: "rune",
-  //           symbol: id,
-  //           quantity: pr,
-  //           winner: {
-  //             address: player.address
-  //           },
-  //           tx
-  //         }
-
-  //         db.rewardHistory.push(newReward)
-
-  //         saveRewardHistory()
-  //       } else {
-  //         db.playerRewards[player.address].claiming = false
-  //         savePlayerRewards()
-
-  //         config.claimingRewards = false
-  //         emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Transaction failed. Try again later.' })))
-  //         return
-  //       }
-  //     } catch(e) {
-  //       console.log(e)
-
-  //       db.playerRewards[player.address].claiming = false
-  //       savePlayerRewards()
-
-  //       config.claimingRewards = false
-  //       emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Error: ' + e + '. Try again later.' })))
-  //       return
-  //     }
-  //   }
-  // }
-
-  // db.playerRewards[player.address].claiming = false
-  // savePlayerRewards()
-
-  // config.claimingRewards = false
-  // emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Done.' })))
-}
-
 const initWebServer = async () => {
   // @ts-ignore
   const rateLimiter = new RateLimit({
@@ -1680,9 +1592,6 @@ const initRoutes = async () => {
     if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending[req.params.symbol] = 0
     if (!db.playerRewards[req.params.address].tx) db.playerRewards[req.params.address].tx = []
 
-    if (req.params.symbol !== 'zod') {
-      return res.json({ success: true })
-    }
     const newReward = {
       type: "rune",
       symbol: req.params.symbol,
@@ -1703,69 +1612,6 @@ const initRoutes = async () => {
     savePlayerRewards()
 
     res.json({ success: true })
-  })
-
-  server.get('/claim/all', async function(req, res) {
-    // if (config.isMaintenance) return res.json({error: 'Maintenance. Try again later.'})
-    // if (config.claimingRewards) return res.json({error: 'Busy. Try again later.'})
-    
-    // for (const address in db.playerRewards) {
-    //   if (!db.playerRewards[address]) db.playerRewards[address] = {}
-    //   if (!db.playerRewards[address].pending) db.playerRewards[address].pending = {}
-
-    //   if (db.playerRewards[address].claiming) continue
-
-    //   config.claimingRewards = true
-    //   db.playerRewards[address].claiming = true
-
-    //   const transactions = []
-
-    //   for (const id in db.playerRewards[address].pending) {
-    //     const pr = db.playerRewards[address].pending[id]
-
-    //     if (pr && pr >= 1) {
-    //       try {
-    //         const tx = await sendRune(id, address, pr)
-    //         if (tx) {
-    //           db.playerRewards[address].pending[id] = 0
-    //           savePlayerRewards()
-    
-    //           if (!db.playerRewards[address].tx) db.playerRewards[address].tx = []
-      
-    //           transactions.push(tx)
-    //           db.playerRewards[address].tx.push(tx)
-    //           savePlayerRewards()
-
-    //           const newReward = {
-    //             type: "rune",
-    //             symbol: id,
-    //             quantity: pr,
-    //             winner: {
-    //               address: address
-    //             },
-    //             tx
-    //           }
-
-    //           db.rewardHistory.push(newReward)
-
-    //           saveRewardHistory()
-
-    //           console.log('Sent ' + pr + ' ' + id + ' to ' + address)
-    //         } else {
-    //           console.log('Transaction failed. Try again later. ' + pr + ' ' + id + ' to ' + address)
-    //         }
-    //       } catch(e) {
-    //         console.log('Error: ' + e + '. Try again later. ' + pr + ' ' + id + ' to ' + address)
-    //       }
-    //     }
-    //   }
-
-    //   db.playerRewards[address].claiming = false
-    //   savePlayerRewards()
-    // }
-
-    // config.claimingRewards = false
-    // return res.json({ success: 1 })
   })
 
   server.get('/readiness_check', (req, res) => res.sendStatus(200))

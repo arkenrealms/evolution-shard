@@ -1,4073 +1,511 @@
 {
-  "0xa987f487639920A3c2eFe58C8FBDedB96253ed9B": {
-    "pending": {
-      "ral": 1,
-      "tir": 1.09,
-      "amn": 0.97,
-      "thul": 0.91,
-      "zod": 1.16,
-      "sol": 1.13,
-      "tal": 0.93,
-      "ort": 1.23,
-      "shael": 1.07,
-      "nef": 1.03,
-      "ith": 0.17
-    },
-    "claiming": true,
-    "tx": [
-      "0x601f398ef0e312650fd088b6de6b05a71ba93e0749378e54268428833d319318",
-      "0xc00248bd19379a2bc2ca3f29685a1e7de5062406a1aa2f061c3dfd714135a69e",
-      "0x203a51bf3d6327c793a4b693505135a22b738868164d62365497df694272e055",
-      "0x49a5f3522071890db93f6eb3e1375e25d16b21caeac55d68dfce26185f08c5a1",
-      "0x8cbbabe0938b1e40f2d30dcd8f0a9f64c28e9b9938db8d66a2c69a783fc863b1",
-      "0x449fd16c8333572657ec0a989a075201059f5635b1b48ebbadc4ff7169820e55",
-      "0xf6f44df8d8b943eb9f5cc85f5ca6793b1d4ada64f7d4df3157875dbd5deb63bb",
-      "0xe5cfb8776e0859387c3ef7e19b1cd8e5d056d61778ac3fd1d7270b368037cdf4",
-      "0x06e85181cbcfee844a6179fb7845bd0f68edbcbd57961561eccf38edf39cf95a",
-      "0xb3516c7334cc3f01c9a85bcfd19d268ecaa0cdc413ffcec34dd6bf9332a5e4e7",
-      "0x3e9c81a467f43da9c07b9fe69b9052ccd9a1ff70bc98b4f565dca8bef53aa877",
-      "0x5af6f8f51b9d639084273ff0cfc65fe85e48996fb32251b9d18568abeb6061bc",
-      "0x2162f6e926f1becd69e84f8f56b9ebae2d66422cd8617b048a5f09958479b2de",
-      "0x7a17055e633fad6a651d82a49be7d7e60caf734dc547f1dbcabdef094f821ec7",
-      "0xf9da98b6e75c8019d97c581bb3932208a99501dd93dcb70a00995ac6a0bbcbac",
-      "0x415857efefabf8e44c92de8b9dfe420c60c8d80f2bc0ab236cd502c6d352a760",
-      "0xb14525a47c5ed0b11e0bc38ac4081861eb513173c4e4d5982455b394e56d4ff8",
-      "0x5fb710ea3325b22518adbeca8ad0c603d253afd258350216859d5fd2fc493f23",
-      "0x52ee9116edf2bf97571bf9cb65f9995f8905f71e60043577cb0f7ec3b5b13f42",
-      "0xbcaee393d34c65399df0745f2828eb583fee46805a3066e3c3b0ad1fc795a296",
-      "0x9402a3518bcf96a1fa1f0cd30a13d9c80294097976f2a1abfadd17d510f31a47",
-      "0xdf66a140072096af87a491c1d2acbcbea28836f2d9b82f4ecccf936004bec86e"
-    ]
-  },
   "0xc84ce216fef4EC8957bD0Fb966Bb3c3E2c938082": {
     "pending": {
-      "zod": 9.4,
-      "nef": 14,
-      "shael": 17.7,
-      "ort": 14.89,
-      "tal": 17.21,
-      "thul": 12.23,
-      "tir": 10.83,
-      "ith": 1.46,
-      "amn": 1.53,
-      "dol": 0.78,
-      "ral": 0.75,
-      "sol": 1.16
-    },
-    "claiming": false
+      "shael": 0.01,
+      "ort": 0.09,
+      "ith": 0.07,
+      "nef": 0.04,
+      "amn": 0.05,
+      "zod": 0.11,
+      "tir": 0.05,
+      "sol": 0.03,
+      "thul": 0.05
+    }
   },
-  "0x6616e96737a69C146d0b6Ce36eCfA68BEA773963": {
+  "0xa987f487639920A3c2eFe58C8FBDedB96253ed9B": {
     "pending": {
-      "ort": 0,
-      "nef": 0,
-      "zod": 0,
-      "tal": 0,
-      "shael": 0,
-      "thul": 0,
-      "tir": 0,
-      "dol": 0.05
-    },
-    "claiming": false,
-    "tx": [
-      "0x385ee2bcad4b493a1bfb87cad2c685cb059899e680d605d350acaff5e5dad75b",
-      "0x7f039e796e52ec14269737d0c41654aea927220cec255534789da8bcc998b725",
-      "0x64f724f41775ce039d2596381148b7471088286bf74c068d79fbb99fa2b3b67c",
-      "0x0eca54f76b5dd8793fac1013c6ece69c281776db75b319d029f1bb11ddee30de",
-      "0x5265a058f0e5f507525d3a7c27bc4c76698aa591d173c1187b95aaccc47e67be",
-      "0x784c15e15a3af0d93c0180c2ec86e0dd910ddb4d7cae1a69dd3c86179d795303",
-      "0x279600325f41e1c46dfb9eb16843024f413aa762c565308e7d8b532d19743ff5",
-      "0x5d5ff13ad351d8feff412b6517e01c0acee4c2da5a1ecfbe56e26f95953f2bce"
-    ]
-  },
-  "0xf5f74C75e82fa95dD2aC825A9F057486977ca294": {
-    "pending": {
-      "tir": 1.92,
-      "thul": 1.94,
-      "nef": 2.22,
-      "shael": 1.2,
-      "ort": 1.55,
-      "tal": 1.63,
-      "zod": 6.7,
-      "dol": 0.06,
-      "ith": 2.18,
-      "ral": 0.16,
-      "amn": 1.91,
-      "sol": 1.43
-    },
-    "claiming": false,
-    "tx": [
-      "0xcc0a11552439ffe94bceb1400a5cccb09e65725461cf7dec5a4352906499542c",
-      "0x2deff89de3ebe64c00d3e291e87d655953a1f98cdc1ff57a4fa3f78744d4b387",
-      "0x91f06d7d592d2cd0ff4e21f615cb2e7a68df4f8640c0dc5ddfd90d4ce502fcaa",
-      "0x481c73ff01506a6afb7cbf072aee68fd8aa0c6824cd97f24d36a15a2016d078d",
-      "0xc088cad55b96427a19787c3457b3a301020d95563fb7084f25cbf0c5bad4774c",
-      "0x4c59b8655eb63810485245bea2fc6fc8cfcbfa924ed64f62dd6827e0c518338e",
-      "0xfc69424270c2d65840097001781eff83f461e2597b31c04f8b4fa06c083b0cda"
-    ]
-  },
-  "0x868F6E955d61d5f9f70F14103F6EDF6d38583093": {
-    "pending": {
-      "thul": 0.86,
-      "shael": 1.16,
-      "ort": 0.7,
-      "tir": 1.27,
-      "nef": 0.84,
-      "tal": 0.86,
-      "ith": 0.56,
-      "dol": 0.36,
-      "ral": 0.22,
-      "amn": 0.6,
-      "zod": 0.37,
-      "sol": 0.32
-    },
-    "claiming": true
-  },
-  "0xc31dF445eaE41d57f3DEc40FfaAeDCAcB5De69cE": {
-    "pending": {
-      "tir": 0.1
-    },
-    "claiming": false
-  },
-  "0xFFFe5C20d8861908C524313D0CF74a15b3448319": {
-    "pending": {
-      "tal": 0.3,
-      "shael": 0.3,
-      "ort": 0.3,
-      "zod": 0.3,
-      "tir": 0.2
-    },
-    "claiming": false
-  },
-  "0x21e7451056032eF22729D5C5AA47Eb8b4D73184C": {
-    "pending": {
-      "ort": 0.26,
-      "thul": 0.29,
-      "zod": 0.9,
-      "tir": 0.32,
-      "nef": 0.31,
-      "shael": 0.26,
-      "tal": 0.25,
-      "amn": 0.22,
-      "sol": 0.24,
-      "ith": 0.24
-    },
-    "claiming": false,
-    "tx": [
-      "0xaa0ead36575cdbd15e0e7c3f8bfdbdecdb08196fc1d20bc955779f7190b92de4",
-      "0xe9532ee5379aba3653363cf770de468bd823ad22f383039c3812d9e8c96731e0",
-      "0x6467e6c333572b470c9d9a00ebd65c091116afe073e26684e784ef2747e1a6ca",
-      "0x8fc04c7372ae951322e872931539dce53327b758f7ee5912c61867cffd63baa0",
-      "0x6a711a04a9c81343e7c7f61247daa3b931adb6539d762ddd34aacdee426e4d3c",
-      "0x62cbc7635d04eae26f10d80fb711c46131642590497f5fc8f7a0a8508bdaf3a2",
-      "0x01f215dc232144cf93dd8a6788d02f4e05e0a820a800cf1d8130d599468c6079"
-    ]
-  },
-  "0xFafa7D7fB7Ec0C08Cdd8e1d27175b36FC04C63d6": {
-    "pending": {
-      "nef": 0,
-      "shael": 0,
-      "tir": 0,
-      "thul": 0,
-      "tal": 0.45,
-      "zod": 0,
-      "ort": 0
-    },
-    "claiming": false,
-    "tx": [
-      "0xa1ec92bb96de2f8757e35ba0181ec0d9f602ad9e2950f779f83bce9c9d2656bd",
-      "0x16549d22621d776335e6d2ade6fb109a9ce1794cc9681db41678d4820bf2640d",
-      "0xed4590c642cbea8fd50334ecaab66ed03fb46a983baa66d33fd000db4fe7faea",
-      "0x960880a000c853156a033afb169e5ff02362201ce2f4f0d14ce454b0b87ecfc9",
-      "0x2c753657cdbbb5922102fdd019c51d1de88f2381a65706191c88555e467db4d7",
-      "0xd5a3cf28723bcacef8f2eafbead1bdba6c6805bf2bcf730086f773e6a8011ca0",
-      "0xba9c49849f833212d0b84e645419a014a127db132490aa1eb1a2ce0d18304703"
-    ]
-  },
-  "0x5455cc118eadfEF47A916500F2ACc10A798A6084": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xDA2Ca56cCe1b6f5a51C960F94d351Ea0ecDB68c9": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xe7f71be42Ad3BE3Bf01592De228eE93E2dE822F7": {
-    "pending": {
-      "ort": 0.29,
-      "shael": 0.09,
-      "tal": 0.27,
-      "thul": 0.19,
-      "tir": 2.73,
-      "nef": 2.25,
-      "zod": 1.39,
-      "dol": 0.1,
-      "ith": 0.31,
-      "ral": 0.4,
-      "amn": 0.36,
-      "sol": 0.22
-    },
-    "claiming": true,
-    "tx": [
-      "0xc637d97f88bd887801e52b61eb2bc57cdcdd60e3b57d7dfe99b946b46e16c448",
-      "0x9599b7e364772bcf15fea338f9529199ea9eecbce778fc6ecbe10aec7dd9ec82",
-      "0xb87f8a5189768c372c59f633e1db98c6bb1107443fca740b20138fd06990b215",
-      "0x625d26ad195f3d7ce3f079ab7cb00b7f81878758f83d12d17112d1cd8161763b",
-      "0xc8143261585b64c4d5e29f8a9b05494d88086897bff0ad0d4da2b983d22d80a1",
-      "0xe2eefd999a98fadcf26057bc3b7562e468d383d2335b3ad22e567f6a22d06a38",
-      "0xf7ba8772eccc66443c84257e1fde24d68ab7271378fd8a08814680d32c712238",
-      "0x71151b5a2dc3cd991c768abcb8d1b9b297b12f76835f486db431223079960b38",
-      "0x4c3a6c782c5095ad7c5069dd8333107e106ab19a60a9af308693e3aeade5fe96",
-      "0xe9df2b0f25f827c1d4519397f08169cfeeae720099a9c6afb95479f3326c346f",
-      "0x20eced927f28d62a1295f7a4f8632a9bb78fb0ade6d5f183bbbb36bfc3a4129a",
-      "0xd0666823bdc3e6d983823549ad305d4cc54ac336fd8b1b8c1c18592cdb563e4e",
-      "0xef515ce59585c1ad4237d561874fa0af3bd7f671a5332489be42103913e7d00b",
-      "0x2291ed74e5f0a94af33baff352c3bd0a2d1d32811e8813ba318b87f754f87831",
-      "0x7007d8ad58d6805380009eaa55f9d280918472794aa0304933e879e93cb8286f",
-      "0x30625f9ffa4a7d41bba9e7cca925d7f06261329d3cbb9a14236e72c63316aba3",
-      "0x137f00aee4c79df183f1f5ef961fb772939dc5315ed4dc8de83ddac6128752f1",
-      "0x6604b398be699e36ea88952f31bb42787c46dff5459084cb42967791a16cc854",
-      "0x35ddc0300b87dc42239a72042663163ebb253b0f10b1014f386a742d372395d0",
-      "0x1c62f0e353f0a0d8d22f37c34f8f598b44546d15d0ea305cedf20adbaec3501e",
-      "0x946d8ae8094fe1d59df9e673fe651b52e80186a47b61530a239ee55c43d4fa48",
-      "0x28b6a4d2dd01e502a578d9cb54d20e9cbcaa4587cc132f2ae12f5b92b20124f7",
-      "0x40cf91c1fe1a437114a622f737943ef4b14b96f5fc7947ba38503da09e48170f",
-      "0xffc2cd504389687219c4f6b66e0b11fb30fc67b7b4bb52c8def6e092285ba205",
-      "0xd00f7d32f282a953c37732af7bed2eb02ec652a07ad95c51255768fc05e996cb"
-    ]
-  },
-  "0x9dC829dB9Cdbe91fE3044b7E1aE4c7Ee6153d5c2": {
-    "pending": {
-      "tir": 0.04,
-      "shael": 0.13,
-      "thul": 0.05,
-      "tal": 0.06,
-      "nef": 0.07,
-      "ort": 0.05,
-      "ral": 0.25,
-      "dol": 0.15,
-      "zod": 0.21,
-      "amn": 0.22,
-      "ith": 0.13,
-      "sol": 0.11
-    },
-    "claiming": false,
-    "tx": [
-      "0xfb3f0fd98b76a4d68bd25a02b067daf62ed6e0f85dd84aefeda4d24365564ee7",
-      "0xfb68afaeb919e0e5cc91b72d835e467baec545576dc1172a6adaea7ccd4eba91",
-      "0x3669870cd2d3a3a70e460ed39ed634f81bae51bc31a702be39d93c82eeaac4dc",
-      "0x2a6f89bdfdd9421d9831e6582270a66d9ad909f48dbd222d0875a39bb86bab45",
-      "0xacdc0d17aa4439ec9882aaccb0de0f9af3ed0dcf4798a8b5537ec4e80f961d53",
-      "0xc5d881c0e42306165aeafaf798a9360efa794ba9c2b093a6c9ccbc5e099135d9"
-    ]
-  },
-  "0xa2DDC93bb38D86f233F39D198A505891DD22673b": {
-    "pending": {
-      "ort": 0.38,
-      "thul": 0.19,
-      "nef": 0.41,
-      "tir": 0.29,
-      "shael": 0.36,
-      "tal": 0.33,
-      "dol": 0.12,
-      "amn": 0.37,
-      "zod": 0.32,
-      "ith": 0.29,
-      "ral": 0.03,
-      "sol": 0.3
-    },
-    "claiming": false,
-    "tx": [
-      "0x1ac6c8b5fba7f35b08b9287db476d2b6cc7329d7eaa653d56bcd667b98739c5f",
-      "0x9bba7b6fe691f9848a231b0a523d2deebb6559a1e255ea7d15e006dc2e91a75c",
-      "0xc9a69d14a741cb74b57c5632649332e09b9ec324aedffa3d519c3978e80c2edb",
-      "0x4559ca676b0d81a94c123581b2fa24d284ca6a8bf13fef3afcc52cba172a4874",
-      "0x13e3f9efc83b2705731cbe8710a021e700169329186ed848c93d420c695d5dd5",
-      "0xe219f1be6c00420edc738d941a8295c736cdb743668a9e124e928e3021c0540d"
-    ]
-  },
-  "0xCb7d9cb4C1144db98f3390273BfBC1C0ff69d335": {
-    "pending": {
-      "shael": 0.1,
-      "tal": 0.1
-    },
-    "claiming": false
-  },
-  "0xeb3fCb993dDe8a2Cd081FbE36238E4d64C286AC0": {
-    "pending": {
-      "shael": 1.29,
-      "tal": 1.18,
-      "nef": 1.49,
-      "ort": 0.92,
-      "thul": 1.09,
-      "tir": 1.19,
-      "zod": 2.25,
-      "ral": 0.28,
-      "dol": 0.41,
-      "amn": 1.09,
-      "ith": 1.35,
-      "sol": 1.33
-    },
-    "claiming": false,
-    "tx": [
-      "0x000a544657806ebefa4ea6397dcdfdf8c5d310120494814750a6fd67208536d1",
-      "0x920ac4cca1fd3fbe74a758d9a10ce5887e821bf5d6ecd58b8187364dc786235f",
-      "0xb8cef67ead2402a718fbec440003d27a6901c7b042a75e6d9cd9e1ff83fd33f4",
-      "0x0daf4075a34b9e1a709ed71e3352c8f0e74ab7d8fdfa882996d684cbef194584",
-      "0xc9be456c25ec716ae9316b49afeec2e6b2a46c51e414eb602a9fd2ff9e451872",
-      "0xfacd299baef5759c6282cb989538b13b3e48231efbc929bda8f59fdd6bd648c8",
-      "0x439a2ef116b830abcffd34ab0aa3e5122b6660dca5f95a4bd04d55dfdb7e2297",
-      "0xa27f83739873e2408d74120b85246aadce2eebc4e6c89f4a38c964cb26a53662",
-      "0x808d79d9e05a7a08202688d67690ed3a501bb32856f29027b4ce2df7e75dd69f",
-      "0x16489fba468d7bdb5b869fd86485fd3cba4cc69cb92876c1f67c370cb14e675b",
-      "0xdfa1e60832434188772d8dc29096eebcab481d95704a7fb921a95fdfe3b37860",
-      "0xd573d7f11fa6bad9a8c2a4ad05cd781f2837418b50ae1391b47380a12965b264",
-      "0xb6b221994ef3332672e35a5b542be70e838ddf4f671cd13184902f0339625174",
-      "0xff488f25818ad69fd16988ef2d66b312ccc64c8ed2dd41ee2cf97e2122dde566",
-      "0x97997410d9894de4da740b34d4fbc7defddec79eb5314708e02e0ec106a889b8",
-      "0x9eecb37fa4f12ecd541d0eb3f3464b7a8a5f2527add43bad31b4e38e8ceb370a",
-      "0x88c20f8cea6548a8e805eb83767cef3cea6190466fa35a3c5216afc90179b2fe",
-      "0x045785997b63821029cfd4cce6e5bfb5dd01ee0d2daba70d65353804c90a86b8",
-      "0x17647855a1cfc23a98211674049b2d3eeb447be661a0593f368eaceec4df0fcb",
-      "0xf7d363d5f7c6fd012038b184bc5cadd5259fcce46a26b599871f728219a411de",
-      "0x066edeb22acf228a66f5c5ab3d78ed98c93029cee2a48f5c4fa78f4e2429419e",
-      "0x2225b8a39818f3de37aeb50bc416c175d1cece77275ebed44c2894957b265e40",
-      "0x55203d639b6dbb068b2fdcabb6db3277129c53d9e987566a717adb10775a123d",
-      "0x4e56d361dd130623e4dfafddb0b831364cee74b3becf756d831b3233449e3a7f",
-      "0xb84cba12debcbde5c75b17a610eedc1c84713d496ad77b881e07c73656a2f928",
-      "0xcd78ee1c8e88ca856785a3390b919dcb58b48305eb9493b38fe639638b1c2457",
-      "0xfa83e3fcec535290505d123f7811c574594c2c6addaa7ef691a0c8071d755408",
-      "0xb147a7cfca65cc7c3d1fe3f780dbc5bb1ca744f13cfda38eb9c0ea1801ac027d",
-      "0xd3fdde93bf093513419bad89abf2803dbe358c491999c8aaef04191bb0cbb0c0",
-      "0x3d350f5c98aa38b1fc3b163298376ddd2988b4d19a871bf5edbb9ae9572fa7e9",
-      "0xea48cc479adb64fb0b5599fa5c6f919c23f7b662d3cd948c965d1d8772316863",
-      "0x07f21d3fcfa56e866be8f02c7299562dafa0281f3f96fbf4be4cdb1ad232cecb",
-      "0x1120ac1e7ea572a43f0d5eb635654b7af8601dbfd66bf883e086d32adfa80641",
-      "0x3a66118a2cbb3baf2a7fe890294c36e2b424f1b4a4915b8df1693f4e6d93d393",
-      "0x8be2448a72496f0a4a62ef9fdbccd306a3f6ef8a43eb1bb5a03b1859e5b87757",
-      "0xec05152640f4b28c0564cb089acbf03cc6962fb45b584931947e1210af0851a4",
-      "0xfb6ef7f707f6975ab51804aa27c8130118204991d4f64cbd4937ec7aef626dea",
-      "0x367253bda977298eae787f32356fcb56fca5e926fbc70fce65c7ea0807ee9a2c",
-      "0x0f69189d1a53436381b814b6a9640b0da35959a1829a734b31fba2fa2f1ec7ec",
-      "0x704a16df37a276a205c5c2859e539bec34495b1aeab2ece7b7f2dd652fd4d187",
-      "0xd56c1c7689f2415fbceddb44e2f336aae81ad4aae2de7da4e88d00380097f5ec",
-      "0x810db9b00f1f621ba8036748999a4663623c6ca89d5f48b92ffa6368e660211a",
-      "0xec97f55fde3478b90bb9b7270609ed50994e514f374e5ffbc30e838c4152968b",
-      "0x3a970c42d384e335d5fb0c7921eb1923fd14576a7aeb34292f7dca16f3cc5caa",
-      "0xe0710aea44542702fa642579838786f33983898f99253c5516236886ce832b1d",
-      "0xe2ac4b763210c391af0e5b7d1a289425ecd2ff39a390b9862d7e2fe113927335",
-      "0x5cf28afe534ab98d57d738fc702e1e4fffb47dea355f6a7bfea6b783c5b87e2d"
-    ]
-  },
-  "0xbc83507c89BF6A8F7A8f576c5b4C17327b7C6790": {
-    "pending": {
-      "ort": 0.32,
-      "thul": 0.21,
-      "shael": 0.32,
-      "tal": 0.02,
-      "nef": 0.12,
-      "sol": 0.06,
-      "tir": 0.02,
-      "zod": 0.04,
-      "ith": 0.05,
-      "amn": 0.03
-    },
-    "claiming": false,
-    "tx": [
-      "0xfa2193d493e8ccb1081e66946e71733d327c3579888155463eee90c678785b17"
-    ]
-  },
-  "0x09183a8Ad59f16B28328531569f334C768cdC602": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x3098C580C90839FDDf44B12393421135EE13B959": {
-    "pending": {},
-    "claiming": false
+      "sol": 0.01,
+      "tal": 0.01
+    }
   },
   "0x0B0185c82B7e6A7e0825a2E29dcDedb824fB874A": {
     "pending": {
-      "nef": 2.58,
-      "ort": 2.62,
-      "tal": 2.57,
-      "zod": 8.15,
-      "thul": 2.62,
-      "tir": 2.44,
-      "shael": 2.84,
-      "amn": 2.32,
-      "ral": 0.08,
-      "dol": 0.09,
-      "ith": 2.78,
-      "sol": 2.61
-    },
-    "claiming": false,
-    "tx": [
-      "0xa98f448c1429befdb7de329b620fda09d91c3382c37362f450a0203cb167ab3f",
-      "0xac8eddad3ecd0e2866a13f0d4d607a29139fd2b03f8b1529aaecc7cf67ce4558",
-      "0x8efca5fddaf5877a39e677e04d683ed1caaae6ea673968a648de32692eca223f",
-      "0xc2923b5d292a1bf2fae8d772efc20fef619e615deac21af58598fb3bf99306e8",
-      "0x2a98990e8cafa2366a7552f185be4d0358d38430b8f231230e9fa1ed90ef7a76",
-      "0x4ce208da56a685b72a5c55976efbaa9fe2a3ed06a5ccc409ed9c8f2cebc39b5e",
-      "0xf9fa98e830acb696ab7cafb61ea781094757f3be5d0ec1ae2ff8f1493a1b3a27",
-      "0xbbe918b54dac8280601adc5c59f6835c01863d74f83b1b1987c58b6826c81706",
-      "0x4c63700e43c389c85a39090e6f848cb9b70bcab19fe0b140521c10aca414a43a",
-      "0x6735de5e72b9d5c1e885303f4f6d7d47c9c11c4e6ce7f554bcb29b7e76fb949e",
-      "0x9504a728eac21a79968b50bd5a66b73892dcdbe9101a429ba06abc33b1b38bbe",
-      "0xfcc446a3d10d95c012e0d34156510cf39836ce4535e22d3d7a231a32fb7aa34b",
-      "0x35f95d8b107ed56e4588c47c730856763843f8f0386f7406f6da30b1e8ec0cbe",
-      "0x25ea78b91f9d3ef7d98d7cd98502d42a493944724f5a191a1530a8211c77486e",
-      "0x9dc5f4bf60ef59293c4a7d11e5ea97132d09c1f9541f5e98de01cfafbf9baa67",
-      "0x35032e63a02625cc263f385a16ff4183df9d2047df9b81e839c404be8c629570",
-      "0xab24cbda8c559f229c3a4cf0eb8b8e4f1c88c4b5d1c79f7511cc19d71a825102",
-      "0x8ef05707ef34c85109ce9fb0151cc621635bbae109ab4f75367d2c9702d0fda1",
-      "0x89bc483f52b0836d7291e001ea40e8939666f173d4ba8b138068d7c08fb8fe2d",
-      "0x7eaa5799bdd528efe5451918d927048f32c2e17b431a9b74c0580871e62463d3",
-      "0x799266c2b8b68491134842c6412ce7b9e177e0ba86fe90c5559886f50746441d",
-      "0x1d873fbf15f8fa313508d75ede5f17d0190c82fbeb1f6a84da7b6c5781a997f3",
-      "0x5427f11fa06ab522d4db2fadef09c5141b7135b06e3922eee7e4eab51e68484d",
-      "0x07d53a2d42f9fced2a4f4954dce69de2540d1c8072aa65f3f0d293b58b7e7bab",
-      "0x19d36d884965f0396eceb8f1a312b783c142977fcd1685ca8cdabbfa7c95bee3",
-      "0x6648b93f06184be99fda8909793f6f2d64f412472b2169f5794913c0915369c0",
-      "0x14f0d296b114625d4a9e44a5bf39c3f7aaadaaee84f2fe9b522ab94f44de753d",
-      "0x102b248c32cf4fda437d98ed57e73e73953bd578e5d8f7d6fe7b9cf7808c932b",
-      "0x5520cd95f76b01e712547775f4750ea82e59b8b30fa96490ce9e3028b0f75bb5",
-      "0xb1867eb4be3102ec2bbda45ee320ec1ba75112aef23ec3d9ea5fe05a78cf1f99",
-      "0xeec7ec92689aa22b4af758e8dde28f71c4901341f93b4fce2fe765534452d15c",
-      "0xe56bd82a1a27a899176feb7a80095896fab3d606a347a99a5758bc710d17d714",
-      "0x225f2866e75ffadf3e4dbfdd807747c61481c535dd5f51503cb244ed89f9c0c7",
-      "0xd3a795c28c219322056e9921892199e657276575db01657ebe2aaff68d96ffb7",
-      "0xf3def6d985b91037b507cb8958d1c73529f85bae72389684c8477504ad6989b4"
-    ]
-  },
-  "0xE6676531ee5c89B7123D338A800e73c2f6cf4d42": {
-    "pending": {
-      "ort": 0.1,
-      "thul": 0.1
-    },
-    "claiming": false
-  },
-  "0xF416b1A7FcbfCA59660d316b16239E8844422Fe2": {
-    "pending": {
-      "nef": 2.23,
-      "shael": 2.31,
-      "thul": 2.21,
-      "ort": 2.03,
-      "tir": 2.21,
-      "zod": 3.55,
-      "tal": 2.4,
-      "ith": 2.38,
-      "dol": 0.22,
-      "amn": 2.11,
-      "ral": 0.22,
-      "sol": 2.36
-    },
-    "claiming": false,
-    "tx": [
-      "0xea3a0fc7a0c459df2d398334e2c9886097f7bbc04b8409071f7af8d0bff50733",
-      "0x9c2814a9aabe563b64e3087b7edb224001de8c6296f4662407b58ea224365cdf",
-      "0xe56f139691670bf6d3c83a42b1a523ba4e465bb679bacb334cd7c62f6bf1049e",
-      "0x7edc3fee52e64a9d28550d1f3754cb902bf212cffda7b7f5492c2cf467c8740d",
-      "0xdf9ea63c649a6acf113c75db80b516431e8f66089bb034447a9971b04addeda8",
-      "0xc9ce0eec86c35c319c415f5ad6026a36576e38dbbbe43524a7e6495fb590dc46",
-      "0xe06b27173c37542578f17fa063178ace2c6bb4c039f7b95c6e97e1dcda5d7a5d",
-      "0xd821c2204373445d32aa9a2c5ff26155ef4f470d5d36b7013d2fd1e97184dee9",
-      "0xc7ccb32fa7e1e436e7cbd7e8f7af01fcaa3988765cf0e7359f443bdbea1ab379",
-      "0xec6ec3d2be91a042e87c1d571cbc6536a52bc149b40e76b8bc85f3fc959d727a",
-      "0x14af674fca8117e0030b15bfded160ece86419c383881130944367e4f63efef3",
-      "0x2c4a9b333e18072ef8c357d898a3d6d34b606f1a39786e3e4bd1035848388601",
-      "0x476bd24db75e1770163a8cbd7f2c7a7aff0a37364064c981268b593be673a807",
-      "0xd98905126a068cc94537da9a72a496b06c08d1fb09e51808149ad381c2b44850",
-      "0x3f2f467022b4f5efe8b769dc39ae9ee4f95ae95a6a4ec1fdf44853d82c1d183a",
-      "0xe0f6ea77e2233f6f7ed44fc8fc3f6b6f731d83480ccf9a296a52fd11c95c5c0d",
-      "0x693e653745ba3c3cdb90eb1a3db88a33ef9ead8900dac5a78e0a459f76fa2bc6",
-      "0x1316f382a17efca8b9b29dd972ba9dd4687a04986b658c26b1316e1c5a0c27ce",
-      "0xeb2084edf7d4f4de4c74deaaff59af779fb492ebd88587ff0009936d10c80f18",
-      "0x804198c29592f40bdb855e7ff081ecc343b6f84b4bf7ef0f9492403dc1cf363b"
-    ]
-  },
-  "0xcd4C5c19C02C81B86C03F91d6Af71D1DC3c87BFf": {
-    "pending": {
-      "thul": 0.2
-    },
-    "claiming": false
-  },
-  "0x495bD270Bb6c9252555771C4D9D756491F6271E4": {
-    "pending": {
-      "shael": 0.03,
-      "tal": 0.08,
-      "tir": 0.05,
-      "thul": 0.11,
-      "ort": 0.06,
-      "nef": 0,
-      "zod": 0.37,
-      "ith": 0.05,
-      "sol": 0.11,
-      "amn": 0.05
-    },
-    "claiming": false,
-    "tx": [
-      "0xf211b3527764ef86f8165e5ce092048fab08a8c2bba085a48ad3ddce5dba2dd1",
-      "0xbaa86b14e10b558356df5f3c7b2a6c15f0c427464355f9ac7edc2dcf2a01cdf6",
-      "0x5dee6dd68172f5336a3d44005c9fee4e4cfb0e707ae08ba1fecb946449033e76",
-      "0x442f318b60f669aebccba998614f44f8ffe0a0e07d460b027fbc394b7c5db76d",
-      "0xf64be7b07ddcbfe1cd4c8e33c7bf4ecc3c11531e47621b5f9912765e0e12be1c",
-      "0x6b445b08631c8674ca6618021acaf5e0339c89414965bacfdfe3a4fa98ef3a69",
-      "0x86fc73268ff3ab451c3f4fd27b7b0e4c2d7391d608570ee4d48eede805c57b2f",
-      "0x887070d55c08ef82b1fb80d2d531ad05394a5e74135b32cc17bea708b9debb7c",
-      "0x2cd43055922022b9837f446d4a91f517391a0fb34422a2bdf45e7f2c63a789e4",
-      "0xa0c64db5a40dc701625726dba298c40ad58684d0b39d5005f2fc2c0710391d62",
-      "0x1bf51ba1e0f81f372b9deb97778bf6872279c3d530476ea0476c54870af7bb64",
-      "0x81c4f435eae34a08866e27b6e88e2ea57fc0775860d895334927edc7622330b9",
-      "0xe4c4e4450bb350a3f4e2a74dcce373cf3bff12dbf388084bb5fc2b2f8b7a2bb5"
-    ]
-  },
-  "0xF3f1f2217092fdD809B8C16f4f8DEc3C9F0be810": {
-    "pending": {
-      "tal": 1.12,
-      "shael": 0.8,
-      "nef": 0.68,
-      "ort": 1,
-      "thul": 0.72,
-      "tir": 0.29,
-      "ith": 0.15,
-      "dol": 0.01,
-      "amn": 0.11,
-      "zod": 0.11,
-      "sol": 0.03
-    },
-    "claiming": true
-  },
-  "0x9F66F8696a49744857aaCDC026CfBf89f76C09C4": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x150F24A67d5541ee1F8aBce2b69046e25d64619c": {
-    "pending": {
-      "nef": 0.53,
-      "ort": 0.63,
-      "shael": 0.99,
-      "tir": 0.96,
-      "thul": 0.64,
-      "tal": 0.6,
-      "zod": 1.94,
-      "amn": 0.69,
-      "ith": 0.76,
-      "dol": 0.04,
-      "ral": 0,
-      "sol": 0.67
-    },
-    "claiming": false,
-    "tx": [
-      "0xb2f30f494f394eafede47369b393863b3838e89175db66234170a861b979814d",
-      "0xcdcc73379589bee10459e29beae46656eae3aeea7236dd6f42412c9eaa95786d",
-      "0x16f60b7610319a84b0cea5e8ece276e51bb89cc449ddbbee40a567ca3e9f63c8",
-      "0xb325b5efc5cc2b3aa43c2647f3a5c5bd01c459903311e06b6304532f88ef92fa",
-      "0x248109cc73b57715a3a0437740a4dce568ae1ccbe96f9627977a128bd6b7a847",
-      "0x7eb5e2070519dfac6d74b2ce458b8f666079d894b5b10a44e5992b39cd4c9abe",
-      "0x25616d874f9d2fd6ad9cbe3999c2c3b85c57541ffd0492542eeb50d9e2e61eba",
-      "0x2dc6b1b34f365a7d43581902248155fc282531a18837752bca320f43506fb0b1",
-      "0x19cf05304c3546d1af9ee06616670fa0914fbede773fdd045961344cd593d1e4",
-      "0xbe657297877861a67826afd6b11b7df3d30ba351ccf7c305df3096e64f603257",
-      "0xf579512aaa33ceac361cd237c18479e0fa21bc4073a0f7f9644796c0680ce4fe",
-      "0x4d93f0b5a083253ac9c1aac79e6fcf9af90eb0a690b4e9e34430781f1ae66747",
-      "0xb03aae7d03480e37100c756cf35f4dcbac88f091156be7e3522489fc6358dd2d",
-      "0xa2ed07fe155f0341dac06b3b2f80da691154e9a7580c0cac675f076dd3fc7fd7",
-      "0x61f07db2f1410d2857ca7b973661f709063f948a134dbf867ab033ce38b772d8",
-      "0x3d7de3c5f18755b5b3ad6c468b4da41c55469a3b415b16b6f96b542eb93eb828",
-      "0x0f7f5a2b6c5f22eb9de4aa3937d27ae9215c7e3f439398f79317cf39f9ec3ec8",
-      "0x931877368ca21d945300842833d6b60ec07e596fd580ae5a70cc74ca88309869",
-      "0x7a4061329de1330bf50c2fa80b6212c5a0aad967713ce2192468e1306a5f27f8",
-      "0xda4d02b9a7521a61d12c10bfce12f7e10309d068e9dc73198940be811fa20480",
-      "0xa2c8cea4c990e4776f3cab4b4e89d0a0f1092742ee4d7477ef0d0576135c70f5",
-      "0x1529f3ed07798665d817a9e2ea26e3074b40dd16969c19ae3257890d421e8893",
-      "0xed19509fecad9530ace106fae062300240836901f440b7e471ac354be5227c83",
-      "0x09c57be71e3681ea793f01f246cd26eff76100de702c388992f47b8f08d6b85d",
-      "0x15fb725dd818612bff3b27e4a35ef6cb6c7fd6695b8d21535340608594bb9740",
-      "0x5ff65e5cd6b29fb0e14a564d70d3bd4d854fa622ccdf52451e2d5cd72a4f40bf",
-      "0xcf854a2f553d7999def51eb6dfbc7e084bbccb0633c6aa1fd164072c9ad82269",
-      "0xd585936f609dc4ed0afe5a1503aa2caf62ec3d4a001c2a8e27a5742c43213ed3",
-      "0x2537590659f4c8f1e7b9871ee19166ec25a1fc8762cda927d0e2ddfa33d15fdd",
-      "0xbd4955aae9c196564a98975fc6cf2844aef9683e1c197d6aab1b6fb35505f13a",
-      "0x95fcb13b0d3c00bfe89636458cbeda032646868f19b7cf3d979ac1fecc36e79a",
-      "0x191bae3e82e0b80204c8b4c59fed78a36582d0fc95998b27d2029b2b38445569",
-      "0x014b7d758cc5d6ead1a3edfacd3d627119684ee8483d84f0a531e7bad4b4a019",
-      "0x05c7cba3bf1bfe1394e79bc30c3318259aa875c950766872b8d63622c505a7da",
-      "0x6c2fd42e4580e923feaecff5289ba68b939061853356b0a5cfa4952c3d36e52a",
-      "0x21c7f9ac1760a537c755beed443df00908443f16b7e4a8d46942d653e181bfbf",
-      "0x84c3b531c2e77e7c20fb110d3457a2305e84ed2096c2d0893446e072cbf883be",
-      "0xedfe7bad44c889ba698401685195408dc55b63ea0c2e253d694b3fc1bac3b02a"
-    ]
-  },
-  "0x7d0f006E83F2a6F8a3b3be45d879Cbd3F2990cAB": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x1F3f20FCf1BaBffd67F9a095c6A8944fBA638e63": {
-    "pending": {
-      "nef": 0.1,
-      "ort": 0.02,
-      "shael": 0.02
-    },
-    "claiming": false
-  },
-  "0xAc2bE6F86607B66D96209ED568cB0280a25Ce7A9": {
-    "pending": {
-      "thul": 0.11,
-      "tir": 0.25,
-      "tal": 0.22,
-      "nef": 0.26,
-      "shael": 0.24,
-      "ort": 0.11,
-      "zod": 0.16,
-      "dol": 0.39,
-      "ith": 0.38,
-      "ral": 0.3,
-      "amn": 0.29,
-      "sol": 0.18
-    },
-    "claiming": false,
-    "tx": [
-      "0x9dd228c141f2e2248c70d0024fc077213254e0bb47d47ac7c1e5f747ad537c4d",
-      "0x1eb10ba9113e36fbea379b4bacbd65cca6932d9a7a6e47710506b3e3cc4f6d1a",
-      "0x63ffb921dff267c475c7839de9bd66b19391659b4acdfb03b86f7ebfe1ecd630",
-      "0x3b0c2de5d89c65c553df1947cdee5d5522f6127b53fcfcd1a1782f274dac131e",
-      "0x95cd46b6646806c9343d02c859730dc16b055ed1645f04a525a392f1777134b6",
-      "0x80b1f709b41e32fa6c204fcea329cc14a6f10ac51ba3ecfe68df97829b1586d1",
-      "0x3784be5779532d72a719494f3a9a87d68fec5c576aec469cb69c1385b101f4b3",
-      "0xf645a7d51e6c439630ed922c767dd9476ef5506ef86cad44a2085c1949e096da",
-      "0xe933e6a134aae68166198dbb6824a395437c0bdbe06b032492a230d1bf20760e",
-      "0x0058e38412e8bac912a99b6c4d292d082e895ecd1702c188970fc121acf4e0cc"
-    ]
-  },
-  "0x8B3795e43E8b248037423A4F1cdF411cb887Bd43": {
-    "pending": {
-      "tal": 0.17,
-      "nef": 0.15,
-      "thul": 0.25,
-      "shael": 0.22,
-      "tir": 0.11,
-      "ith": 0.04
-    },
-    "claiming": false
-  },
-  "0x17b1d9a1a8F0363E04bcCDF2839cB107B2297774": {
-    "pending": {
-      "nef": 1.41,
-      "tir": 1.14,
-      "ort": 1.07,
-      "tal": 1.13,
-      "shael": 1.09,
-      "thul": 0.98,
-      "zod": 2.02,
-      "ith": 1.36,
-      "dol": 0,
-      "ral": 0,
-      "amn": 1.29,
-      "sol": 1.03
-    },
-    "claiming": false,
-    "tx": [
-      "0x8e7e619e1d481f330d005e22489e87353ae76f177c7cc588ada03fe2dbf57f1f",
-      "0xeb0b086bc568f83ba39a7bd98dbcd63e4c623185711df1ac9f4398192800c43c",
-      "0x4c0a75c79b53cbf1c60c022ecdcec390502da9911c44dd26f4ceb704c5cdc419",
-      "0x547d4bb63befc122d737c6a4f42d5a6dabacde871c1fcc5e18788e9d3d9d80d0",
-      "0x3c519974cd7f04ac95ea442135ce3fae3556d98be468451537cff2ede085b5d3",
-      "0x84307a39a99fa1b559d32a4d0bc81d9efc28563d72fe8d15b21893fd8b5f36ba",
-      "0x5b49969dee6b2cfd8eb137ac69826d08d8c7083d2a9727c0c77e66910919e948",
-      "0xd56fadca4538931d277eec79aff90a106b2aa6bad3595aabba91f9689ec12632",
-      "0x1d528625d3ad6cbeac8e48748f0cd838eb6331d34f293ac545674d996b133944",
-      "0xbefb7a9c9902b12b0a6fc0dfed4d1688881fed76a920b4eb89939876c83ad46c",
-      "0xe44157a9c3d026b8007d6fb8bfe3e1d57ee253ff78c0a3bef828f1b4cbcd233c",
-      "0xeba87028081bad2205858477343dfa2edace267c416864c9a34f06202c581b34",
-      "0xdce14507a50ec7f9e1cf7096445f91f260e800c6e6068969728accfb9ddb2845",
-      "0xe1f7d199922b9719898f0d726e6e728e97f90cc56ba7914cf481e8ef0a5bbbf0",
-      "0x8ddfe26154559f51c00d68c53fc5751c7f4ae04a3695e802638dbcc35ad912fc",
-      "0xc37b329c49f5b56e2fd4043d0b9b9749cbc1320974534f5af5c24e1c12ade958",
-      "0x35abbd6e78e6cfaeb3cadc129dacf4ad480c3b40d08b636a04a7d5461ad07e9e",
-      "0x50372f552d1c5034e58cf7970936c6d1f2b62a4d49958a1778e94790971c3a08",
-      "0x0dcb5a9b66a101c4528b8c2c3f150b73516d44ca36da19ca2319727f38900c85",
-      "0x5e922c35584b3fd893e23453702678067e774e500598b769c75cf5dc2f30b8c0",
-      "0x7c305c5a8b24776d5617e506e43a2337be9ec5d8df84d76c09567eac647f42e8",
-      "0xbb0160e35a5c668440f0cf3b8cdd5758a598a5df1da940e97777d3ab7acd413b",
-      "0x135c70932274fc29173e2e79882c1795be87d5bc95d4e8c1a35691fb73eae540",
-      "0x58f5c373845b7a8280a1e9da6d9ca5a4f5af7b2b4527f1128423515067210a82",
-      "0xaea1aad8fe323b02ef0a79963627f0c0f2d69f96c9e4b6e8da3005b1630d764a",
-      "0x83ecbb042ec7559aa243f17c504c6070b1c713277189afbbcf1310f95dbc6924",
-      "0xc307a3279c53c2263ae1c48245e415c81eb5e1a250f5c706b3d7cf3d5fabdd29",
-      "0x67573181b9e2e0e657acb7c6b907c6b48526945c896a68282538afec707af662",
-      "0x645282ddf7aadd9c9a38266b7d4701e0d46b8b98a0f151d9d94fd6d9dd34c2e5",
-      "0xb944f8b5db1a792e70b866dec7f0c4fb6009c69a1717b9adc40d5fb015e14f77"
-    ]
-  },
-  "0xf9056dbe1CC96a06a6781F773DeE55cf69AD3c8d": {
-    "pending": {
-      "tal": 0.16,
-      "nef": 0.07,
-      "thul": 0.13,
-      "ort": 0.15,
-      "shael": 0.2,
-      "zod": 0.1,
-      "tir": 0.19,
-      "dol": 0.05,
-      "ith": 0.3,
-      "amn": 0.22,
-      "sol": 0.02
-    },
-    "claiming": false,
-    "tx": [
-      "0x44f3c42b11da29857dd4eb27cffd73d6ee713bd88780a46c7ced9ed276770f07",
-      "0x8406ebe5cddfd9e33570b241db374d3c90395d1309862961ab53fd0827f63574",
-      "0x4bffa268d08cafcc8f9025779a454720992a4b5d272f066a8cf71f5becc16d81",
-      "0x06e01bff446f56117b31664b990a2ac8d4828bce633c5878247ca468bf054369",
-      "0xe9480a20200ff248a608750a43ade787c4a7a4b6119ae0470c392ca2aedec1c1",
-      "0x0667f739529f4606faad071d8e547bb25c41550f19ad73b5503c4ecba5058fd4",
-      "0xe555f83b537f8034937fb2d583cdc8f1c61b2a63e12ea63319ac7717f477c28a"
-    ]
-  },
-  "0x70cFbeF39C75B1dA0B6D2fEB7D74e125cb745B86": {
-    "pending": {
-      "shael": 0.69,
-      "zod": 3.45,
-      "tal": 0.55,
-      "thul": 0.7,
-      "ort": 8.92,
-      "tir": 8.73,
-      "nef": 8.62,
-      "amn": 1.84,
-      "ith": 1.71,
-      "ral": 1.19,
-      "dol": 1.21,
-      "sol": 0.9
-    },
-    "claiming": true,
-    "tx": [
-      "0xf437c3803c4fe70f0cf78b4aa98878a80a9d9195c441af39c46b08e80593de07",
-      "0xa50179eb8538c2bfa645a450db2e9e250946f438794fec942a3e73fb259bf4c5",
-      "0x33628142fdb89bf63066c7a50e927659c79282bd496ceab37f31d923d3c56a16",
-      "0xbcddc872cab8f8af91828273683cf5367ae046e8cd710a21fea082afa9716473"
-    ]
-  },
-  "0xf479937B5754dc9F9d8ae5346D69007bb5Ecf53a": {
-    "pending": {
-      "tir": 1.07,
-      "nef": 1.19,
-      "tal": 1.01,
-      "ort": 1.15,
-      "shael": 1.26,
-      "thul": 1.2,
-      "zod": 1.89,
-      "ral": 0.07,
-      "amn": 1.31,
-      "ith": 1.38,
-      "dol": 0.13,
-      "sol": 1.2
-    },
-    "claiming": false,
-    "tx": [
-      "0x6a193f024d8f99b117b892d89273c5b65e5d817b1a63a597659fc4c666996b9c",
-      "0xb757fd337b7cc5e32035f1ed7074966ce7d1b99c13cd80ce29b1a56a60df09e4",
-      "0xf75c71091d9f4e13d13d83a47feb5232e59f90c58d87c42771f96cb86561a2bc",
-      "0x4fb3877e89b6ae98a3106cd834ec52df34c6885a46f26af007a96d4485f1e62a",
-      "0x41dbcab6c69d23db6fabb2b9547d62d3a474e2e51a7c8ed90d715bf36c719a1c",
-      "0x8c7f162f5ff7d09795f3e308a1cd73b2fe9ce2fc23def823d5bd95cadfa75fab",
-      "0xd510f4890f197ff9f6a0392fb8dd277d594fb27e40b305032e83b111229c474d",
-      "0x0132c74275aa30bbe878a7885a7d1bba0d3d24b134284f1975c3f14061d71755",
-      "0x1df796b07333729b2f6a810864813805f776b2219948c711d0c6c3f19a62f787",
-      "0x12bf96bbda7eb5e3cb6fd151c13b9871996378f1429f45a279d0c53d69bc2cbc",
-      "0xc8111a427012ccd531fc269fa9c406d0e90d12b3e92e2b5aa653438ccb1a56f3",
-      "0x2d7b07c6bc040e6b0c8d134fdbefb2b46c82d4de46f4fa44e5f0430aec58eeb1",
-      "0xe90fe066f18a5d8c9bb6d394b759fa72779f534e09216abeb91b2c2fff8b1d4b",
-      "0xf4bef13e55df0d18011f16e310682d45e98c73016acd9f88876932db6287143c",
-      "0xa3ba2cf62167b7dffc386ef59de8c8dfbd90a06ec82c58ad2e44ffba0e11e8c4",
-      "0x12a39a1f7c49745ffad843c1a7fe673bd111513fd4e0b747b0c3e08f67cf1177",
-      "0xa6ff6f922eba6dde891632a92f9f75d3b81c4a76333935bda575cd1ed75bf810",
-      "0x6207fb80a4fbe682743e59c9c8ab4360bd9e3aa716837c32762e49c26cb7bf3e",
-      "0xa3a43c10ae6da5822c0b6e40994d1485938b214a2b20696d45e0b689b4135ba5",
-      "0xcb71a93582964fb876abe53e84bcddab12b6e04ed0b861944624975cbd84336b",
-      "0x23359536e90de2d49ab169951fcf5d9026d535a0f678f84eb6c95e951220b7e1",
-      "0xe31c5307f459d4641ddc98f411e087a450b9d3df491c29caab9e3c61659205fe",
-      "0x51bc91d208c7d02bac980ec42e0d06ebcaf7fc59d3202d296faf6c9e19e59451",
-      "0x92bc0872aff54c11474ee2dac9f4501531158562d334127cee028a41f649f864",
-      "0x18bbf38196f2f8146208f88fc4cc6201dc428eda11b53a199843512abaf3c9be"
-    ]
-  },
-  "0x43d94836e8f579a4903730c6A627C07A1B2CDE41": {
-    "pending": {
-      "nef": 7.98,
-      "thul": 5.84,
-      "ort": 10.93,
-      "shael": 13.56,
-      "tir": 8.04,
-      "tal": 14.51,
-      "zod": 4.36,
-      "ral": 2.98,
-      "dol": 3.02,
-      "ith": 5.77,
-      "amn": 5.48,
-      "sol": 2.12
-    },
-    "claiming": true,
-    "tx": [
-      "0x23510051e81d6d74dd5b27f319259698b4a605955bcdd714bc286df677f92e94",
-      "0x42592dfe94a1b0ad49acb14fb2913c1131969d39e641b65389920a8027b3e301",
-      "0x4f899129e163f0bd30911c2cf9d46e241d8fa3640af20bc994c35538fb4cbc87",
-      "0x689b8e7fa10a7a8b883c7bcb6f759bce2c431baa097b1ddd8a42be5211efeca4",
-      "0xcda621adffff3a5c664f212282a128183a3613656e7cf790025f70652639638e",
-      "0x41eea2c18fda097d96ecf2252363d2affaf974099dacebfbaf781c17e7abe34e",
-      "0x4a3fb616f7c383f6a467e701766ee8493340b80c60780321485ca4d27b6a781c",
-      "0x5e1f16760170b4e5ad50ff5ed4a485a83b8fcb0f4262d3230ffeda8f46fd0116",
-      "0x2793851cc4e10e0ef4c64b4a2b22c769177bf450b837d8d07b8ac966c3d5e3c8",
-      "0xb01761c0939aafa068a1294b0d69de0e9e7f6e292257f644e3259930efc4599f",
-      "0x28b99eeaeaa29c757a61bf9755253fb1c5ef861a390bf325282854faeb535d8d",
-      "0x39978c291b50231798b373b06279578de193256e378eab741d94979fcbbcd50b",
-      "0xf1334179866ede4c24ed95a74245c3cee05e76c8a2ae419eeb10d43242244811",
-      "0xf134c2c45fdd6ace50c4f78ddf1bee8d38d140974338812693aa4dbb32fa7e5c",
-      "0x49fede2729816aa813d3708e805ee29bad74309c21bca73a6efb7ae4855300b8",
-      "0x7eb25ca35a079343599e2b0aeaa15eec59e04d11e264ab4bf8b0a62d1bf19a7c",
-      "0xb12761054d4934f55af86b8dcf9feb50b7a82ea22d4d6fbc9b99ccb37d8f6960",
-      "0x70b3b0a582cc0db44984d5b77fd6e19ec58734d7c54113dc07fdf18e899fae0a",
-      "0x047bd1e768531c894fb1e238f45a3f9802f788a22c1cf686847d7de2b467bbfe",
-      "0x46ee2d5a71780461733e810039478ab47e765c87368d75d0c6e7d580db283735",
-      "0x1381da1e24a62a7f5a8e3be2bd6bee8ff40bdaeb329d9eb489b881582392e76a",
-      "0x0d568ec0dbd5d84bb4db30ba730d811c2e71756317c3da64c503d6d638e5b649",
-      "0xf34e3631c6e902e5f553a81df72a6d850d74a3cf5cf92dce6ac7b3150e7dbfa1",
-      "0x2963894e1982cf27391114e7886bf01ce2d91fbec06bfa5233890f45dc6426fe",
-      "0xdc0e84b315f63bbc0afbec2c1da6d6e2b8a1387e3ba62f8cf9f26b2f43708648",
-      "0x1dd9015b9dfd9f94b36345844fb8cce049e66cc51e8f997f38811fa1d3423bd0",
-      "0xc90c6a9e2663e80b2759b633c159b41c3ced973b59e06514d2f6f0bbc81475f4",
-      "0x78bbe12688d20a857aad6d85ce8ba73ea9836cd2577092af2db720115e953426"
-    ]
-  },
-  "0xB491EE37f120155BF6D7D7D32c77fA76FCff7D1B": {
-    "pending": {
-      "tir": 0.42,
-      "nef": 0.71,
-      "thul": 0.66,
-      "zod": 2.21,
-      "tal": 0.62,
-      "shael": 0.69,
-      "ort": 0.45,
-      "amn": 0.6,
-      "ral": 0,
-      "dol": 0,
-      "ith": 0.55,
-      "sol": 0.41
-    },
-    "claiming": false,
-    "tx": [
-      "0xcbca04f39c1f5991445e8fd1fd3249ba675085ec176e7c1a1f0bc43cb2495abc",
-      "0xef1abd2a541b2cc40c6bafdd2ce6aa9f8bded4a4769eff1059e43c79f940aacd",
-      "0x55d250654f44b8555ab5fe69ae2944f3e32d096ba81effac7ca9909aaabec3a9",
-      "0xa1321cecb07418663b9b29b1b53463ba96cb2c8d5ea075c0e97ba8a736a054de",
-      "0x1f740ec72bcbc4111aa6f655ef21bc02c0bb1f26a3907484d8fa3bad95bb4df9",
-      "0xc090fe319aabf2465586d1a959eee274ee2fd8ec9a9bdaa948a36855d6048947",
-      "0x5b3c3ccb5c5f8b9b60bb4ef3a816820dc8014afab0437705bba2442466c4b848",
-      "0x3b5d389f26bedbc56143e4d2e15bcf83a98f0830bf3ef726f61439dcf44e3ac2",
-      "0xa6caf329a15e039cda2b94986c05f30f042317c89543d70dfd41838650681ea9",
-      "0x9e32a7a1a3855de8dafafe29d83da2ad73fab69e68660a13ddc810e0e7585205",
-      "0xeaa5180ca9a7c6987e06c2c657e2a275a8f9c077089ff2cf57bbed3c04bfb42c"
-    ]
-  },
-  "0xDb6F5FB9311aE8885620Ee893887C3D85C8293d6": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x36a05B51CB2d3C273cE76B75B56d991E9A512A10": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x545612032BeaDED7E9f5F5Ab611aF6428026E53E": {
-    "pending": {
-      "tir": 2.76,
-      "ort": 2.09,
-      "thul": 1.79,
-      "tal": 2.86,
-      "nef": 2.67,
-      "shael": 2.89,
-      "zod": 9.71,
-      "dol": 0.52,
-      "ral": 0.55,
-      "ith": 2.44,
-      "amn": 2.73,
-      "sol": 2.07
-    },
-    "claiming": false,
-    "tx": [
-      "0xedda0ce90a51eb289928d55c20b20e5e04b347cc61a284bf78eb115f4edc6ca0",
-      "0xadbbfb6c1c62db3c7d9024920a328f666d9ccbf5a5af2982f40c1baa8a79d38c",
-      "0x4b0bc3f1b9f6eba4b2f1efaaa0ec001858743579af49dea70ec2f22fb638d2e9",
-      "0xd28c12019aa1d89301a2f185dc2115ad2263034363e329dd4536e8e55e8bbc91",
-      "0xe488ba863262656b41b3d06fdfd5a8a9554930c780b108d7eb1826044e64c0e4",
-      "0xb8e7db28d102310a09e498cf66d445978bc91b1488a94380d9225694da4a7e64",
-      "0x3df846984428c6fe067366b359a1765417759aa4638ebf1ebac53df3df87e923",
-      "0xfd3c7a312ff72687ca018507c661fb10b86ab700c574bcb9b6338af9dd6b0507",
-      "0x63ed3513c1ab80e34f926766b03368e77ef8538a2180b0f732748a5e9364b842",
-      "0x3bcd24340b6fb5382da3408c7efd96a1d1aee9cf931cc5c068c8995fa4886876",
-      "0x652fcbe3c92e7a2335f42ceb41f7c54b4b6406fed070b40d0449fe8e7030834b",
-      "0x6fc92d4d3c7c18feb63a328e5ef0dbe375eba50fb98ef8459730a6355555ed59",
-      "0x52db0b161f454fa41c9b2331bd366334f570222480bda43ffa48e4416d8e21e3",
-      "0x61c8bb8407b90c91249a0ee81b0eceb71853c1e5468830d965bccd6bc6e02e45",
-      "0xa1308155ca60d865a27bfae71afac32f7491518d1f28c3499a902b460c9526a7",
-      "0x263f93b855c27131d6de4fe811ab9d18778d1eb8cbe87109bdea5316576b5ede",
-      "0x7161cb6744f995a8821c93ec928bf43eb3fe63319600bf60dbafbc5c465e377b",
-      "0xa707d08ef4a3052a36ac3de0900aa5d635a643ba00cd10a25530ac6e5ca5747a",
-      "0xcaaedc32e4195329649406719b79ac47f605c911338be31d5b9dfcc830187da1",
-      "0x8302c979ba7e08322a54b19dfcd8c0b9aaca0b51f8d7074202162058613f1423",
-      "0x4c2465dbe4fc6a7d774db429d0dd94fd06dfcc36c59e319aaf241da281dd5250",
-      "0x9c084f324c610132dd0d66e99c1354a356d55844572677c6f38ab7358ae340bd",
-      "0xdcb491d9edcfc4a6a3420093398d201207eab3d5dd45f689d31f7a5a134127cc",
-      "0x2c2f51896e9a256dc776976c9454bc34b026af8ad89eefaee2a8667611788d32"
-    ]
-  },
-  "0xBFf7962dFcd458E130E9b297D43C421b609e9D3F": {
-    "pending": {
-      "tal": 0.59,
-      "thul": 0.61,
-      "shael": 0.49,
-      "nef": 0.59,
-      "ort": 0.46,
-      "amn": 0.17,
-      "dol": 0.03,
-      "tir": 0.28,
-      "ral": 0.04,
-      "ith": 0.17,
-      "sol": 0.28,
-      "zod": 0.38
-    },
-    "claiming": false
-  },
-  "0xA2F5BA76c3C6945431fD7652FB0070e37121eF53": {
-    "pending": {
-      "shael": 1.87,
-      "tal": 1.45,
-      "thul": 1.72,
-      "nef": 1.44,
-      "ort": 1.42,
-      "tir": 1.78,
-      "zod": 4,
-      "ral": 0,
-      "ith": 1.49,
-      "amn": 1.65,
-      "dol": 0,
-      "sol": 1.59
-    },
-    "claiming": false,
-    "tx": [
-      "0x46d91c23871958a6b9f443676f8d950e6b96f73fed0ea527080aa530be82e272",
-      "0xf3d8a4e134669ef35c471ba2791b09a5b871fa128c4647dc2e22c0e7c74940fa",
-      "0xc4cc699b89635495d4b802b9858b92b3c524e93a1eb8af51ea349ea7dab39f76",
-      "0x597dc02a44ba35410d748d13c9bedc5c197d4ecf553d5d05f4019e015e64418e",
-      "0x075fb0ecb1e90cef5c5531e438a3f2f6a77fb15e21bdd1b49283b8124f8afd11",
-      "0x0a4348013b217dc601a3feb0dd563e6f935353a5984c1cab449db350ef67bed2",
-      "0x05e484c8bbb21d006287aef2610a13de035cc793b04e2dca605d4f8dc18819c2",
-      "0x7fcdf80236a7e4c4cd8aa77b081f543fbcdb000213eca38b9e4a9b9f3ebfc3d8",
-      "0xd6578dc7aed2fa3a0ff0590a952fcf6deb1c940a72e63010d4a282be84965772",
-      "0x76573072a892b460ccffeced0132339585e7939c38d82cde0bd1c75433f840d7",
-      "0x7dfc71614a0f1c930809ed1b5c896c8fc2f32fb2a32e22e4237fd6736f7a7ed2",
-      "0x843a2abd2e400427ba8b4e4ec6b5aabe338c326826b74874d160645a75c61a30",
-      "0x9ca1e23d20c76da24fa28788e387677781cff7b540ae4c22e1679e3dd691687e",
-      "0x2031bd90bec9c2fe664e617ce14e4018580bfa60bc1d1a41f1bc4e58efd52090",
-      "0xc97cfcebece0b6a7124f3c34ffdd1011109c29e4c39e144cfa827851a84c00b6",
-      "0x3a744adcebfc095b27a96fd3b5366b7e5b0a5cbbb1142e4a9329ca8752febb88",
-      "0x167ca9422c62bb0fa3316e2cccd096e8ab9b6202f3f28af13332ebe8c468788c",
-      "0x52cd2d20755a37107b510c3bea4af20cec119d2c469930327732dcadefd9f5fc",
-      "0x91528096b1f52f8cfb9703cc30893c60be10ef8dc77772836481f46ccaef5c94",
-      "0xb0a446dc95a7aee21f8cfeee55a05a6e304c8e0dbdbc17a4d56c40bc63450b58",
-      "0xe1f9ed23ea8e517fadca3b86adf31e552819e1ea123774893bfcc3ad06a3427b",
-      "0xe62cf7c8b786288d39078adaa511f7b1e5707626f3322a3ce56f7a4ca10aae5b",
-      "0xf3430229d1dae8ec623eb0f932b2ce70d0e44917211d95df724f415f7b2652d6",
-      "0x975d8418b43861b68267f6f91a9e34064a685fcadf4d9091fe8e91b4c1b9074c"
-    ]
-  },
-  "0xEF79B9D76590b873409430B17b0Ec9AeCc64fB70": {
-    "pending": {
-      "ort": 0.2,
-      "shael": 0,
-      "tal": 0.1,
-      "thul": 0.3,
-      "nef": 0.3
-    },
-    "claiming": false,
-    "tx": [
-      "0x05e9d41bed4e66003eb8dd32b776acf63447af8316d3711a39ebd41bb1e6882c"
-    ]
-  },
-  "0x43ae7C3Fe0615eb575696734A92847876Ed803aC": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x37470038C615Def104e1bee33c710bD16a09FdEf": {
-    "pending": {
-      "shael": 0.95,
-      "thul": 0.85,
-      "ort": 1,
-      "tal": 0.79,
-      "nef": 0.87,
-      "zod": 1.7,
-      "tir": 0.71,
-      "ith": 1.03,
-      "amn": 0.78,
-      "dol": 0.1,
-      "ral": 0.05,
-      "sol": 0.69
-    },
-    "claiming": false,
-    "tx": [
-      "0xcf2925e0056efe5a0799a0b41f9079e92cc3f6ddd39d92ac74ef1d82a2e0f079",
-      "0x580d732d965788372e4935cfc46a0dbfe3c12a754d1e3c429c6b852b6e42bc15",
-      "0xc2a1dad345249cf9aa311b14c536d1f7a8c26949087a33e530e1e249932d7da4",
-      "0x640a5e5e8ad748ed78158f09ffbae4aa6e57fba626c7e3e355d317714656490d",
-      "0x12eb4522b3c1bee121c7c809ff81d05f15db5d4774fb130cd84ed11def7ee89f",
-      "0xf47c2271d1a27e510b3bbbd7ae41b3fb08e285090c5ee46b522598111bdc35b1",
-      "0xd185140978ff6784a88caec89558c40fead28cda5e51ef3a835154e9327ac930",
-      "0x5b2f80957154327f2f2cb5e2985c14c8323cf1afcd4062d7d8fc6d62bea7d176",
-      "0xa553d5d31e66c6def2d7b665c68b43dafac1aefb39bf3dbc6ae0dee9ac1093b8",
-      "0xbfd1d385edb039dfac7d44e9555efc5a785c8ca98ac77658c0ad1024d76534a9",
-      "0x2652e0a919ec34a8264bfc55bcf41b9e843c0591b7abc64ea829640b916651eb",
-      "0x02f819b4e68ab479bae326850a9c840c2665fa95e7e4817e3251e0617878336a",
-      "0xaa0b016667677375f1b0a86d359accdb10bef90ac7bf1795a2dc11c53fb217fd",
-      "0x96256d11bf4108ee36ca0436565a49ca855c8f91fa1c71dae661b75a740b13ec",
-      "0x1eac0bc8595be4246cc3a362ad70c03589708e4c87a013e60bccfe8e00f49ad5",
-      "0xbe2e3822b056bcd12415d900af3b91b3c3eb81a7972bbe877780e417745e70db",
-      "0x2e98a8f0e3d5c7d0e648584f0bd25f664c94e6c9d8e87134322d8677d2a0076e",
-      "0x5dfc7e87408a1d53b448f0b565488d7a6ac77c1d93a6c5222f9b200b2438c93f",
-      "0x366e22b5c76f848c797ec3ba63fce0d8c00c72287826a20f9b558c22721f4896"
-    ]
-  },
-  "0xc1311097dBe3240abf279BAEe208ce120aa5bF0c": {
-    "pending": {
-      "tir": 0.21,
-      "ort": 0.37,
-      "shael": 0.33,
-      "tal": 0.07,
-      "zod": 0.38,
-      "nef": 0.08,
-      "sol": 0.08,
-      "thul": 0.11,
-      "ith": 0.02,
-      "amn": 0.02
-    },
-    "claiming": false
+      "ith": 0.64,
+      "shael": 0.43,
+      "ort": 0.43,
+      "amn": 0.51,
+      "tir": 0.58,
+      "nef": 0.42,
+      "sol": 0.37,
+      "thul": 0.53,
+      "zod": 1.9,
+      "tal": 0.42
+    }
   },
   "0x8f04e2bE79f0574A778c4F1Bc921aB3081e16524": {
     "pending": {
-      "shael": 0.65,
-      "tir": 0.46,
-      "tal": 0.58,
-      "thul": 0.34,
-      "ort": 0.29,
-      "nef": 0.45,
-      "zod": 0.26,
-      "dol": 0.37,
-      "ral": 0.42,
-      "amn": 0.56,
-      "ith": 0.69,
-      "sol": 0.48
-    },
-    "claiming": false,
-    "tx": [
-      "0x324f88ce41a175e634b68885359afeffc86942e61ae3429cb8fce60848752c8b",
-      "0x57a1ca18bd4becb1430d69eded5e37b41c4b0849dd45eefccc91d5d4b8830882",
-      "0x6ba607cef8ed003cabc814633a55d019e4cb74f746e8dcc91e0813c961df3614",
-      "0xd4453cd95012bbf220741091d4f5e5f21ff4aa536974a295faebf966bcc6b88a",
-      "0x93950f5b99f1c07d38c946e0ea26b9dd7a89af4b881f8856cc29a206b13b115e",
-      "0xc9c9b228909290a39024942ac8018d42590c6d444f72009e73e39520a94f286a",
-      "0x8fc5c8857f9cd1b7169a7fe6347a97eee64e28e5b97b79839311af7fc3c728f6",
-      "0xe262337e6ef0674bd7e2131022fad9d8936db48d814e9b174d479f8370479e94",
-      "0x07e3c8577752422e7599deaae0f01e86d059d19f4dc06b9a199e19af778727f4",
-      "0xef9560afe31b38b1360ecb89ef3f0b3eae13fe98f55fb437c429e2b48cd01ab0",
-      "0xb91927e9451a2ce95b27a9b5c15ba0d7b068b214de92cd67eb6993f6db84b9f9",
-      "0x6aa7e6f13a245faa89c1f718a3efc93bd9b21fb2abad9eef5e2789598f90ddd7",
-      "0xe77d48246a44a76c8fce52f4a3b886943559d0b9480e475c7581def1595b3f8b",
-      "0xdd8577a0a01af3b4bf155dc54a1565a9b66bfbb4a66a630b26313d74e480a8b8",
-      "0x7cf1f15fc25b639d38bad1675f78e2ea9c89f47e13ad0c387abccee667bbe8b1"
-    ]
-  },
-  "0xb4bC8B1ea52014fA63b1bC10E2fcCDb2D4D7B833": {
-    "pending": {
-      "shael": 0.1,
-      "tir": 0.34,
-      "tal": 0.13,
-      "thul": 0.3,
-      "nef": 0.19,
-      "ort": 0.05,
-      "amn": 0.59,
-      "dol": 0.35,
-      "ral": 0,
-      "ith": 0.68,
-      "zod": 0.65,
-      "sol": 0.12
-    },
-    "claiming": false,
-    "tx": [
-      "0x213edae388e7befe3edce6c39bc780a74445d00f667a4d5a02978aa71cc9d0b9",
-      "0xf5cf7ee3817860a7ac2768dca183e41c73660d88148e0344ee1f2715adad9ddb",
-      "0xa3097d6719def69e538b224b2f7033c330d6ce5b7262c57b9ce4d807cb17cc33",
-      "0xd69fd77977e479363ee12df075dcee7d98a0ba5f831b050071e1592c1213b89b",
-      "0xd42c39b12c26d2ac7f8becaa0e1b94864bbdb84f12633b1708af8b3e88f70b60",
-      "0x1023cc382792e5b4857d673ddf535e9e94176f9d4ec1f47180bbfe634416ad84",
-      "0x80bb197c515e3a939fa509da780fba316efc632572ac69ce03170588f83c8c04"
-    ]
-  },
-  "0x51B127373a75Fe78440502B704D8F09Bd810b682": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x52b0BfA47536d1FbCFd1EF2e27CbCd18B079cCbC": {
-    "pending": {
-      "tir": 0.4,
-      "ort": 0.3,
-      "thul": 0.1,
-      "shael": 0.2,
-      "tal": 0.1
-    },
-    "claiming": false
-  },
-  "0x759f4A15b49297f941b95625825688bA2CCF1ACc": {
-    "pending": {
-      "nef": 0.4,
-      "thul": 0.1,
-      "shael": 0,
-      "ort": 0.1,
-      "tal": 0.3,
-      "tir": 0.3
-    },
-    "claiming": false,
-    "tx": [
-      "0x00ad3fa2f266984c8bc8bafdb8bbed7d9cb6c313597173d89eb694ab30a35313"
-    ]
-  },
-  "0x9247754182B7A517B3d9Ac265dE7177D07b7b5B6": {
-    "pending": {
-      "tir": 0.1,
-      "tal": 0.1
-    },
-    "claiming": false
-  },
-  "0x9f5218aA32e8cD3cE4A7216aDe6d2C188F91F4A1": {
-    "pending": {
-      "tir": 2.04,
-      "thul": 2.36,
-      "shael": 2.33,
-      "nef": 2.69,
-      "tal": 1.9,
-      "ort": 2.45,
-      "zod": 4.2,
-      "dol": 0.02,
-      "ral": 0.02,
-      "amn": 2.1,
-      "ith": 2.26,
-      "sol": 2.34
-    },
-    "claiming": false,
-    "tx": [
-      "0x9a142479ff4e853eb121822cb016924354f9931854706ab5e8ed6f850379b749",
-      "0xb48c954533ea6942510c886ffb6c544bad61f0c6422ca3b9d706fa87c58efb9c",
-      "0xe6ff98b28bf9a4a6c3f756db4dc087ecb2e7598ecbb466e2ab3b96b17f1995b3",
-      "0xf4c6f4f60447d343b0806e3b28356366e2436d72627955e7409e48c6afe8165f",
-      "0x9c0c657d1b1bf132b7e0c0a891b021f44bd199847402bafc93880b5670606909",
-      "0x3efa0441eb1f2c89478dfd350cd44cc1b7742cc0680fdb872f0edc0c8e07144c",
-      "0xa86d4a501f33e6c96c543a5acd6eb0ea2ac11b0586a4dc28dae93433801a8c31",
-      "0x75c308ba64bb99d2f6bd245942e4cb41ebe57814dc45db8e05133fb5d5c792bb",
-      "0xa35c21b221786eb025e1893677f66547a8898c8e92b917daa0c56421c4942702",
-      "0x3bdd30731e085cde47857a16e8504f9b4f5e9b71e172aad705bbcc02e0db4e15",
-      "0xae5633a31351c10ff4f73ee9ed2a25d668bdab6513521b326ab2ebabea0444ab",
-      "0x5c1f2ef8d6b58ec04bd7a49ceea12084f04f389c92a8252363c16e4b452bbc70",
-      "0xdc955be87ab202f5b610a29f216917c18b90e5b7e23ba01e3ea1ffe2b354b2bc",
-      "0x5227b4b0aa871c3b24dc751726a8706fb02812a39eebc7120a0afa7866452561",
-      "0xf9e6595813303f44d3c8987b3f3b08225a12109f505eff6fb46ca2862e8cbfa7",
-      "0xc39687bf0ca8cd38bcc33d70f2bc4c5abd2a5aa01d45e5a156101fb8f8b1d33e",
-      "0xac55fa353bbede9fb31780a9c3ee2d51a3bc303e5151982c22d9e19a17fcb9f3",
-      "0xa3cec67864a1fa1379f98277bbfbd7e28da2fcb8113e642634e999b3526ea3fe"
-    ]
-  },
-  "0x9585f469287207b033b5c96dB68594492da7A242": {
-    "pending": {
-      "tir": 0.13,
-      "sol": 0.03,
-      "amn": 0.03
-    },
-    "claiming": false
-  },
-  "0xe388484A55A1045fC5956C79e7AC34d250fBC38D": {
-    "pending": {
-      "thul": 0.1,
-      "tir": 0.1,
-      "ort": 0.1,
-      "nef": 0.2
-    },
-    "claiming": false
-  },
-  "0x346a260b82eE8F7f12B9a42D52266b5B9B7e4ee3": {
-    "pending": {
-      "tir": 0,
-      "ort": 0,
-      "shael": 0,
-      "tal": 0,
-      "thul": 0,
-      "nef": 0,
-      "zod": 0,
-      "dol": 0,
-      "ith": 0,
-      "ral": 0,
-      "amn": 0
-    },
-    "claiming": false,
-    "tx": [
-      "0xc5e84425db59ac4ce8b5adfe068ba865f6be058e391b32d63b22cebed824bfa3",
-      "0xbcfa588784aeb7984a67446041f81da3f4b8b7dc3a80f616fd1a8cf92807c8f2",
-      "0x8f7692f2106ce2359e6540b27ddc865daebc569145a6e91c008c3260dc1bf9e3",
-      "0xe4ec681a7508f4e545c78a49d99b4c8e4852f7d557fedda42770ff1026ba536e",
-      "0x456de616b89b40c19492e7a82ef4914ebcc5ca4fd9616666ee4895828ff35c2f",
-      "0x02b5e1db9794e72d7b492ccb5984cddfece4fdb8777f622e615fef64ad9b8627",
-      "0x0383f7604c65e54c2d76827c1a8911f76eec28b76a1b5998a2c9a9d53a71fb1c",
-      "0xa418a710962c6cfb28c8238f3b8d367298627bf2af43f27255826c0267acc26c",
-      "0xf1c37f7f0a7dab2a5047a7cc1aa23a2add8173280e191ce1696b479e90db32d1",
-      "0x48647d7f074a8f3d04b3f3a23612ebe2ae9fac678833468e25474226361b9949",
-      "0x2b89a078bdd2a30dce047b30739fd708eee5a888284b30c8292bfa94af958e12",
-      "0x33b4cef1ce371623605bd971423c10d164dbbfeb4f68b22cc3dd1281c1acdfef",
-      "0x443c7937d04817b032f6ba7958945addcb4dc42fa0403aa5d369db125693e428",
-      "0x4c8f3c592705aea8d9d49d8af801dd71e04c2dd9bc418dfa93e7ed953ad044ca",
-      "0x7a45768c92f288aea8e9f9dd7420e3877a5a401d0ce128a2de855ef65460b123",
-      "0x641392c7d2fead3b58fcfa47460687b77ddd7c64964ee1651ecc73112a45eb7f",
-      "0xcdbde352bfa6f75f294fd554c3e22061c7e495a9b75377aee4c504f125f55745",
-      "0x557019b32655fcd6ac271ce95de57ab085c27de271843cf06f7c8dd377273a7b",
-      "0x778928f87396af463b438139122ba416972d31d6eb105dec3e1e143b2b25e96e",
-      "0x63b46516aa61ed71ae998ea69cf6a9070ff6705effde6516a9dc593808d8c935",
-      "0xe6e9b24ff5c9f5539131f4566825b10d4e1e87c95bad55c3b3ef9d20e47acc45",
-      "0x7059d50ffea47feb51354709c5749fda6c376ed9022bf872508c70df54377f59",
-      "0x3e8abf5239265b185a979055f41e19a913e38b6c28587160de2791cea10adce8",
-      "0x229ddeb295343e44f3c856086783384a07f8d6b863d7413e2817d433e9c9be18",
-      "0x6d11b89961edcd3209000df5bcf9dc0a6357582ff12caeb19af9caa66c0fb678",
-      "0xdb3653f77b416fe55222d6449417993e7e7fd9698586fe82f054be0a015177e9",
-      "0x42cc46d3faddb35c30181c3d030112b4ef5eff06e13f3caa0c0d8081f30b1479",
-      "0x8bfb76da6fb8f5aa142da0cb60c1db355feb964b8bc5262ecfea786b305a8e3b",
-      "0xf8c52a5f9fd8fbac8bf65e6a4c2aae54b18f0ba259435eb1b532c9145488cf25",
-      "0x3a8abeaf9ce3ebf3e57de6de707de0c96ad597c1d6c89231e6b981a28c06ad2a",
-      "0xc3be84a987c9f0cf3f70600d99a62ac48ad03df815bd7c5b24cab446f7e414cd"
-    ]
-  },
-  "0xC020b973b1073ac0b2dDA1A89f6514aC02e459EC": {
-    "pending": {
-      "shael": 0.02,
-      "thul": 0.04,
-      "nef": 0.24,
-      "tal": 0.06,
-      "ort": 0.1,
-      "dol": 0,
-      "amn": 0.22,
-      "ith": 0.02,
-      "ral": 0,
-      "tir": 0.11,
-      "zod": 0.36,
-      "sol": 0.18
-    },
-    "claiming": false,
-    "tx": [
-      "0xaa064e574f1b8458ba8b60037f5dc56dc6acee95a3e4ef2eeec73e8d7acbaeab",
-      "0xdcacba405d8d4e41eb6d717441f98ab71d97c3e1cd5450227dad71f671b9a05b",
-      "0x23a53af6de14fd78a796cb72214668242787115c2166edbbdbfc48d04f070952",
-      "0xe3802a8497779ba8526357726b17b0fe1acfb3b85eaaffdd27120623da03be94",
-      "0x7242b5d961412d4cb5779139989b32fb2eb33a6c08008620b81992209867e82a",
-      "0xeb09fb6adc063b53d761492d085a6d08932f66028ac7f8579c8bc88927d390a8",
-      "0xf84400fd3d0a3031afea1deed78207fd37301ab69778b7088196cc14f9e4ca80",
-      "0xe75163f6025f8b888aa3b055a46ddef138db2d21f62353a4bc5680bc7f04b3d5",
-      "0xbbea0c21229aad24c1f23ef3dd2109ec11703bfdf7b7ad4a4a67f26e57d60e02",
-      "0xd412675ebed8d9519d6bcc6ad1112c902cc8a576e0df55ca7935dfa8d13a8bb6"
-    ]
-  },
-  "0xFA9727327258F7c05f308Fe72E1133Dba11f55Ee": {
-    "pending": {
-      "ort": 0.16,
-      "tal": 0.35,
-      "shael": 0.29,
-      "nef": 0.42,
-      "tir": 0.23,
-      "thul": 0.36,
-      "zod": 0.22,
-      "ith": 0.4,
-      "amn": 0.37,
-      "dol": 0.12,
-      "ral": 0.41,
-      "sol": 0.12
-    },
-    "claiming": false,
-    "tx": [
-      "0xedfe7f88f5cd89830b92573ac90d31bff34b271800afd73b4bc6b595f6872a14",
-      "0x75d059a84bc42cf85b0a2b78cfc381c75ac9478c098bf8f9c9743a5a9aa34021",
-      "0x2eef86e61dbf4ed84669d79de08eb010a4c8691fddd2937385e300416402b916",
-      "0x7697707c8390617ed49751045c3693cf17fa13008d9a828681f3089a6f319cc5",
-      "0xd21bcc89185a9c3f7ccc3696c6770508f4c8d31a38ddc5fd0218f8add4ef9941",
-      "0xa336c10b3deb98f97d89e3d9f1a20a6f7ddbc2407ef19d7f4f2357704a679de4",
-      "0x510c8adb8c68decf5c4131f55835cccb664f30bd6c4a2b771e9bf3707bb4c56c",
-      "0x1613490a668283ee7c5f11560d2ea3e1f3b53850608dcd50104ef85f1fbac56c",
-      "0x4396f0b2ade3ecd45f554e932b1fa45e9e82427413954e4c4d721933e1add810",
-      "0x729036473f321311bf90c7aea5e5eb40e345ce304c8f59d7432aac673d48e401",
-      "0x55b282b96276b92d36a7a591c672231747a6604cd0a3b8e15bc62f7c12ccf132",
-      "0x825fff66ce231bd4da77c3974285929636aca786512a130761f089f73c7ef665",
-      "0xb7cac18dd42cd99b1ec1286044937605c3c8fcb0d25bcf6698bde3ac09a4d6c7",
-      "0xcea14e539e390c85dc4cc931e09e1b4f27b6d331d7e4f3ada5560dcf1f52a005",
-      "0xc50a42642df2d6ddecd4232f9aead6c94d39eabd16340430775843bff7cf6b13"
-    ]
-  },
-  "0x8E251f03ee71b02c856f1EA7cdDBCcAdEaCc60D1": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xEB373A9e9Be695C479c1785b56508eD5d2C95313": {
-    "pending": {
-      "tal": 0.3,
-      "shael": 0.18,
-      "ort": 0.36,
-      "amn": 0.22,
-      "thul": 0.43,
-      "nef": 0.35,
-      "sol": 0.28,
-      "ith": 0.21,
-      "tir": 0.31,
-      "zod": 0.1
-    },
-    "claiming": false
-  },
-  "0xe563983d6f46266Ad939c16bD59E5535Ab6E774D": {
-    "pending": {
-      "thul": 0.34,
-      "tal": 0.31,
-      "shael": 0.22,
-      "nef": 0.19,
-      "dol": 0.02,
-      "tir": 0.21,
-      "amn": 0.11,
-      "zod": 0.14,
-      "ort": 0.11,
-      "ith": 0.08,
-      "sol": 0.08
-    },
-    "claiming": false
-  },
-  "0x7c35b0C0fFd4FCbD11fcd4b82EFA57BDDcF15fd1": {
-    "pending": {
-      "tir": 0.4,
-      "shael": 0.2,
-      "ort": 0.1,
-      "thul": 0.2,
-      "tal": 0.1,
-      "nef": 0.1
-    },
-    "claiming": false
-  },
-  "0x42022A4511328Be95a1aFc877Fd0402DF1002b6c": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x118458B7c2C38A3D4c4e4b110092Fa51DC813713": {
-    "pending": {
-      "tir": 0.18,
-      "nef": 0.19,
-      "tal": 0.49,
-      "ort": 0.33,
-      "shael": 0.27,
-      "thul": 0.3,
-      "zod": 2.06,
-      "amn": 0.43,
-      "ral": 0,
-      "ith": 0.24,
-      "dol": 0,
-      "sol": 0.19
-    },
-    "claiming": false,
-    "tx": [
-      "0x1e63f52d0f03a597f1abf11144de1fd09934a942860ece438dee48981eb67b60",
-      "0xf97005bbdc6a40d588488cbadbbb0d964fc3e2cd73b55841ce81ca6502b33e5a",
-      "0x0d3c72c78f9fa4aaba0d08a2f52b1147c347baed1953bf2ff875a89a742257d0",
-      "0x9070c8db31f6908328d8c428f8c9a3ff772330f4837eeb8deacc6a47eb7d07bf",
-      "0x5237051e1a796d84337039ee04cf07bc66e5ffdbddf86035e7a2a0ac7618e901",
-      "0x8f8059efd0864620b9145ec19eeddfc602a0e6467970232eba75bc55a2b2b630",
-      "0xc3045aaae741ddfee9f4437b11296ff4d32f208d92457ca388caf63b38a17770",
-      "0x04a8d1d37c4c56b52875cd763c1c5198cb54aa7cb64fea4e2500bac4fbacd567",
-      "0xbb7642d2551618ea4dec4ef428181c8b944b34e35a691dabfc44dcd101cdcf4c",
-      "0x234a93e9cc7317cf265234268ed17c46c8f67116af183e9264338f43dfbb03cd",
-      "0xa387b4ba392a338a0737a8ad128643c4db3f4825739cf3f79ed93dc3a5e760e1"
-    ]
-  },
-  "0x2F00b3F40Cb269FFFf8A49d5a62628C9BCC83cdD": {
-    "pending": {
-      "shael": 0.05,
-      "tir": 0.45,
-      "thul": 0.45,
-      "nef": 0.4,
-      "ort": 0.23,
-      "tal": 0.35,
-      "ith": 0.09,
-      "ral": 0.15,
-      "dol": 0.05,
-      "amn": 0.05,
-      "sol": 0.02
-    },
-    "claiming": false,
-    "tx": [
-      "0xd8515001234d5061288a3921fc48ca4574d8d07d0d2c71c36c263cb53b5250f0"
-    ]
-  },
-  "0x6759292192bC165Efe87B170a2e1B54aD41c6590": {
-    "pending": {
-      "nef": 0.88,
-      "ith": 0.76,
-      "tir": 0.94,
-      "shael": 0.75,
-      "sol": 0.98,
-      "amn": 0.71,
-      "ort": 0.8,
-      "zod": 0.9,
-      "tal": 0.64,
-      "thul": 0.74
-    },
-    "claiming": false
-  },
-  "0xE5fA674DBeD6F4ee72ad8b488b720acF27a6d5A1": {
-    "pending": {
-      "tal": 0.01,
-      "ort": 0,
-      "thul": 0,
-      "nef": 0.46,
-      "tir": 0.23,
-      "shael": 0.5,
-      "amn": 0.01,
-      "sol": 0.08,
-      "ith": 0.04
-    },
-    "claiming": false,
-    "tx": [
-      "0xd2ad888a09b8b7597903beac2ed6b8665d5e33acdb8feebd5501a34822166419",
-      "0x5541999cb037bf4e905f6b2eb52fa4624ade29cacb5b899aa5573e315a8e3121",
-      "0xbd3ede150042796bf9e7a55764b10fde762b82adc7f59ad63a34ee1f6cadc18f"
-    ]
-  },
-  "0x019D239a36a4fd4828253E8EcCaDD1dD2D0dd147": {
-    "pending": {
-      "tal": 0.45,
-      "shael": 0.32,
-      "tir": 0.04,
-      "ort": 0.04,
-      "zod": 0.07,
-      "thul": 0.42,
-      "nef": 0.46,
-      "amn": 0.13,
-      "ith": 0.08,
-      "dol": 0.05,
-      "ral": 0.1,
-      "sol": 0.06
-    },
-    "claiming": false,
-    "tx": [
-      "0x8acac8c976e92114764eea718b871fd168da07e09884535fd9ed8d94e0495a0d",
-      "0xcc5b6af2fed98de7e95ef1b20e7ed04d8b29a20df4a621e83385584dc6df2dd7",
-      "0x8508d35e2c00301a2f2b7edbed4ffee8b22735a041da97c07d218154b49f15f5"
-    ]
-  },
-  "0x6B3C3e174C5E78C96ED2D7d1aAD8B263FEC42A68": {
-    "pending": {
-      "tal": 0.2,
-      "tir": 0.1,
-      "nef": 0.22,
-      "shael": 0.02
-    },
-    "claiming": false
-  },
-  "0x519933B63383a172f2DB2aA6E5786f82F660f0eA": {
-    "pending": {
-      "tal": 0,
-      "thul": 0,
-      "nef": 0.32,
-      "tir": 0,
-      "shael": 0,
-      "ort": 0,
-      "ith": 0.04,
-      "ral": 0.04,
-      "dol": 0.04
-    },
-    "claiming": false,
-    "tx": [
-      "0xaf5cee5cfd162d3343876b936da6a6847d6b4de986a30ae3d5f7c9e7ce6e5e0e",
-      "0x4a09350aec7c8dd784a17a23d59518a662d298e111ea4cc3afac12c2ef7f7075",
-      "0xa6cfe4b741078bb3b3854bd82daa1749e453fa86fbf9a13f3a5ceb3989059f01",
-      "0x1feb9cff2d02967a5e935bf9c076d1eb169991ff58f0e1cb083fcbbc87f8507c",
-      "0xcee2a072fa503d760c2596cf003cd6af48314187a782a9e5e4ce6adf922fe832"
-    ]
-  },
-  "0xF6c5C2dC2A6E478E5ca1eC984B14E89Db9C9a167": {
-    "pending": {
-      "tal": 0.2,
-      "nef": 0.35,
-      "shael": 0.15,
-      "zod": 0.2,
-      "tir": 0.1,
-      "thul": 0.05,
-      "ort": 0.05
-    },
-    "claiming": false
-  },
-  "0xEbBF283cE0b762D3684FE97e20dc806e0e709958": {
-    "pending": {
-      "tir": 0.56,
-      "ort": 0.79,
-      "nef": 0.72,
-      "tal": 0.56,
-      "shael": 0.63,
-      "thul": 0.8,
-      "zod": 1.34,
-      "amn": 0.7,
-      "ral": 0.4,
-      "dol": 0.28,
-      "ith": 0.74,
-      "sol": 0.52
-    },
-    "claiming": false,
-    "tx": [
-      "0x22588b7668b73eaee5c9247edb62313b759a53ed17a01a12ed9fad77db12162a",
-      "0xa8765601e89b0fde8ca5bade70e3383fce30b404910d15160e1dd4b563582ff7",
-      "0x272c6b7a1344f6048cbc66a43ec496881b3f7f3104b9076a0b628a9a5be8ba95",
-      "0xb3a8e358955d0610adc25f370f4129a231c7f92856e42918f399180eedb558fe",
-      "0xa9f41d4333062bf00fa5615ce7f7124b2eaaad044ad9d6fca2465d0c2b5be056",
-      "0xcb3aad4ad5f30b0308d0ea46a87bdba658594293970d57b076f5a0808e350e31",
-      "0x09e8df3d176a8776b9a3077e9687435d6caa01b813d99ebfc8e1de180972a885",
-      "0x84149d334960849e067e6ea4318ab9545cc8d1eaf7349d4ef18a183189a56cbe",
-      "0x1a42f87234f1e1d7149df788fcc6619b5ee179793373da8a64e3f5dab0499c63",
-      "0xac295a985db497cef6498c1550ad09f1408765f6e13ce85d480afe9de48cde30",
-      "0xa0842a40c555a42cb0edc4b4296890c4de48d0e9c1594e22ce04448b15c8718b",
-      "0xd740a5c765c0fb5b428947ebffc6d0e3e2b8e96c247672dffb1ef3a4b5b9b468",
-      "0x802bf3598989f6ad636e89181a52821ec4034859fae808fdeae487f7e390f759"
-    ]
-  },
-  "0xcBfd578D6230954113F2ACaABF2444894A1bACf4": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x73d2DC596dbcB0FD26a4B8388Fa440334054Ce19": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x2A24bbF6d3330e0fb98d9658ea801F31f28A6c19": {
-    "pending": {
-      "tal": 0,
-      "thul": 0,
-      "tir": 0,
-      "shael": 0,
-      "nef": 0,
-      "ort": 0,
-      "amn": 0,
-      "ral": 0.18,
-      "dol": 0.13,
-      "ith": 0,
-      "zod": 0,
-      "sol": 0
-    },
-    "claiming": false,
-    "tx": [
-      "0xd42d8b03550e22d2e986d455468b9dddd0d5964bf54bb3e7eee10c47b3c5181f",
-      "0x71492b511f20c4959bc691ee5c1e70b37ca19e7a6601e436451565bb8af32261",
-      "0xe651cefa81a0d8bd47b27a7179edb8a42cb5c95a12c52bd1e4b59714370702d1",
-      "0x9827e7e96618da2c469d071c7f963733a1453781e31946e2836501088392b632",
-      "0xe0270c45902de57670b8dc9a1bf6a17c49c83ac50182820bb0366da3e3f8cc20",
-      "0x0512b3a81c21a3206ab2a2101e2af867d31afc562cc1f24f5dc8c4e395248b6b",
-      "0xec53614df5ba565a60066b91a7d90bdfc74a36ee66ed354449f20fb3b6376d5f",
-      "0xda5e586bcfd94f05adc44e27b25d5c599053fb82d9643408fb67f7d5730e0a10",
-      "0x2f01b3b1f0d6aa3100c90b58b716feaa7659aa4ed2df9d9335f618b472e47c48",
-      "0xadff7ca61d497f854b7fbd06f2bd1c9e9c6133424b2d343ae940900507197e4d",
-      "0x17f8b9c3c9075477610af035314d25a707579eeaf0f83c4b5fd843dab92993ff",
-      "0x9b7d6ed41f5edb3c5a97b706e0ff9047540c792c01cd14ad634aaf82ca636c44",
-      "0x04e356bbaf992182406ec5270f06a50b8662f7370ac64e9c0d2f73f966cdefa8",
-      "0xfb7e114e3af2373c5dad80cd65c9379916e2977061479a80d7e3d17044038d88",
-      "0xb99465134fd0a8a51223269daba5f8d7d2ff573cf87b039e47b01ec616ac5709",
-      "0xe1413bfa2c7b821b73ce2f548b88da2a151e45f234679eaab62cfcfcb4111f6e",
-      "0x5185e1a01bae79416f250f0fd2f1a67dfaff8f614825276cf1e01a6628dc758f",
-      "0xe6a76bdf2d559e99d7edb1b87671f49b0dafe23450b67d3258186715c2e8566e",
-      "0xeb6f1509f5f125ba63b1db6b43c5b036b42f9eb3ac9e2e844e7e2096a910414e"
-    ]
-  },
-  "0x7734af7887a62dc31EeE09A9c760Abb2B9F531C9": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xC7f388042b071412fFC7b3852784952717c00CD9": {
-    "pending": {
-      "tal": 0,
-      "ort": 0,
-      "nef": 0,
-      "tir": 0,
-      "thul": 0,
-      "shael": 0.3
-    },
-    "claiming": false,
-    "tx": [
-      "0x4dad1838856f113dc89a985d36cb1d9a8fd86c32487ffbdb4c70ca7c5d840bfb",
-      "0x9690d52e20eabf00b174fc2e9a3fb42e4be13bf3fd0ccb0f4a1db38ab2206895",
-      "0xa449e853461322a5274605343d925fc11b96edff2c84ba9fad3fd153f6b9c79b",
-      "0x14a70b96087dd7129fe61753f58c0aebce879a5e47add2ebbff093fc5a0aca26",
-      "0xcbab8f429e19cd5e256fae277fc5333c99adde3d75a256ad660deb3c10909620"
-    ]
-  },
-  "0xc00f217Dc088953e98D140DdEDf24E3c933e8FE4": {
-    "pending": {
-      "nef": 0.1,
-      "tal": 0.1,
-      "tir": 0.13,
-      "thul": 0.1,
-      "ort": 0.05,
-      "shael": 0.03,
-      "dol": 0.03
-    },
-    "claiming": false
-  },
-  "0xAEAdCAB2691dcC83069DE36a98bA96139842a56D": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x9f49647d76F086581c3520a57c293Cb951CB77Bf": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xCB44f29686341BAc1E2cF3319F79Ffb452D115c4": {
-    "pending": {
-      "thul": 0.3,
-      "tir": 0.2,
-      "tal": 0.25,
-      "nef": 0.21,
-      "shael": 0,
-      "ort": 0.4,
-      "ral": 0.05,
-      "ith": 0.01,
-      "dol": 0.01
-    },
-    "claiming": false,
-    "tx": [
-      "0x5ddd010e01d383977f395eea84c06efeef2ca3de46ed193f28ceca8835943534"
-    ]
-  },
-  "0xd3392Bde80C4504Fc92F72DceF76183992d409b6": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x3d7b3C31Fe38093890b5aC06DF811565C9bd1e97": {
-    "pending": {
-      "tir": 0.1
-    },
-    "claiming": false
-  },
-  "0x7aF109ca48093fBf43897183AbCd0a1a0FD4e861": {
-    "pending": {
-      "tir": 0,
-      "tal": 0,
-      "shael": 0,
-      "thul": 0.15,
-      "nef": 0.3,
-      "ort": 0.35,
-      "amn": 0.05
-    },
-    "claiming": false,
-    "tx": [
-      "0xe7c245d449deaf18cfb069885cd6905b978d19e8cdef49323222ddc8a974ff8b",
-      "0x85a83500985b2a40601f3b8878aa5bd79d12d15fe9737c9ea781c6d2f1b7a4d6",
-      "0x56c6c0f2abed6f29685df24a52afe5a6bd4d1c33b50dfe0358aee849435c0387"
-    ]
-  },
-  "0x1E449bC189f81722516A2C7B5c5B03a9ae57983d": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x43504E79cB7eA9C587259f1d22e177d1b6c1dcF7": {
-    "pending": {
-      "tir": 0.08,
-      "tal": 0,
-      "ort": 0.07,
-      "shael": 0.02,
-      "nef": 0.02,
-      "thul": 0.3,
-      "zod": 0.07,
-      "dol": 0.15,
-      "amn": 0.3,
-      "ith": 0.04,
-      "ral": 0,
-      "sol": 0.03
-    },
-    "claiming": false,
-    "tx": [
-      "0x1e88a4c43acf821ccb678926d8d11fcefbd78bc9a763d24d2446f4ad1df728cd",
-      "0x54ce9ec36467615fa11eb48e2ee3bfc738c861d12b3735b363dcbca56d57774f",
-      "0xc86b8c29f2be2cb697132be6b548526f4bbfc1f11cc0e3cf8ee539995dd7fc85",
-      "0xa9ddb49b75a21cbca0357883a81a55f40503ae395fe065bab3fd9e0583360d72",
-      "0xae9cf5c49791bafb786374c9244f44f1dc5076e735391ef693be786f1e437ef5",
-      "0x2445e4561232322e83db95481eb2cadd0adc7a35a3c4a05155a41c59c189dd4d",
-      "0x7d0d0b35f0f9751ffa6aa9a7217ba4f79ab4ba78d864286a3267979a5eca27d4",
-      "0x1989d6d6c96f90c8abf1bb92c5ede43d17c55eb10948ba857cfaa8dd8a851e54"
-    ]
-  },
-  "0x09B0dD2d4FF9a992DeeffdCA4aeC48c44194f5fb": {
-    "pending": {
-      "amn": 0.05,
-      "shael": 0.04,
-      "nef": 0.05,
-      "zod": 0,
-      "ral": 0.02,
-      "tir": 0.02
-    },
-    "claiming": false
-  },
-  "0x1040F77D969c06478d1CaA4028E30BB7cF152F59": {
-    "pending": {
-      "tal": 0.2,
-      "ort": 0.1
-    },
-    "claiming": false
-  },
-  "0xdA106baeEcefd4c94F7D7D11A4F8be492E5D265B": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x9C2a5D858b25694B09740F0e0E59c77Af9D8f2E1": {
-    "pending": {
-      "tir": 0.76,
-      "ort": 0.7,
-      "shael": 0.91,
-      "tal": 0.95,
-      "thul": 0.68,
-      "ith": 0.54,
-      "ral": 0.09,
-      "nef": 0.59,
-      "amn": 0.56,
-      "dol": 0.03,
+      "thul": 0.54,
+      "ith": 0.48,
+      "ort": 0.58,
       "sol": 0.49,
-      "zod": 0.54
-    },
-    "claiming": false
-  },
-  "0xDb8c2eE0ABe3CD80335191A9FF940556Db5Aca66": {
-    "pending": {
-      "ort": 0.35,
-      "tir": 0.59,
-      "nef": 0.42,
-      "tal": 0.6,
-      "thul": 0.33,
-      "shael": 0.29,
-      "ral": 0.27,
-      "ith": 0.27,
-      "dol": 0.12,
-      "amn": 0.22,
-      "sol": 0.2,
-      "zod": 0.15
-    },
-    "claiming": false
-  },
-  "0xC58F447482e99eF7c1e4e153EeB15304747732ad": {
-    "pending": {
-      "tir": 0.1,
-      "thul": 0.1,
-      "nef": 0.1,
-      "tal": 0.2
-    },
-    "claiming": false
-  },
-  "0x8d309dE16A745C15FfA00A46dA4EB3E044c54d63": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xC817984e20448AAd966D9Aa637D3167aEf4bA7bA": {
-    "pending": {
-      "ort": 2.99,
-      "thul": 1.78,
-      "tir": 2.86,
-      "tal": 2.87,
-      "shael": 3.71,
-      "nef": 2.34,
-      "ral": 0.35,
-      "dol": 0.6,
-      "amn": 1.36,
-      "ith": 1.43,
-      "zod": 1.57,
-      "sol": 1.09
-    },
-    "claiming": true
-  },
-  "0xEFBD1940dc13e1Fd986Cbea279E956e1e23369e6": {
-    "pending": {
-      "nef": 0.01,
-      "ort": 0,
-      "tal": 0.01,
-      "tir": 0,
-      "shael": 0.01,
-      "zod": 0.3,
-      "thul": 0,
-      "sol": 0.01,
-      "ith": 0.01
-    },
-    "claiming": false,
-    "tx": [
-      "0x308762414baee8933035b02b990718569f0c79823b1811c2aac29ecdc5a0824d",
-      "0xc75cf8e4038a8e4e58c7a97b3c7aa10870246330f86acfe390cfa9c48dca9349",
-      "0x4de2b77a3673a917cac613e0ecc3f3a3119d5ee20807fcf3ff0b8c84fca698ea",
-      "0x12638491ea4c9c5b98978017489df05d6e44cd9fa30f6c872eb0e9c557e73e71",
-      "0xeb43192732529702e9d10123e847fe7e45801cdba41f7ce797ef6dc6d1a2e1a1",
-      "0x0d66a8fa8a4bd95145b40cca3d4653f1bc74eb0a7d7be1c1a76df6390ff72db5",
-      "0xb392e37202944ee069b86769142aa07db66b88ed8dd34afd48faf3aa67941fe1",
-      "0xcec5450b050fe6a800df8e3f96885717331eab9607c8cf49eeb5484f152734b5",
-      "0x2c09f7cb9111c0decdea51460fb9c7bcfc23633f0a5129f5abb144805daecc7b",
-      "0x7e2d1375262872070d839cdd3695890f614b6e9d59285478d26a23f25a31ad44",
-      "0x97a7cd910c54f73ee65976b65116295fad53d07c5d00459a36e060e9ad273fae"
-    ]
-  },
-  "0x63565663169428048A4c69F278129D1214603B54": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xc92FC09658fb97cCF59ffd34d404766C3713c828": {
-    "pending": {
-      "nef": 0.1,
-      "tir": 0.1,
-      "shael": 0.1
-    },
-    "claiming": false
-  },
-  "0x2C77F18fe8dAaeA3c1869839d56a3D16E139b555": {
-    "pending": {
-      "tir": 0.3,
-      "tal": 0,
-      "nef": 0.3,
-      "ort": 0.4,
-      "shael": 0,
-      "thul": 0
-    },
-    "claiming": false,
-    "tx": [
-      "0xd0a959bbf4cba8c55a454dd6a49d851ec9d944dc3ef3737722e67cb43af2ff96",
-      "0xb7780170763d951bf99aea8042e7c7d9d85f4b0a4da162dc1e93289b38847868",
-      "0x4cd5d4e966d1be0588e18253f1b1eb4adf6442c0c06c3791fb105d7455dfc3b8"
-    ]
-  },
-  "0x8Ab553EccDCcE103Cd150F11733bA0a33e12a3C3": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xE695D5Ba548B6bfeA7C9622f4D3fC341987C96B9": {
-    "pending": {
-      "thul": 0.3,
-      "ort": 0,
-      "tir": 0.4,
-      "zod": 0.32,
-      "shael": 0,
-      "tal": 0.05,
-      "nef": 0.02,
-      "amn": 0.02,
-      "ith": 0.02
-    },
-    "claiming": false,
-    "tx": [
-      "0xd76e7a2d0a40d6f80da53c5a6b369f0ee73701f54f43b6670176979adfecdb3c",
-      "0x28ad8f8c4f39dc1faf4ef98f122537996708f1e364700c8c0e35f96b55c9c66f",
-      "0x00895db35e14a8b7a53876b41492f9ffa34bd7fdc1d93b7d5f5a25c762827eeb",
-      "0x430470b9f1803fad09f5d4bfe86b2247a6bab8e301c459e8f38fa4e07aa4728f"
-    ]
-  },
-  "0xB0Dbc08529044F7dB1D1cf61a7b34403E01b08f5": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xb8b525A87adC048282bd724171fF02eb43De41F5": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x8E224b70C1A6DB147852BDE9332Bd266255B941b": {
-    "pending": {
-      "nef": 0,
-      "ort": 0,
-      "shael": 0,
-      "tir": 0,
-      "thul": 0,
-      "tal": 0,
-      "zod": 0,
-      "dol": 0.35,
-      "ith": 0.35,
-      "ral": 0.2,
-      "amn": 0.15
-    },
-    "claiming": false,
-    "tx": [
-      "0x779e5b84533e2e7c140417a6751535e094ad0bcbe1be9a2f8bc7bee30a828478",
-      "0x8a83d04c066928edade8a0217c51e3d4c8d434ef10255f9a08b51dc717ed49df",
-      "0xa924d0e2c62f9a0ba2e3dd1d17e520731f546b88a0edc3f12fde11f86a45ed21",
-      "0xe56ebf3a9cac83aa3cee8f89ea49f1af513a81d06d0c38b209f22bf457231347",
-      "0xd0a3018c40ca5aa31dd0d4b79418f8a1c510f8459f63b551655727f508c8e6cd",
-      "0x7cb6e7d650fafbcb46df2c2eca192c629ff9f580414aa8cafab5d12aa2e555d2",
-      "0x704abd71c3b63012f745877f13d091fc0a3510b7b5e30aa74f96e530ffc2f2cb"
-    ]
-  },
-  "0x89dbb66a9a2697914a3838467F767FcDBe5CA723": {
-    "pending": {
-      "tir": 0.5,
-      "thul": 0.35,
-      "tal": 0.53,
-      "nef": 0.52,
-      "shael": 0.73,
-      "ort": 0.57,
-      "zod": 1.19,
-      "ral": 0.37,
-      "ith": 0.74,
-      "amn": 0.66,
-      "dol": 0.15,
-      "sol": 0.38
-    },
-    "claiming": false,
-    "tx": [
-      "0x75f4a9e6078fb7f09b640793c6be73e4c71f0a47649582eced498d044ceca5c1",
-      "0xf7fef3940fe9cadefc549cf098d51316183c20fa6a54aa22b8bb5296e483ef25",
-      "0x607ed806646e5f0e63e5d1aeac19d5d787334fc2033a356ccb3b20db4554016c",
-      "0xabf6d29f2021265b970e082b3f6f9be20f8faa761dfd1ebebe8069128819c57c",
-      "0x7d650ded94be8216af109cdd01b6d49d1deb4a8244fbd688a5d0bc6ed00b5685",
-      "0xa276a8deaa78a47525a6934b84ac4f10a96a7c51c5a12700b332511c37442e19",
-      "0xa0c645dc85fe8e7efcafa974be2ecd9b07aca640edfc98887a779366b23af50e",
-      "0xaef7218396a43687dbd962ede92a34f207ac72840be0cee54878ff64790ef237",
-      "0x13d3b8b8eecd01cc21cf59f6d2ac3aff7e8a6500f026b6bbeaade3952037baf7",
-      "0x9a51b8c0540ce568d8aec0d1539568e2ef4479fa28cade667a4d682814c727e3",
-      "0x40251472818b401665877d666bcf00b2fc40255a6b4845e2e50a4ea19a76030e",
-      "0x8399c9a78a0e21de1a093ace25df5991bbd070ab86393d6b32c5b3c2c8338b26",
-      "0x1854485ff2dbe9fd55f0234a6b2e4a5a6c45967b7099afb189f3018dc788780d"
-    ]
-  },
-  "0xe341d077a0cfba74f492cd0d06F6be3b7C0aF1C9": {
-    "pending": {
-      "tir": 0.1,
-      "ort": 0.1,
-      "nef": 0.1,
-      "zod": 0.3
-    },
-    "claiming": false
-  },
-  "0xC51e5Dc57BBB209Fb7080E1E01df98e5Ed6e2736": {
-    "pending": {
-      "nef": 0.2,
-      "tir": 0.2,
-      "ort": 0.1,
-      "tal": 0.1
-    },
-    "claiming": false
-  },
-  "0xEB16739C0286115A0Bf00a4a22E3721a0764F04e": {
-    "pending": {
-      "shael": 0.04,
-      "tir": 0.04,
-      "thul": 0,
-      "zod": 0.04,
-      "ort": 0.02,
-      "tal": 0.1,
-      "nef": 0.02,
-      "sol": 0.02,
-      "amn": 0.02,
-      "ith": 0.02
-    },
-    "claiming": false,
-    "tx": [
-      "0x21a92422658d593f53ab6452974088eb69676d84fd4014ab8875717c7fbb090e",
-      "0x13133b1996c371fa2eb2ceb7438237b50c5175f82dc28ad6a47b7fd37cbea6f0",
-      "0xf021d7c89bb07000fc599fc0d492d2de54398be1583666d4b7cd4fba57b7f706",
-      "0x00c68249640f022e82166bbbca0ad86fd614aec54f5e0943bd1fbef71239cf27",
-      "0xeae439a45ab70350ee0212221ceabd01b214356635e832f79ec7a780a8c264b5",
-      "0x8c89028ae2c8a6d8fbca0d5d4d6e90510cf293086b76f5a7a0cc5d1cde057f77",
-      "0xee2ad4fec445673097d246422b040aa5a5d71902fc85e587cfbde4efc4161528"
-    ]
-  },
-  "0x5C119d1D77AD7aCd630B4aBf6b285A45f7379E85": {
-    "pending": {
-      "shael": 0.1,
-      "ort": 0.1,
-      "nef": 0.1,
-      "thul": 0.1
-    },
-    "claiming": false
-  },
-  "0x3d7200438B0F5d411e6FfABC9C9906adA531E69f": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x72f135D8b0F1Cd9861e4d585b63e15d3809A9E07": {
-    "pending": {
-      "thul": 0.1,
-      "tir": 0.05,
-      "shael": 0.15,
-      "tal": 0.05,
-      "ort": 0.05,
-      "nef": 0.05
-    },
-    "claiming": false
-  },
-  "0x9c09d7be22dc014d0d199E17989bA83b286A20be": {
-    "pending": {
-      "tir": 0.1,
-      "nef": 0.17,
-      "ith": 0.07,
-      "shael": 0.04,
-      "zod": 0.04,
-      "amn": 0.04,
-      "tal": 0.09
-    },
-    "claiming": false
-  },
-  "0x75070C393b6478e87313c65Fba997890e4e884aB": {
-    "pending": {
-      "tal": 0.2,
-      "ort": 0.1,
-      "tir": 0.4
-    },
-    "claiming": false
-  },
-  "0xa2D36f11E2225d1b89146F443350e825F15B8B68": {
-    "pending": {
-      "amn": 0.03,
-      "nef": 0.06,
-      "zod": 0.03,
-      "tal": 0.03
-    },
-    "claiming": false
-  },
-  "0x8FbFE537A211d81F90774EE7002ff784E352024a": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xc290492cF8Dd57922d7940373293870ac59B2218": {
-    "pending": {
-      "thul": 0.1
-    },
-    "claiming": false
-  },
-  "0xC78B5a4c5bC75DfafE4188766d9c8F7408681AE6": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x28a92171a86CA4Ec6Ec6Fc5e4f8f099DF002F6F4": {
-    "pending": {
-      "thul": 0,
-      "tir": 0,
-      "shael": 0.2,
-      "ort": 0.2,
-      "tal": 0.2,
-      "nef": 0.2
-    },
-    "claiming": false,
-    "tx": [
-      "0x31aff353966f60bcbb9a5fa2d4ffd83c7cf080e122929fb8a764795e3a042d99",
-      "0x91567999ffd1bb6719efbc83e9f94d5ac8e8293f5364c9e5d7e2e5e63ad6bf87"
-    ]
-  },
-  "0x85a3b51edd5dA09258a5aA9e838377D639605a5A": {
-    "pending": {
-      "thul": 0,
-      "nef": 0,
-      "shael": 0,
-      "ort": 0,
-      "tir": 0,
-      "tal": 0
-    },
-    "claiming": false,
-    "tx": [
-      "0x44aee92d3a87defdeecf42c04f8480f49ee27f808c216449b735d75838599edf",
-      "0x2b629e2e959552882b0acc9bdad44436f05caac28ff12d846f6f66f478f9a962",
-      "0x264c8af9489e3986c62350acd6e57dfb7894bda87ade318c9e971c75f2038f3f",
-      "0xcfbad16fbfd7850dd01837f52c4cfbfa48236ff97ec44569489acfb9c23bc563",
-      "0x1da14627a980d50dd9b0206ab2cf2d7ab19908656600403b3cab95c6173e1653",
-      "0xa1539bc90b2af6d6c8a74e67ef52f3190dc2614bf9e2048d764680a56272f6ca"
-    ]
-  },
-  "0xA027751946f97DD7847C5a75fA4677E5Eb3eBcCa": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x51c64d3A17D891c62612b00b7584123eF78Ad9E2": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xF0659403c811154b704afC121Cb6152104B5d289": {
-    "pending": {
-      "zod": 0.86,
-      "shael": 0.66,
-      "tal": 0.68,
-      "ith": 0.66,
-      "ort": 0.66,
-      "nef": 0.67,
-      "tir": 0.76,
-      "sol": 0.85,
-      "amn": 0.97,
-      "thul": 0.68
-    },
-    "claiming": false
-  },
-  "0xe15a51A77Dd2D3263980631581E5D8cE770B5e50": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xE031C54D0954F91dEfD360F7A5C040BC1FEbEdb9": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x4A2F26aA0fAA95A4f8780277EC5d2791f6887759": {
-    "pending": {
-      "tal": 1.74,
-      "nef": 2.05,
-      "tir": 1.67,
-      "shael": 1.77,
-      "ort": 1.77,
-      "thul": 1.92,
-      "dol": 0,
-      "ith": 2.01,
-      "ral": 0,
-      "amn": 1.72,
-      "zod": 2.11,
-      "sol": 1.81
-    },
-    "claiming": false,
-    "tx": [
-      "0x72a13a92d53a708293269de346f3ad57f84555fb765df667ced81945f22dc83f",
-      "0x8e94a29fff21f243c7b61dbd9b506e2c4f15f48a122f171c07586917f02d6730",
-      "0xc9cc41627ae563934fe06c44c98eccec82495addac46b71dfa3dee1a58ba0033",
-      "0x965119519c7025c524e1134ff24dd89c4b8d1ba5b183397bed94a334216f0c93",
-      "0x197d8c67966cf08e721937e8e77fb29239e8ad5554f370c78b39b88bf4335f01",
-      "0xc91c70a59c7c189f667236bf1fd4056829462da7d73c34dc6580a01b3f2e2da8",
-      "0xada03b94066620cc92c20f2f12639ebf2033702881d3406d0e27d4fdd4a494e0",
-      "0x527b55544be249e198ae23d84361b8c5dacdbfe1e8d2db2f3c050048403d8ea9",
-      "0xba9c7d139dad38d613218bc17e1a685af4894956a8c343e3aedbc000de3e6b40"
-    ]
-  },
-  "0x73e700C77dc7988836417042e2B6DCAF4C6E27D4": {
-    "pending": {
-      "zod": 0.26,
-      "sol": 0.22,
-      "shael": 0.23,
-      "ort": 0.22,
-      "ith": 0.17,
-      "nef": 0.24,
-      "amn": 0.2,
-      "tir": 0.11,
-      "tal": 0.14,
-      "thul": 0.06
-    },
-    "claiming": false
-  },
-  "0x123DA5413e60a12D68bf1b5BEe1397162d51a39C": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xdDafa874486B357A7d1Ab1DCF34Dd5E9109DD4f9": {
-    "pending": {
-      "tal": 1.35,
-      "nef": 1.43,
-      "shael": 1.48,
-      "tir": 1.43,
-      "thul": 1.25,
-      "ort": 1.62,
-      "amn": 1.12,
-      "dol": 0.05,
-      "ral": 0,
-      "ith": 1.24,
-      "zod": 5.38,
-      "sol": 1.07
-    },
-    "claiming": false,
-    "tx": [
-      "0x38651b1cef78bdffa82bf7b3e6ea05904913c96c01c7809a07bc29712c34c111",
-      "0x6f6d05d2c1eaf7a84468cb1d07b92f3e01c85397695f05b3b9cb2fccaf31611a",
-      "0x31c5147874271bae4d68f6929a00864cf56750d273b650d29ef428b2e19464d7",
-      "0xd71fc687c78a245c394eb0460cf37fd589a496a9bb32172fbe4e07b8f11efa37",
-      "0xeb14e710b3ffcff4b65235772b84a3317304f3f1ab3fce014e283d34d702a5b0",
-      "0x7b5fe2e58ea2dd36301e9a6b1f651ae95d07f43b546c9210e8d90ff402a9819f",
-      "0x4c024e46e413285b554c6d1bd77230e20cc27278d50c632a4c398065cf9b5a8d",
-      "0xfd3f6f9aea816dca1b6f0115daf0a757051fc0d3c8b0d1d55c358cdf611b7b0d",
-      "0x8b561315b39a47bc2349c547e8b58f899b1c3046e7e181be57801ac2e6087e9e",
-      "0x9dbb5a6c9de8b07822b763f0ff6127368e6ef3a8ae7061b1839cd6cd02883802"
-    ]
-  },
-  "0x359fB7d0864071026F0896c1903e57B01bb93447": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x3BE5f0EFf284a464C79C2dcE99b36C7e3590A17a": {
-    "pending": {
-      "tir": 0.8,
-      "tal": 1.07,
-      "sol": 0.67,
-      "shael": 0.91,
-      "ort": 0.7,
-      "amn": 0.82,
-      "thul": 0.68,
-      "ith": 0.68,
-      "zod": 1.46,
-      "nef": 0.6
-    },
-    "claiming": false
-  },
-  "0xDbCE66C4468AC0EFE660cea7B667E9e222BE8C0C": {
-    "pending": {
-      "shael": 0.34,
-      "tir": 0.53,
-      "tal": 0.44,
-      "nef": 0.29,
-      "ort": 0.36,
-      "thul": 0.27,
-      "ith": 0.42,
-      "dol": 0.06,
-      "ral": 0.03,
-      "zod": 1.1,
-      "sol": 0.38,
-      "amn": 0.38
-    },
-    "claiming": false,
-    "tx": [
-      "0x5a0017edac7ec964b98419e4fd855f591fad1a674ec8be62e2ba29804243c6f3",
-      "0x66caa83f7f75fb398f4ad6d9d6dc0b82a8d32c54b6aefab0b0d1e260fbcddb6a",
-      "0xf2958d8d8c381b11ff2989f7cc32f33e6cef36740e282f2c79d9089ea106d0a9",
-      "0xf21a53d77b106b4c0e8f98f20f3af340c2f1f20375e19fcca6699461412c61c4",
-      "0xbe07ba67f8973107703ec8f214efea12d9976a7fe0bc8cebf7a2c20442a8db4a",
-      "0x550335c6f0fa4e9515558a0f64088012c7281aa580b532a8c6be5eab77d51e91"
-    ]
-  },
-  "0x7D3dCa327f9e3b23586965583C03774edA271eA2": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xf3c22427FA7FEE96FC02BED8C9e70D61490018d2": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xCFdD6Cb5AeA4C6DA545EfE9201BC8c3aE959aA79": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x472A444100f3a08e5a8A361c952fe054BdADBfC3": {
-    "pending": {
-      "shael": 0.1,
-      "tal": 0.3,
-      "tir": 0.1,
-      "nef": 0.1
-    },
-    "claiming": false
-  },
-  "0x7717AD718cA553d6D3d232354183e3ABa50Eb4Aa": {
-    "pending": {
-      "ort": 0,
-      "tir": 0,
-      "tal": 0,
-      "thul": 0,
-      "nef": 0,
-      "shael": 0,
-      "zod": 0.3
-    },
-    "claiming": false,
-    "tx": [
-      "0x0e8d8ca0fcc2c34d9f11ccf5ee58557f86482c09da2ce3c69d76a80cf6534f64",
-      "0xeb5cd87e51ed567f77fb15ad7a15bfda17bb5db11e9cdbb3eb2e83a7c7792d1d",
-      "0xb6d07e4f44d3ec1b3e6b7844efc11d5eff8bf6924847a7e0c8539149f0f37b97",
-      "0x51d4417e401e337b8f21a8abef56fabd6dc3729da4217aa0ab7220c794f84318",
-      "0x9723d2c2795cd6712f0e67db45433317f487d85085dfa640131e5fff1f104b32",
-      "0x56b366b31592963af5ab87a889f9966e817b95de54418f0bdd8482abaae8a2ef"
-    ]
-  },
-  "0x22e0a1cce2A23f4ab98eBbeE8B923A1Fd19377B6": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xE4A046F0F37F9a70556B593F5887B1Bf019cDe51": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x6B1B7f39A2348CE813784906463d263688613DFA": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x402C27F948f7B789d2d0123d00fC80BdA600cA71": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xB7648b44871D65174Ca4e78e06EAd1DE96E055b5": {
-    "pending": {
-      "tal": 0,
-      "shael": 0,
-      "tir": 0,
-      "nef": 0,
-      "ort": 0,
-      "thul": 0.2,
-      "ral": 0.1,
-      "ith": 0.15,
-      "amn": 0.05,
-      "dol": 0.05
-    },
-    "claiming": false,
-    "tx": [
-      "0x4bb0b7257c45c7fcceb5f25e9386455d281fc53189735b436af5726cdf47a6a0",
-      "0xfa13f48be5c2e7ae548017200649b19cc500393d4aff3ea4b7ab67c617e6750c",
-      "0x5527099d82f11983a4e1d6695061861a164b3037fbc7d44453dc70fae1471f90",
-      "0xf006a2a4dcc82699cbae72f6900f60144c88c66f3f3242f37281e8795984a02d",
-      "0x4c2c25534aa5de1612b0d6a4e46959fa9a5c5188adc9c0d097419c06eeffca23"
-    ]
-  },
-  "0x2bfeb9AFdBF0F3b6e0b4FD1FEdb8976B6aBB8487": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x365277F3A1e04b82879f915Cc52387d8D685faCc": {
-    "pending": {},
-    "claiming": false
+      "tir": 0.47,
+      "zod": 1.22,
+      "tal": 0.48,
+      "amn": 0.64,
+      "nef": 0.41,
+      "shael": 0.5
+    }
   },
   "0xfa1b67D1c296a6aEdB80AE2C0eB7f15b909535e3": {
     "pending": {
-      "tal": 2.08,
-      "shael": 2.61,
-      "nef": 2.57,
-      "tir": 2.12,
-      "ort": 1.98,
-      "thul": 2.22,
-      "ral": 0.08,
-      "amn": 2.49,
-      "ith": 2.8,
-      "dol": 0.06,
-      "zod": 2.68,
-      "sol": 2.07
-    },
-    "claiming": false,
-    "tx": [
-      "0x9b054fe93ac8f72bcfdb550dd1ce0e9808978ae26eedefa1d9533beb4904a2c6",
-      "0x8c760f1c1fee53222e52d2d77b3e667b3b9932050cecaf2dadf3059f48359786",
-      "0xad83f7ed4b5285bf59570e501b28c5b06874f320922017dec5d33b9043cb86ab",
-      "0xe48bfe18dde7afce428d1a4198ef5a09ed02696cfd7cff0c5a190f843ce26269",
-      "0xf61868a3cac239be80722e7cf174cf99eca04a84c79696bb25d85e419790c905",
-      "0x343123a5cabc3af6089f8cfdee8166dcd0fe2e1303558493dbb79f78c95fc122",
-      "0x67a7e9df8a2a5b8db9d825d573d9d19a3f5e030fb4ccbfaa5b7d88eab98b14be",
-      "0x180cfdeb57f2be0d2f12e729eef96f5ab5f107598a851e6f38cd59f4289bde35",
-      "0x2606fbd60a5bfe37e1197056ad515ca668db8a5459404f18f5069f2dcdc24f99",
-      "0x0f367e92e9aeb39a090c4f6dbf0222fd65a7e3ca6029d1f5455fbc146859b468"
-    ]
+      "tal": 0.76,
+      "thul": 0.62,
+      "ith": 0.76,
+      "tir": 0.58,
+      "nef": 0.6,
+      "ort": 0.45,
+      "shael": 0.68,
+      "sol": 0.49,
+      "zod": 0.8,
+      "amn": 0.61
+    }
   },
-  "0x34373f7716d6d613cc862C5C596e7EC845d6D119": {
+  "0xf5f74C75e82fa95dD2aC825A9F057486977ca294": {
     "pending": {
-      "thul": 0.02,
+      "ort": 0.53,
+      "zod": 1.41,
+      "tal": 0.42,
+      "nef": 0.39,
+      "tir": 0.35,
+      "shael": 0.55,
+      "ith": 0.38,
+      "amn": 0.4,
+      "thul": 0.61,
+      "sol": 0.61
+    }
+  },
+  "0x545612032BeaDED7E9f5F5Ab611aF6428026E53E": {
+    "pending": {
+      "shael": 1.4,
+      "sol": 1.44,
+      "amn": 1.06,
+      "tal": 1.39,
+      "tir": 1.42,
+      "ort": 1.35,
+      "ith": 1.14,
+      "thul": 1.3,
+      "nef": 1.15,
+      "zod": 4.03
+    }
+  },
+  "0xa2DDC93bb38D86f233F39D198A505891DD22673b": {
+    "pending": {
+      "zod": 0.38,
+      "thul": 0.23,
+      "tal": 0.16,
+      "amn": 0.14,
+      "ith": 0.14,
+      "ort": 0.14,
+      "shael": 0.23,
+      "sol": 0.17,
+      "tir": 0.11,
+      "nef": 0.12
+    }
+  },
+  "0x150F24A67d5541ee1F8aBce2b69046e25d64619c": {
+    "pending": {
+      "tal": 0.41,
+      "tir": 0.31,
+      "sol": 0.35,
+      "zod": 1.32,
+      "shael": 0.31,
+      "ort": 0.24,
+      "amn": 0.31,
+      "thul": 0.28,
+      "nef": 0.26,
+      "ith": 0.3
+    }
+  },
+  "0xf9056dbe1CC96a06a6781F773DeE55cf69AD3c8d": {
+    "pending": {
+      "amn": 0.2,
+      "sol": 0.09,
+      "ith": 0.22,
       "tir": 0.12,
-      "nef": 0.14,
-      "ort": 0.13,
-      "shael": 0.08,
-      "tal": 0.14,
-      "zod": 0.08,
-      "sol": 0.06,
-      "amn": 0.13,
-      "ith": 0.06
-    },
-    "claiming": false,
-    "tx": [
-      "0xa0ec0f079fd05a9d496eccf032bd7718afc8d267ad183bb887b452c1d54fd300",
-      "0x9159f3e873ce5b3005d17e7faca04d73b5369fb45b2f471d9c3a77257ad4ec4b",
-      "0x65e98a16a81bb47b3b795d7283042df1b3723cc8ae1ab88cfa74351646733f08",
-      "0xb80cb817dbc7902f880380beb4620da83be6e951a754bff639230a2662d06764",
-      "0x92158845cd5c26ecd63bf83198606a3ef856eea465eed99444efbf1516870682",
-      "0x514ace54ebdee8db7974dcb4a729f17f9d790c4a0880f0285a989f3b0bafc7bf",
-      "0x6003ef102c1685ab03788bc1f5045a1ddba3844751cba4d481e17135b4e66835"
-    ]
+      "tal": 0.25,
+      "nef": 0.21,
+      "zod": 0.13,
+      "thul": 0.09,
+      "shael": 0.26,
+      "ort": 0.17
+    }
   },
-  "0x525c3082a722E226921Ba0453fE03B0dB3C5df16": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xF7560e090ADB7b2C633D2Fc87b35f4235a13B76f": {
+  "0x9dC829dB9Cdbe91fE3044b7E1aE4c7Ee6153d5c2": {
     "pending": {
-      "tir": 0.1,
-      "tal": 0.1,
+      "amn": 0.08,
+      "thul": 0.09,
       "nef": 0.1,
-      "shael": 0.1
-    },
-    "claiming": false
-  },
-  "0x4436F5f29169Bd538C357aC1e0DbddcD3Da3F032": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x81D0aCbc5958Bc449C4bC896243eB5971Bb3F7BC": {
-    "pending": {
-      "tir": 0.1,
-      "thul": 0.1,
-      "ort": 0.1
-    },
-    "claiming": false
-  },
-  "0xB828D463B478fc34a596D354Eb0C3f1F4579Dc33": {
-    "pending": {
-      "thul": 0.16,
-      "tir": 0.19,
+      "shael": 0.12,
+      "sol": 0.21,
+      "zod": 0.1,
       "ort": 0.05,
-      "sol": 0.06,
+      "tal": 0.04,
+      "tir": 0.04,
+      "ith": 0.08
+    }
+  },
+  "0xc1311097dBe3240abf279BAEe208ce120aa5bF0c": {
+    "pending": {
+      "nef": 0.02,
+      "thul": 0.02,
+      "ith": 0.02,
+      "sol": 0.01,
+      "zod": 0.02,
+      "tir": 0.01
+    }
+  },
+  "0x9f5218aA32e8cD3cE4A7216aDe6d2C188F91F4A1": {
+    "pending": {
+      "nef": 0.12,
+      "sol": 0.19,
+      "tir": 0.1,
+      "zod": 0.18,
+      "ort": 0.06,
+      "ith": 0.21,
+      "tal": 0.17,
+      "amn": 0.11,
+      "shael": 0.18,
+      "thul": 0.15
+    }
+  },
+  "0x21e7451056032eF22729D5C5AA47Eb8b4D73184C": {
+    "pending": {
+      "tal": 0.05,
+      "amn": 0.09,
+      "tir": 0.05,
+      "thul": 0.06,
+      "sol": 0.07,
+      "zod": 0.3,
       "ith": 0.07,
       "nef": 0.06,
-      "shael": 0.03,
-      "tal": 0.01
-    },
-    "claiming": false
-  },
-  "0x49F04Aa306013373032B882171D7dA39914A71Ff": {
-    "pending": {
-      "thul": 0.43,
-      "shael": 0.43,
-      "zod": 0.69,
-      "tir": 0.7,
-      "nef": 0.53,
-      "ort": 0.54,
-      "tal": 0.69,
-      "amn": 0.74,
-      "ral": 0,
-      "dol": 0,
-      "ith": 0.38,
-      "sol": 0.78
-    },
-    "claiming": false,
-    "tx": [
-      "0x4321dbb09934d25dd24b2e30ee604e73331b7ec2b0c0903844ef4af071a957ac",
-      "0x998a353304687f815ca601244d6fe1a4093608c0d3320326fdd9e0639910e586",
-      "0x6f261f3746801d1eb99c76d3dd7fa22e608618b69395e5fc1c5ea42ff76877de",
-      "0x3262dfd978e132c2fdc8af8de7b19a3067f302a2b48e9f40e3b1ad3ca5945e04",
-      "0xa2bb2e8341fe7b2bc1be19760a16927fd0251f0b74be2950ca1d3aa92b8401d1",
-      "0x63e77567f885e4bd67cf8cf6f8090dfa5c3230979b18d3b3f4e9350348a4f691",
-      "0x98427186faf418f9d9e40f3b6f69930af85d0a184d9a09fc0854db1bcf23a67c",
-      "0x041e20b5e6e2efbc1ecaa88de291009ba2e7e7d6079abf8203c0aacc9bc9afa7",
-      "0x0c5d6470c2dbb434701cc0e71e9e19d7f83cfc63349b5dee2ed8510446b81183",
-      "0x02eb6f87615ba5e792d59521f67da860165f292c879c3cf851ddd266cc44e5c5",
-      "0x306aae67f4b3af486256a9b2a262ff06038d1ffefa3282e8a696b23e94a85bfb"
-    ]
-  },
-  "0xBEc838d0C790b7EFaC31caDEc39cdfebAf3AaDE3": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x1cAA7069d4552055d3187097998504f9dd3CA496": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x9a3a55723DC8974289Ec64EE6517FcFb20577B40": {
-    "pending": {
-      "thul": 0.2,
-      "ort": 0.23,
-      "shael": 0.1,
-      "tal": 0.05,
-      "dol": 0.02,
-      "nef": 0.07,
-      "amn": 0.05,
-      "ith": 0.01,
-      "sol": 0.14,
-      "zod": 0.19,
-      "tir": 0.04
-    },
-    "claiming": false
-  },
-  "0xa0ba9d15Defb5E4667Fd14d2A65be5B4B191948E": {
-    "pending": {
-      "tir": 0.06,
-      "thul": 0.03
-    },
-    "claiming": false
-  },
-  "0x5524064a8F88783b83DAFB4afCf269e74f4fb695": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x75d6721302a64f22570BA99059c0CADfB24aCCC5": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xDCc736E56537c875eC7bf3DcF9bBb75B101aafD5": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xA40E6fe014FE37A07D2ed9bB215fE9B0542fD0DC": {
-    "pending": {
-      "thul": 0.1
-    },
-    "claiming": false
-  },
-  "0x9b2e483ae2dbd6b5F8348F56994883A3cCa2da28": {
-    "pending": {
-      "ort": 0.2,
-      "shael": 0.2,
-      "thul": 0.1,
-      "tir": 0.4,
-      "tal": 0.1
-    },
-    "claiming": false
-  },
-  "0x100A19E090382984Ba6aEB6cEc830365CA629271": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x88dfb06FF8d4E15D37b7D3A101209090eCC98583": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x7911828cE94794E0A18D4c0B63F38ae0859d183D": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xD2FCf69cF25C738Af22700A3D4b10BEEF792db50": {
-    "pending": {
-      "shael": 0.3,
-      "nef": 0.4,
-      "ort": 0.3,
-      "tir": 0.4,
-      "thul": 0.2,
-      "tal": 0.2
-    },
-    "claiming": false
-  },
-  "0xf6B03a6458582BC0C55D4D21aEC70197895B0950": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x9B6208970AE24E2cd3188A403830ACe3B78Cd7bF": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x04E5f00835eAcEcba7A183D98c84626dEf54091B": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x09f72eebb412B59a10d64c97Dd71Cd571f11e7d8": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xE772d2227867C8E1960c3BACB03943FEa63Eda7A": {
-    "pending": {
-      "tal": 0.22,
-      "shael": 0,
-      "nef": 0.4,
-      "sol": 0.03
-    },
-    "claiming": false,
-    "tx": [
-      "0xeaa50e5d69a946f3836beb62c8bb2442243d691088eb370d3ad21c2270596230"
-    ]
-  },
-  "0xB1B1C99B365D39040334641a008E61e6e43968d3": {
-    "pending": {
-      "tal": 0.28,
-      "shael": 0.22,
-      "tir": 0.2,
-      "dol": 0.12,
-      "ral": 0.15,
-      "nef": 0.05,
-      "ith": 0.1,
-      "amn": 0.1,
-      "ort": 0.02,
-      "thul": 0.06
-    },
-    "claiming": false
-  },
-  "0x1135fA9E3586c6F688E9D0791e990fBB0924f2Ce": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x2DF94b980FC880100D93072011675E6659C0ca21": {
-    "pending": {
-      "tal": 0.51,
-      "nef": 0.4,
-      "shael": 0.26,
-      "ort": 0.37,
-      "thul": 0.35,
-      "tir": 0.31,
-      "zod": 0.52,
-      "ith": 0.32,
-      "amn": 0.49,
-      "dol": 0,
-      "ral": 0,
-      "sol": 0.55
-    },
-    "claiming": false,
-    "tx": [
-      "0xbd47a3c6d0f22999b07205fd7dbaaf25867ce4c46b61bf4df32ce837ae6a6860",
-      "0xcb51b1c3cf3d5c0cfb6cabc0f0969dba606c9498dfd2e68c6ad2d85073c37535",
-      "0xc349f3901fdcc738c55bd627b965de1eee9d3745b78125113035a16ad85e622d",
-      "0x00d6d5e4825b981d7b2868b8915e061a47453e064aef1d19c081336385e781e3",
-      "0xe5fe7459785cdc1c94684aa51436ca5137483223997ba22adb89bd21f78d0714",
-      "0xe816dec09052b21cbc607e856750d02659ac80dbb452ffb635760f099e47b843",
-      "0xfd58af5a1a8dc4be3250ba30b976dde70124356e150c7f1255c687033717d3e7",
-      "0xf48cf200afb92756e649a6a9903678d6c9a9b78e17728cc20696c11ef8ee36bc",
-      "0xd2355ae903e858fdc5164159a49d0db32320f4e5cb346e10401a7d9135b55c55",
-      "0x76fdd917862a596b656d74d6edc66b84bf862ee4e4b7388f57f2c6cd21184fb5",
-      "0x7a4591686ecf69f0e278e99fba9751c79cd3884b3a3e64cbe10aa950f39407e8",
-      "0x1827821200e52c364286aa7185c241c1cddab06aab109b7263419702ca2a951c"
-    ]
-  },
-  "0x0a3AE713EE733dBb813529cA1f38AE26829f220a": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x5a313C23361E7f4B61a33BBC24584E482bF7ce26": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xd99Bf60a4206D9FFCB662Ba83891f03B47Ec38cF": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x468aE182ac97ed3b2a19f980361c77cAef243267": {
-    "pending": {
-      "tir": 0.06,
-      "thul": 0.03,
-      "ort": 0.03,
-      "shael": 0.06,
-      "nef": 0.03,
-      "tal": 0,
-      "zod": 0.12,
-      "amn": 0.03,
-      "ith": 0.03,
-      "ral": 0,
-      "dol": 0
-    },
-    "claiming": false,
-    "tx": [
-      "0x1b32e8c2962aabe9a4e2f55dcdc3e6f3cc8496aaf16b602f935f5b2279e6e5ff",
-      "0xa79bc04804d105ba6a2cd55b99898e35467d5bdaef51150fca5dced4c5bb0ede",
-      "0x3c9dd46600593db7badcebb86acc66a25a61358275a21fe59153a5aaa2c01c2c",
-      "0x9bdb89ba934439a36514fd0b0516b49bcd28be5eed25e272b0c6368e2698d998",
-      "0x78d85829e7517255ac5bede783225af175e145818d36b73c97ced1c49888ded5",
-      "0x48e7f44c549555968971b81dbb83d1b8dcff6e87b110d8d690f27f389d40b620",
-      "0xe535ca005e09ffcfdb3968f57733d71d58d66887f982a4f86628238f7e6e1e73",
-      "0xe2f998270176864cb1a408f6bd27a8a0ce53df633950033805a9367f0da43872",
-      "0x379b7cc2fa34c786b893884e61dcbe300a6d04090a4225d4dbbd9d73db368def",
-      "0xf4d50c8497aac42901aa87a361b69cc246748b498571f948baef8673168873bd",
-      "0x9fa01a3cb908688214ded041ef27f28e6ee8152333b7e07a1afd87deebf843da",
-      "0x59616e9f35e2d15a8f5f345b52b1440e253d6bbbd500fc9e2227e9a39e33b077",
-      "0xe418d2241a6784e3a7ea4cdc50f2288d1728bc879adf4a480e98b6be0a9817ce",
-      "0x3fe8c893e5b48f222b4cdf3b16174ffb246e8afc0e38db5e01c6922c1a74848f",
-      "0x6e34ae4bd050afe327c03ec4ae1aff1d356e386df38b2027ad8266e7480662dc",
-      "0x562dc541ada9f71ac5f163f32a1fd749788a8fcd25ee2ddc2da37858f4b6fed9",
-      "0xeb2549a51a80c740ef28a64c9bc66a6fab4c1737fa79b2e63175e7d313c37e18"
-    ]
-  },
-  "0x966a139f55AA56742298525bD7306c92D0c51CDD": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xc0a2bb65De13c4ceef4B53Faa0b13309401b1E63": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x2E289bC52eebF12954250371B734F4BaFDc187e8": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x39bdc98E670Ad3f121A69639C0c33088876017f8": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x7B3ebcd4d0883906668d80048C047768F63Acb93": {
-    "pending": {
-      "nef": 0.18,
-      "tir": 0.2,
-      "sol": 0.04,
-      "zod": 0.02,
-      "amn": 0.12,
-      "ith": 0.04,
-      "tal": 0.06,
-      "thul": 0.02,
-      "ort": 0.04,
-      "shael": 0.02
-    },
-    "claiming": false
-  },
-  "0xa6d409C9e1e85e5997eD675d00E91bbBFd1a7a14": {
-    "pending": {
-      "ort": 0.2,
-      "tir": 0.2,
-      "tal": 0.2,
-      "nef": 0.1,
-      "thul": 0.1
-    },
-    "claiming": false
-  },
-  "0x8ADeE1b7636Be83E2A0A99788228941fa4Aa79a9": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x8Ef2e9563a8a62910bc0053835b051c8E0a8b4CF": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x14BCBBD60feB02A9b816697622bAa30ac59D59Fb": {
-    "pending": {
-      "nef": 0.29,
-      "thul": 0.33,
-      "ort": 0.27,
-      "shael": 0.28,
-      "ith": 0.26,
-      "tir": 0.3,
-      "sol": 0.44,
-      "tal": 0.41,
-      "amn": 0.29,
-      "zod": 0.29
-    },
-    "claiming": false
-  },
-  "0x17BA15962B5e89DfE57a2d2d6311Ec2CB4798639": {
-    "pending": {},
-    "claiming": false
-  },
-  "undefined": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xC2B97aa20f0D5f294ef32DB75167767b953847a4": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x85362d4700d2f8d55D1d779b31B837C863aE3C14": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xBBeFcB62D94C453cE7015E08C63Bb392f016Bb4A": {
-    "pending": {
       "ort": 0.09,
-      "shael": 0,
-      "thul": 0.15,
-      "tal": 0,
-      "zod": 0.2,
-      "ith": 0.15,
-      "dol": 0.15,
-      "amn": 0.1,
-      "nef": 0.09
-    },
-    "claiming": false,
-    "tx": [
-      "0xe0c5a38c677266e60d35acebda9406698ef9928f8d6707adcbfd883a09507521",
-      "0xfec8320257111e1415af1e0ac38e9035fac0ecd61dc3c9675d898a069e1f9bb2",
-      "0xd9d3c96d4b5c8f3600ff04f62d9052414fb76dbdd994deea87497548e9710e81"
-    ]
-  },
-  "0x51B65Ecde122Dd57D19680A71080888c10355Acd": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x5db443c98A92c8d538346dBDaBe2f58bECdF64Ae": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x34A7c30af9D01Df92E997967161053E4271CEB8a": {
-    "pending": {
-      "ort": 0.05
-    },
-    "claiming": false
-  },
-  "0xFd2204488DD406e28A3aEa00933216fBb53bea1E": {
-    "pending": {
-      "shael": 5.66,
-      "tir": 3.42,
-      "nef": 4.79,
-      "ort": 2.9,
-      "tal": 5.61,
-      "thul": 1.85,
-      "dol": 2.37,
-      "ith": 2.2,
-      "ral": 2.21,
-      "amn": 1.58,
-      "zod": 0
-    },
-    "claiming": true
-  },
-  "0xDE7967d6311C950ec64712e7031A067458FdA201": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x9E39aFA96007505e6037C6Aa7f047566EF832c9C": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xcBA7236B14DBb7A2E7396d7334eb2D03D4adFC6c": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xfa44d0c5329D587d99EF210Bca069a6a0D295042": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xe619ba5F9F80b8A22cFcAAB357A0Fc2827cf6ECC": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x07C1Fc142b51f26adfdE2B5b366f7CF7Ce2D7a76": {
-    "pending": {
-      "tir": 0.05,
-      "thul": 0.1,
-      "ort": 0.05,
-      "tal": 0.1
-    },
-    "claiming": false
-  },
-  "0x2830B775f81d2Aa253ff52e8A19ddd45d3F0bb7F": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xaf76Bf6239704F0D3846F233F3191DcE64E0B317": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x44ab424dD639c64d87C959Aa13b4Dcae528C7907": {
-    "pending": {
-      "thul": 0.25,
-      "shael": 0.3,
-      "nef": 0.15,
-      "tir": 0.1,
-      "tal": 0.1,
-      "ort": 0.05
-    },
-    "claiming": false
-  },
-  "0xCC3d75E0A2ACd887315E8f3f2dD6b51cCCa2a935": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xDa0d95B34DFee997925e9bFe8BF1d2F96bF8AB9c": {
-    "pending": {
-      "thul": 2.31,
-      "nef": 2.24,
-      "shael": 2.81,
-      "ort": 2.33,
-      "tir": 2.81,
-      "tal": 2.54,
-      "zod": 5.4,
-      "ith": 2.45,
-      "ral": 0.46,
-      "dol": 0.48,
-      "amn": 2.61,
-      "sol": 2.28
-    },
-    "claiming": false,
-    "tx": [
-      "0x332252516bbe9eb7ba4657348fd279ce9b18c663a98a33255a3fece902dbaa65",
-      "0xc7d33f8700e13ea5a9a6443d72f1681491f52083c22a6d684b54778f61f86f38",
-      "0xf6c33387844fdf6b3d94b930d1a23f18d76a26da7ba6400ac720648dc2343e38",
-      "0x13ff1495a66c38fc8c8e2298e486ef7c5f2184690fe0fa62536564bb3047ae37",
-      "0x4ef2850a01c0157c6319e79fdc36b0dbc0d6ab5113d06746d0956a4323f71a60",
-      "0x55e20002380a558062b33503686ed42e8836e4c5216904abd151eb9a15e3d134",
-      "0xd2b7f15dc00d6c77f55f9f3585f24e8bb4bc9e890746f88255ff0cd910944e63",
-      "0xbe87cbc2bfd4787fca98f58b6f46bd709300214e210132669b375cc9c3db4748",
-      "0x6dd036be6b381099fafaf1f8af94b95385d306c8ad8f48bd65f5cbae10cfa643",
-      "0x7d23df9645ae03c03b2533e0a9bac57fa745a0de915f5f53ff5179394ecf03ab",
-      "0x00b8cd7b07182126867b4042a475be6566d6ee95e0646d0db3b24456ce8712f4"
-    ]
-  },
-  "0xfd4AeA15C05434138105c5bb9D71985B77B70EDf": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xC87a91dB991FD20dB903DCcCcb6F1DA470dD5DF1": {
-    "pending": {
-      "tal": 0.2,
-      "ort": 0.15,
-      "shael": 0.15
-    },
-    "claiming": false
-  },
-  "0x87D78A9E48a36bBc3b1C9531C01FD6A0393f8807": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x5545cD7620fd5319bDc9A4877CEECd706749C796": {
-    "pending": {
-      "nef": 0.1,
-      "tir": 0.1,
-      "ith": 0.05,
       "shael": 0.05
-    },
-    "claiming": false
+    }
   },
-  "0xdbF945aF1EECAA8E7085da8B7D6296f72a53f53B": {
+  "0xA2F5BA76c3C6945431fD7652FB0070e37121eF53": {
     "pending": {
-      "dol": 0.1,
-      "tal": 0.15,
-      "amn": 0.05,
-      "shael": 0.05
-    },
-    "claiming": false
-  },
-  "0xcD06AC1A0fa7c40F807A09Bf0d806B17A6D8af56": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xE2e84e80790ff133D1886D632d4Da7E620b473BB": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xD97d2Fe146369E69755aA9090F0E74030a0A0789": {
-    "pending": {
-      "tal": 0,
-      "ort": 0.35,
-      "shael": 0
-    },
-    "claiming": false,
-    "tx": [
-      "0x35c138c5abbdf5612cc7af7922f4cafdf2c0e2ce2609e89ddeb2a53466e5d749",
-      "0x1492744f52a329ec7521e83b8f0da565e79606c716c3e41139d355610f67c5db"
-    ]
-  },
-  "0x76176615C5E06705BdADC40Ff938a39fE762584E": {
-    "pending": {
-      "tal": 0.23,
-      "ort": 0.03,
-      "shael": 0.17,
-      "amn": 0.04,
-      "thul": 0.03,
-      "tir": 0.02,
-      "nef": 0.02,
+      "tal": 0.01,
+      "zod": 0.01,
+      "amn": 0.01,
       "sol": 0.01,
-      "zod": 0.02
-    },
-    "claiming": false,
-    "tx": [
-      "0xab47ff011a8fc7fcb4f185982b57341f29bc90361df298fa1d630a2c952e54a0"
-    ]
-  },
-  "0x49FdE9aDC48626bD1d92690A5A875f174cfD5Df2": {
-    "pending": {
-      "ort": 0.05,
-      "shael": 0.05
-    },
-    "claiming": false
-  },
-  "0x20a67C9c00aA3B3b99D32D01d8Ec0719c7E522AF": {
-    "pending": {
-      "tal": 8.14,
-      "ort": 6.22,
-      "shael": 9.05,
-      "zod": 12.28,
-      "tir": 3.86,
-      "amn": 3.84,
-      "ith": 4.23,
-      "ral": 1.42,
-      "dol": 1.16,
-      "nef": 3.77,
-      "sol": 2.78,
-      "thul": 3.32
-    },
-    "claiming": true
-  },
-  "0x635e0bEA9cb24D6ff4192D136460176154B7049c": {
-    "pending": {
-      "shael": 0.15,
-      "ort": 0.05,
-      "tal": 0.05
-    },
-    "claiming": false
-  },
-  "0x09fb8CC89eEB575A18E96da12A19d1b889B6fE6E": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x447c7Ed1E43Dde4bB7A84bBd45A0CCf7B2FbCC43": {
-    "pending": {
-      "ort": 0.1,
-      "tal": 0.1
-    },
-    "claiming": false
-  },
-  "0xE8d59AB4b3AB75F55A65631726D475392a34102a": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xD69EF476E9c05fA02b7F511A48D1453e012fa6ca": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x0EA6fAF58023cd1d414494d5f590de842aC2Fe6d": {
-    "pending": {
-      "shael": 0.1,
-      "tal": 0.13,
-      "ort": 0.11,
-      "zod": 0.48,
-      "tir": 0.12,
-      "nef": 0.17,
-      "amn": 0.11,
-      "ith": 0.15,
-      "sol": 0.05,
-      "thul": 0.04
-    },
-    "claiming": false,
-    "tx": [
-      "0x9f08b6fd352dd47a05c3fa0b0e3fbc6db314ef15bb37edd0fdb74c97e2459317",
-      "0xf7f9219af5170ebddd4c5313689407acd679c0b67b487014621387247ce0dadb",
-      "0xdd2bce0b5b2463632a8896dfa4b4df50389dabbbf13c063ab5d4f50bfdebf769"
-    ]
-  },
-  "0x52208889151B403d7D5858ff2B7D6252D3A7f76f": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xE63187e22e6f9fB9C28760636b741A03979421A0": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xE8eA6C02184467896D260d0cA75BC74784BB5Dd9": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x03543337226c99c707a82BBa2A43D256588ADa6b": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xA2e502607a02e3332cabc73Dc7E6619C7f66Dc99": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x7bae01034704381D3f7B09D3C1F1FBd17D71Acb4": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x3274306bFe99005Cd8912FD36AE15879c2a89627": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x31140C451C98048Ec82780eC6148CF69d45bC459": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x3e7eAA58188f5C61E4F89FB6B131A68757AD693E": {
-    "pending": {
-      "amn": 0.05
-    },
-    "claiming": false
-  },
-  "0xbeD324bee6023165282784C808b6B5AB7e42A79e": {
-    "pending": {
-      "nef": 1.85,
-      "tal": 2.01,
-      "shael": 1.99,
-      "ith": 2.18,
-      "dol": 0.85,
-      "amn": 1.95,
-      "ral": 1.2,
-      "tir": 1.9,
-      "ort": 0.99,
-      "zod": 2.65,
-      "sol": 1.15,
-      "thul": 0.79
-    },
-    "claiming": true
-  },
-  "0xD86e6A44d87D75aCcFF0b6d4303df0fe06960c89": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xD8571B1C73d8A8CadB312b727D30B10bf2B3b697": {
-    "pending": {
-      "ith": 1.9,
-      "shael": 1.9,
-      "amn": 2.34,
-      "tir": 2.05,
-      "dol": 0.39,
-      "tal": 2.64,
-      "nef": 2.53,
-      "ral": 0.75,
-      "zod": 2.11,
-      "thul": 2.36,
-      "ort": 2.86,
-      "sol": 2.69
-    },
-    "claiming": false,
-    "tx": [
-      "0xd197473ef27253a2609f3025b0ed39a7e16fb6da2c5836c966a65cfd5767fc2c",
-      "0x4c731bf0b840ee6f818fd63814f33b636aaee80fc8c0f75de7f0139faad4e994",
-      "0x6acebbf962587b27c68395519871914dbbc38459e4165bb187709bdb96424d89",
-      "0x342c9ff8453292433d89a52876befa16f7419a239943fba26ba824ab603c2e78",
-      "0xc3618d9aa68c6aed26acadf31e2583eacca74075100545f30cbc448bfc231806",
-      "0x0576cf7d2da104acb183ac35c82857f0a1f3954b6045806420be72439307662c",
-      "0x4ee9b3b53e5cf23995d5d5ab320deb9904fe484f6d2c21fe042ca3caf1ec98cb",
-      "0x7b9494fea090976d7d828988ba0219b551b04c318178b7e3c051a6335f1b2aab",
-      "0x4f51e816d89d27836a15f08163b25f0fbc66ad102d256758cb281574722b3daa",
-      "0x6823f065e34a4eac6c485a324cdc3942fa57069f1a7969e1f6fd7876cbc5505c"
-    ]
-  },
-  "0xb3f77B5aaE928dDf9241707c527515c02Cb7815e": {
-    "pending": {
-      "amn": 0.1,
-      "ral": 0.05
-    },
-    "claiming": false
-  },
-  "0x1Ed3cCf0E1a536FBFEc2ddC363dcffd0c294E099": {
-    "pending": {
-      "shael": 0.05,
-      "tal": 0.1,
-      "ith": 0.05,
-      "dol": 0.05,
-      "amn": 0.05
-    },
-    "claiming": false
-  },
-  "0xa509F2629172bc6A2E2f01215E48DeDFfb72F438": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xE1b6BA005697e58354488BD147339511F2471C04": {
-    "pending": {
-      "sol": 2.43,
-      "zod": 3.52,
-      "shael": 2.4,
-      "ith": 1.97,
-      "thul": 1.51,
-      "nef": 2.11,
-      "ort": 2.63,
-      "amn": 2.1,
-      "tir": 2.25,
-      "tal": 2.23
-    },
-    "claiming": false
-  },
-  "0xDa9b4D89a6263168a46b7B132F5b724775699087": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x628D1614F2C7Ea08dE410CFB29a9Ff9c8699b68b": {
-    "pending": {
-      "amn": 0.1,
-      "ith": 0.05,
-      "dol": 0.1,
-      "nef": 0.05,
-      "tal": 0.05,
-      "tir": 0.05
-    },
-    "claiming": false
-  },
-  "0x783303A919668391a0E7cdC3cddac7aA786F3ebC": {
-    "pending": {
-      "dol": 0.15
-    },
-    "claiming": false
-  },
-  "0xbCA21333a09082636FE6C66bB94ed22A6712f489": {
-    "pending": {
-      "shael": 0.1,
-      "ral": 0.05
-    },
-    "claiming": false
-  },
-  "0x92F3EdaD672147B2c55Ac269287421Cb9fA2bf42": {
-    "pending": {
-      "ral": 0.05,
-      "tir": 0.1,
-      "dol": 0.05,
-      "amn": 0.2,
-      "shael": 0.1,
-      "tal": 0.05,
-      "ith": 0.1,
-      "nef": 0.05
-    },
-    "claiming": false
-  },
-  "0x3FD74B11c0cb3Ba28DC3203811378c6d84dCF4fb": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x09979b39B091285F5519384b494dbFa8de61F73b": {
-    "pending": {
-      "ith": 0.1,
-      "nef": 0.05,
-      "ral": 0.05
-    },
-    "claiming": false
-  },
-  "0x40aF7D5C79A8E472bb4AC239Ac0aBb3780c8701d": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xBfFe2E147d14A74D59999A0537c80200f68d5FE7": {
-    "pending": {
-      "ral": 0.2,
-      "dol": 0.1,
-      "amn": 0.29,
-      "tal": 0.14,
-      "nef": 0.16,
-      "zod": 0.02,
-      "tir": 0.12,
-      "sol": 0.06,
-      "ort": 0.04,
-      "ith": 0.03,
-      "thul": 0.05,
-      "shael": 0.05
-    },
-    "claiming": false
-  },
-  "0xC49aFBb14B27125846F49593832660baDfc7d92F": {
-    "pending": {
-      "ort": 1.56,
-      "tir": 1.88,
-      "thul": 1.85,
-      "tal": 1.77,
-      "zod": 3.91,
-      "sol": 1.94,
-      "shael": 1.68,
-      "amn": 1.41,
-      "ith": 1.68,
-      "nef": 1.35
-    },
-    "claiming": false
-  },
-  "0xd28B7794F5A8CaffABa70Dff38Da14d74750C47b": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x614E622B022A24199f5CfF349D7C5B8E5B4E9869": {
-    "pending": {
-      "tir": 0.49,
-      "ith": 0.23,
-      "amn": 0.35,
-      "tal": 0.38,
-      "nef": 0.26,
-      "ral": 0.2,
-      "shael": 0.18,
-      "dol": 0.2,
-      "sol": 0.07,
-      "zod": 0.17,
-      "thul": 0.14,
-      "ort": 0.05
-    },
-    "claiming": false
-  },
-  "0xaea3e10D02C866Cc4D72aae426b92EC16202C08F": {
-    "pending": {
-      "ral": 0.08,
-      "nef": 0.27,
-      "amn": 0.31,
-      "tir": 0.18,
-      "ith": 0.22,
-      "shael": 0.13,
-      "dol": 0.07,
-      "tal": 0.16,
-      "zod": 0.25,
-      "sol": 0.22,
-      "ort": 0.17,
-      "thul": 0.03
-    },
-    "claiming": false
-  },
-  "0x758fA6E2C0a21Be47953a9bC0538ee157a6669bC": {
-    "pending": {
-      "amn": 0.24,
-      "nef": 0.16,
-      "ith": 0.17,
-      "ral": 0.08,
-      "dol": 0.05,
-      "tir": 0.12,
-      "shael": 0.17,
-      "tal": 0.09,
-      "zod": 0.12,
-      "ort": 0.04,
-      "sol": 0.02,
-      "thul": 0.04
-    },
-    "claiming": false
-  },
-  "0xaC1773e7fcBBb5d7a0Fdb09CdEeAe8D5dE1c42df": {
-    "pending": {
-      "tal": 0.15,
-      "dol": 0.1,
-      "ral": 0.05,
-      "nef": 0.05,
-      "shael": 0.1,
-      "amn": 0.1,
-      "tir": 0.15,
-      "ith": 0.05
-    },
-    "claiming": false
-  },
-  "0xe22BD241a6A00da5f8ca44e8343ACA4599d32531": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xAc337D1A401Bd509b098A479bB35F2d5A650f15c": {
-    "pending": {
-      "nef": 1.02,
-      "ith": 0.96,
-      "amn": 0.96,
-      "shael": 0.76,
-      "tir": 1.03,
-      "dol": 0.61,
-      "ral": 0.39,
-      "tal": 0.84,
-      "zod": 1.18,
-      "ort": 0.3,
-      "thul": 0.47,
-      "sol": 0.42
-    },
-    "claiming": false,
-    "tx": [
-      "0x962c7d805db75d9ead6922c7d1e3c143d4b610d42b1e310aef7d795444c074bf"
-    ]
-  },
-  "0xB0E313EA12d87823d7D4204B63b7E478ee0AB23E": {
-    "pending": {
-      "dol": 0.48,
-      "shael": 2.52,
-      "ral": 0.61,
-      "nef": 2.47,
-      "amn": 2.32,
-      "ith": 2.64,
-      "tir": 2.76,
-      "tal": 2.68,
-      "zod": 3.24,
-      "sol": 2.83,
-      "ort": 2.68,
-      "thul": 2.25
-    },
-    "claiming": false,
-    "tx": [
-      "0xed0563cbed547e1f281e3663b21a1692dde2d5c62e4afc2c82c147065193b7e5",
-      "0xc94037f8ecab6278217ff5df188d18129c0205562f69728a098d25827ee561f4",
-      "0x3410e7abd0d1e2fbdd27515af506718ce0a1e19c104525c8619af1ed11ec5a4a",
-      "0xaa66174d5a348295ca63015d72dae63c394f45f153c31fb9b7fbe6af7530ab0a",
-      "0x4aec263fb8438d2f4596c32043fe9c05bf1c4f2f5ecf7698fb2a2c69fcf216f0",
-      "0x5288ecd59493945240bd590e93877286b703f262ed4d16b89b935987164a6c91",
-      "0x9d6b6c6a873fbf822e97c59904593e8d002ece7725d873693fcb0e18ad1bf839",
-      "0x086a473872b148f656711e3cebbd77fcc15e48d7c05fffa45034bc6166faee13",
-      "0xc353b352034e1881556eded8dfd4befcecceec13e89796fdb1e5c82b8a952adc",
-      "0x32aec4f4fae48ebcc2141b6499cc5de8b989361e738240ae5ede2affc114f8c5",
-      "0x6293a5f623875498f56958441e26ad07fcf9b0375ba5f58b4133609e5d6fe6aa",
-      "0x2fa91a6552f9cb6f9a897783b9acab0f313b530d964e0802be5ee33ffb74d07c",
-      "0x01d3d6cb7b076926005da46ba7217ca4dc141ca94e4d441266995520cefad095",
-      "0x439c16df931fdc10bb0197003171b80781518c54205e4a8810ce390c10ba8ebc",
-      "0x7b880b6df295b768a01fa245e871ad63912eefc63994758e20c5a374397595e1",
-      "0x556e51eb7b8d07a217210bc5168a3304588d10d8551e5e146950885ca25268d6",
-      "0x5032f3dca8bd120159ac93e9a3d915cf0a252a7ebed4759bacf9be083cdf4f09",
-      "0x24ab96dc2b08557e3bdee5ed76282be4f304a6711646af3d6c0a400e8287b784"
-    ]
-  },
-  "0x06fDe681560c39c508792922Edbf7bcc7b3B239C": {
-    "pending": {
-      "nef": 0.05,
-      "tal": 0.02,
-      "shael": 0.08,
-      "amn": 0.05,
-      "ral": 0.02,
-      "tir": 0.06,
-      "dol": 0.05,
-      "ith": 0.03
-    },
-    "claiming": false
-  },
-  "0x191727d22f2693100acef8e48F8FeaEaa06d30b1": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xE3E669507688343581e327A19E85AAda44c077ca": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x78aC19eEb924A538A23130AbCe28708aa0F64738": {
-    "pending": {
-      "tir": 0.02,
-      "dol": 0.02,
-      "ral": 0.02,
-      "tal": 0.02,
-      "amn": 0.04,
-      "ith": 0.02
-    },
-    "claiming": false
-  },
-  "0x5D78a6Efe305582BB12C884B2bc903e75A4939B6": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x08CD64381539afD591e9Dd3804de00E7343F02C4": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x746Ec44c8E29bd27Aa42e2eA18714Cb798D6b74b": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x607f0Ddd271A791386D4f36aEd9689fb96EFeD4F": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x5FBbC3F1e3B09b1416E14dB73Ca338e9728aF4F5": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xa3134f4a21c29BC1353B3c26761EF9B8FFFe9033": {
-    "pending": {
-      "tir": 0.03
-    },
-    "claiming": false
-  },
-  "0xd50eFDcdb94c9D91F3A5188375566e158C67EF67": {
-    "pending": {
-      "amn": 0.02,
-      "tir": 0.02,
-      "shael": 0.06,
-      "tal": 0.04,
-      "ith": 0.04,
-      "nef": 0.04,
-      "dol": 0.04,
-      "ral": 0.02
-    },
-    "claiming": false
-  },
-  "null": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xD4df43edC440c345edc7FE37963f4b48b4b20c46": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x1C20A9ECe91F9E2eAFc2673a7916A981116170E4": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xcabC518f77A7eAAbc82E7268d4a2A6209a8b046e": {
-    "pending": {
-      "dol": 0.16,
-      "amn": 0.22,
-      "ith": 0.1,
-      "nef": 0.13,
-      "tal": 0.14,
-      "shael": 0.13,
-      "ral": 0.06,
-      "tir": 0.1,
-      "ort": 0.08,
-      "thul": 0.06,
-      "zod": 0.1,
-      "sol": 0.06
-    },
-    "claiming": false
-  },
-  "0x029a1e2bd61e0d3BFB2C6f2546AE631850Fa2511": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xAFF692f58f9818185A7AE05b3ccdD514C4f550df": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xA23Aea961eBA87d687E149e3Ea35630f4Edf9F37": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xB69357A0358D46eD8fcccE403313269d9E1173c5": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x35B5dee9380613C0293eFe72DbaCc5398949c219": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xFb667F10eb5C5E318C0491f087773Bc903344d86": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xa9C6fF71Ea09fA890dD73FB27550C92FBF08C16C": {
-    "pending": {},
-    "claiming": false
+      "nef": 0.01
+    }
   },
   "0x042bcC7F558E0A5587114d6e5c9fb92278941C86": {
     "pending": {
-      "shael": 1.7,
-      "zod": 3.91,
-      "ort": 1.65,
-      "tir": 1.65,
-      "sol": 1.66,
-      "nef": 1.39,
-      "amn": 1.51,
-      "thul": 1.69,
-      "tal": 1.65,
-      "ith": 1.64
-    },
-    "claiming": false
-  },
-  "0x4DaCe5a18a8C9d4D5f0a01269Df49e3cc2B52750": {
-    "pending": {
-      "thul": 0.02,
-      "ith": 0.02,
-      "shael": 0.02,
-      "amn": 0.02,
-      "sol": 0.02,
-      "ort": 0.04,
-      "tal": 0.02
-    },
-    "claiming": false
-  },
-  "0x8aFBD32e7fD37980F610a32E04D0CCF8b530Ac0c": {
-    "pending": {
-      "amn": 0.23,
-      "ith": 0.18,
-      "tal": 0.28,
-      "zod": 0.38,
-      "tir": 0.17,
-      "thul": 0.21,
-      "shael": 0.36,
-      "ort": 0.3,
-      "sol": 0.34,
-      "nef": 0.2
-    },
-    "claiming": false
-  },
-  "0x5f88D25cAA16662d7d6F07f8B80504d6C7D9479E": {
-    "pending": {
-      "ort": 2.91,
-      "tal": 2.93,
-      "thul": 2.6,
-      "sol": 3.01,
-      "tir": 2.58,
-      "zod": 5.56,
-      "amn": 2.57,
-      "ith": 2.41,
-      "shael": 2.94,
-      "nef": 2.31
-    },
-    "claiming": false
-  },
-  "0xF7252D2a3b95B8069Dfc2Fadd5f4b39D3Ee71122": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xd50c6DE81DEdAbb67a92eE98ab342AF1032F324a": {
-    "pending": {
-      "tir": 0.05,
-      "tal": 0.14,
-      "shael": 0.02,
-      "sol": 0.02,
-      "ort": 0.08,
-      "ith": 0.06,
-      "zod": 0.03,
-      "amn": 0.06
-    },
-    "claiming": false
-  },
-  "0xE959f5A399FA2cCa20a6e797E33d826fDFB6e348": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x8A0D602Cc290BA8f100d2124F1c5fF722e2c6a88": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x7A2Fe13dE953aF1cf836729E3e1Ca66cfBd0e6Ab": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xBD0Ef14Bc1af4F728d4E009ec8Fe619f20b7c3b4": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xF9799AF43f0C3A912A6C1434E69ceeBF92a9e9bC": {
-    "pending": {},
-    "claiming": false
-  },
-  "0x2DF2AA2165D76Ef0C3d3955CcAB95e2F8832F2C5": {
-    "pending": {},
-    "claiming": false
-  },
-  "0xFB4c2E2d5D622f32B9Df7e720E6D48192f85e0E7": {
-    "pending": {}
-  },
-  "0xa7B22EE7F1fE6126197dB75026F4433B63F36fBD": {
-    "pending": {
-      "thul": 0.28,
-      "ort": 0.43,
-      "zod": 1.03,
-      "tir": 0.36,
-      "ith": 0.36,
-      "nef": 0.43,
-      "tal": 0.49,
-      "sol": 0.32,
-      "shael": 0.4,
-      "amn": 0.32
+      "ith": 2.43,
+      "shael": 2.39,
+      "nef": 2.17,
+      "amn": 2.16,
+      "zod": 6.61,
+      "ort": 2.4,
+      "tir": 2.46,
+      "thul": 2.21,
+      "sol": 2.34,
+      "tal": 2.06
     }
   },
-  "0x0a26FBC35aA12d9A1552698A50E62BbA8c9Da354": {
-    "pending": {}
-  },
-  "0x8b7DE95988d4601Ef866aF1dd4aaCa873B805721": {
-    "pending": {}
-  },
-  "0x56d1e537ae60B1f6bEA3e82d3CfeD9275f5fA646": {
+  "0xB491EE37f120155BF6D7D7D32c77fA76FCff7D1B": {
     "pending": {
-      "sol": 1.32,
-      "ort": 1.41,
-      "nef": 1.16,
-      "amn": 1.36,
-      "tal": 1.32,
-      "zod": 1.35,
-      "tir": 1.6,
-      "shael": 1.06,
-      "thul": 1.65,
-      "ith": 1.17
-    }
-  },
-  "0x5aC15A800146d5644De795d380138E5949Be4078": {
-    "pending": {}
-  },
-  "0x4c77Eec016C80bc6885FC9734d010c2442aa6892": {
-    "pending": {
-      "ith": 0.43,
-      "amn": 0.37,
-      "tir": 0.39,
-      "zod": 0.43,
-      "shael": 0.43,
-      "tal": 0.34,
-      "ort": 0.28,
-      "sol": 0.18,
-      "nef": 0.22,
-      "thul": 0.33
-    }
-  },
-  "0x1094E73A39a51b17f051d26Ee6f38f905D5b88F0": {
-    "pending": {
-      "ort": 0.11,
-      "tir": 0.16,
-      "ith": 0.06,
-      "nef": 0.1,
-      "shael": 0.02,
-      "amn": 0.02,
-      "sol": 0.04,
-      "tal": 0.08,
-      "thul": 0.04,
-      "zod": 0.02
-    }
-  },
-  "0xC43d001FEFFD190Dd387858c333df6986Ec8ac4b": {
-    "pending": {
-      "zod": 0.05,
-      "nef": 0.03
-    }
-  },
-  "0x0D9c1aa78a21cD51a2848b9455FF78fa9ba6e5f3": {
-    "pending": {}
-  },
-  "0x156A22F04496cD51892d512324aA0b62Bf1F6aEe": {
-    "pending": {}
-  },
-  "0x4cAb376446Ad12aC9A47E0De968f781cE5c3Fc40": {
-    "pending": {}
-  },
-  "0x11602Fb49Da0d6B7b9cBe7972Be043BA90A3A6c3": {
-    "pending": {}
-  },
-  "0x4f22e44B9a38914Ef7dde6005e4Be911cbcc9bB2": {
-    "pending": {}
-  },
-  "0xD254B4d4e14c63c9b0b42bdD968cEB460c1fbbBe": {
-    "pending": {}
-  },
-  "0x9C5C904c3F4Bb1c9915cD17816D3739708AE9F9A": {
-    "pending": {}
-  },
-  "0xF05c0a3aE66473cB1E46fBB5A4616C51E4985e9b": {
-    "pending": {}
-  },
-  "0xE865E22Ed0375C81CED3b7f29AA353Bb82A0AFCD": {
-    "pending": {}
-  },
-  "0xF649a341ec9B57b3469F506b0475EE4aD54acF16": {
-    "pending": {}
-  },
-  "0xd8F8F8AF72080097dd27FcF7Fcf07B95A88726C0": {
-    "pending": {
-      "ith": 0.03,
-      "shael": 0.05,
-      "thul": 0.02,
-      "tal": 0.02
-    }
-  },
-  "0x49976ac548536ac503b449E0Fad29B34fb3188D7": {
-    "pending": {}
-  },
-  "0x8CC8cA55e24246ED5201c70DAC5f0B8f8489F34d": {
-    "pending": {
-      "zod": 0.18,
-      "sol": 0.06,
-      "thul": 0.06,
-      "tir": 0.05,
-      "tal": 0.03,
-      "ort": 0.03,
-      "nef": 0.03,
-      "shael": 0.03
-    }
-  },
-  "0x8782A567dA21B1C595C1c7C066db234fc25a5a75": {
-    "pending": {}
-  },
-  "0x59fb3c399d621a0e6a65EE88927f24950Cd2CaCb": {
-    "pending": {}
-  },
-  "0x2082EE02AC2Ed89396B0399224263b7143Bb408c": {
-    "pending": {}
-  },
-  "0xA5FAB81364c9238f8aFcE0aD3Be47fC75885cc71": {
-    "pending": {}
-  },
-  "0xfC23Ba18cBEDAB9Aaa099627046F306c60ba7c63": {
-    "pending": {}
-  },
-  "0xF1C67a39013628441F150d890f8C765Fa385d0E1": {
-    "pending": {}
-  },
-  "0xd0D63c09E1c7Ec356CCB680bE27C874E529322cA": {
-    "pending": {
-      "ith": 0.6,
-      "ort": 0.64,
-      "amn": 0.45,
-      "tir": 0.47,
-      "shael": 0.53,
-      "nef": 0.44,
-      "tal": 0.51,
-      "thul": 0.56,
-      "zod": 1.3,
-      "sol": 0.29
-    }
-  },
-  "0x8625687458Dc03b303340CD3d85661f87d2dF568": {
-    "pending": {
-      "ith": 0.02
-    }
-  },
-  "0x8D737333751d308F53A1d8818641Ba1e86288575": {
-    "pending": {}
-  },
-  "0x1F1Bd54eCAE5F400bdDBa27bF079Ed44f181df4a": {
-    "pending": {
-      "ith": 0.02,
       "tir": 0.03,
-      "shael": 0.03,
-      "ort": 0.09,
-      "nef": 0.03
-    }
-  },
-  "0x16434f0945F615C7c2a3CB1C97A588A168022200": {
-    "pending": {
-      "shael": 0.04,
-      "amn": 0.02
-    }
-  },
-  "0x4aCecBDc12BfB977eE718129E5427Bd2EbB82b79": {
-    "pending": {}
-  },
-  "0xd0A16c9339d364eCb7a58eeC990144A66ef657ef": {
-    "pending": {}
-  },
-  "0x290F3b35DBee0f1f2d7AC4834f22A94A386d8678": {
-    "pending": {}
-  },
-  "0xbac7eb249d1D92f379aB740D52dc240A31D0f285": {
-    "pending": {}
-  },
-  "0xeF7cAFD3af96aE22e968fFe95A512fE77799854b": {
-    "pending": {}
-  },
-  "0x9aAA6783D662305a32E49a89F8E52fDf0fE9d586": {
-    "pending": {}
-  },
-  "0xb9E252a442eF2546243680BfDCFF7010a3948849": {
-    "pending": {}
-  },
-  "0xc25179C19ecFd2E34c95c5b379e8F0897fD2EC4a": {
-    "pending": {}
-  },
-  "0x1ADDCF81f37410a008bDBF9B86Dc31E6950e03a0": {
-    "pending": {
-      "thul": 0.21,
-      "tir": 0.23,
-      "shael": 0.11,
-      "nef": 0.2,
-      "ith": 0.24,
-      "tal": 0.13,
-      "sol": 0.14,
+      "sol": 0.02,
       "zod": 0.04,
-      "ort": 0.29,
-      "amn": 0.09
+      "amn": 0.02,
+      "shael": 0.01,
+      "nef": 0.01,
+      "ort": 0.01,
+      "ith": 0.01
     }
   },
-  "0x2aB72d31Fb1aa75Bfca2d29a776d2505BA93090A": {
-    "pending": {}
-  },
-  "0xe82D822661F0cd0CE9864b9329D6306be9A271Ab": {
-    "pending": {}
-  },
-  "0xBF72Bd2c97aa7Da21c971a01f774eB99BA4D1d32": {
-    "pending": {}
-  },
-  "0xef7f2CFAE61381ECF6beD82D00b4d179C6588871": {
-    "pending": {}
-  },
-  "0x23C8896B1fF6e01877196bd6eE14c050E1D5F37b": {
+  "0xeb3fCb993dDe8a2Cd081FbE36238E4d64C286AC0": {
     "pending": {
-      "tir": 0.12,
-      "nef": 0.08,
-      "zod": 0.04,
-      "ith": 0.04
+      "zod": 1.53,
+      "sol": 0.7,
+      "ith": 0.5,
+      "tir": 0.63,
+      "thul": 0.64,
+      "ort": 0.51,
+      "shael": 0.67,
+      "nef": 0.41,
+      "amn": 0.53,
+      "tal": 0.66
     }
   },
-  "0xE665A3413d7ACD018ce121933b2E9C393fc35f84": {
+  "0xC49aFBb14B27125846F49593832660baDfc7d92F": {
     "pending": {
-      "ort": 0.07
+      "thul": 0.07,
+      "amn": 0.13,
+      "shael": 0.12,
+      "zod": 0.09,
+      "ith": 0.16,
+      "tal": 0.12,
+      "sol": 0.07,
+      "tir": 0.14,
+      "ort": 0.11,
+      "nef": 0.16
     }
   },
-  "0x352e212B7CB13Ac8955a85868A7CB4F06c5a09eD": {
+  "0x34373f7716d6d613cc862C5C596e7EC845d6D119": {
+    "pending": {
+      "tir": 0.1,
+      "ith": 0.11,
+      "thul": 0.16,
+      "shael": 0.16,
+      "nef": 0.16,
+      "zod": 0.06,
+      "sol": 0.12,
+      "amn": 0.13,
+      "ort": 0.18,
+      "tal": 0.16
+    }
+  },
+  "0xe563983d6f46266Ad939c16bD59E5535Ab6E774D": {
     "pending": {}
   },
-  "0xb738dA03B03DF6aa66E1fA2Ef495b24c8eB7729D": {
-    "pending": {}
+  "0xB0E313EA12d87823d7D4204B63b7E478ee0AB23E": {
+    "pending": {
+      "sol": 0.22,
+      "ith": 0.29,
+      "tir": 0.4,
+      "amn": 0.41,
+      "thul": 0.26,
+      "zod": 0.6,
+      "tal": 0.25,
+      "nef": 0.22,
+      "shael": 0.27,
+      "ort": 0.27
+    }
   },
-  "0x6C63f179431d778C3b628b4AA154707a5000ceBd": {
-    "pending": {}
-  },
-  "0x274A5eB6D27b4F810c195B97A02953854a83cbab": {
-    "pending": {}
+  "0xD8571B1C73d8A8CadB312b727D30B10bf2B3b697": {
+    "pending": {
+      "sol": 0.36,
+      "amn": 0.39,
+      "nef": 0.44,
+      "tir": 0.52,
+      "ith": 0.3,
+      "shael": 0.42,
+      "tal": 0.56,
+      "zod": 0.95,
+      "ort": 0.52,
+      "thul": 0.28
+    }
   },
   "0xa9226c7B918528Da15b010DF0FfF0929032c42B2": {
     "pending": {
-      "shael": 0.41,
-      "zod": 0.94,
-      "ort": 0.39,
-      "nef": 0.55,
-      "tir": 0.49,
-      "ith": 0.32,
-      "thul": 0.51,
+      "tal": 0.41,
+      "thul": 0.4,
+      "ort": 0.63,
       "amn": 0.37,
-      "tal": 0.35,
-      "sol": 0.37
+      "shael": 0.49,
+      "tir": 0.54,
+      "sol": 0.42,
+      "zod": 1.03,
+      "nef": 0.46,
+      "ith": 0.41
     }
-  },
-  "0xEF3A37dE9DBa8902bA368e2fF4995104122652F5": {
-    "pending": {}
-  },
-  "0x1107AC723348c5Fa48c43dd043c581C3F8A0133a": {
-    "pending": {}
-  },
-  "0xc4D5A51dAb2cB9C41E9087FBb6bb4585175A6d4c": {
-    "pending": {}
-  },
-  "0xFB693d70f971329224eBa76828DF7f8527480082": {
-    "pending": {}
-  },
-  "0xeCF0545684A06A4eA7b9C2fb1b6c08F50436E9db": {
-    "pending": {}
-  },
-  "0x49a1d95168AedC1A0Fd0395fB3f90D2E79b54429": {
-    "pending": {}
-  },
-  "0x81f3ADeF7b358c244e66021a0c81C465b305ea86": {
-    "pending": {
-      "amn": 0.11,
-      "shael": 0.13,
-      "thul": 0.22,
-      "sol": 0.06,
-      "tal": 0.13,
-      "tir": 0.05,
-      "ort": 0.26,
-      "zod": 0.04,
-      "ith": 0.05,
-      "nef": 0.05
-    }
-  },
-  "0xEFABE4224497636EDF82A5f1538C1Bf64dB498E3": {
-    "pending": {}
-  },
-  "0x6325A6510386c8FFF6212e48dc27d9A6912873bB": {
-    "pending": {}
-  },
-  "0x084c4F99Bd5a6cC37586A8915396B69aDFE7084f": {
-    "pending": {
-      "ith": 0.06,
-      "thul": 0.03,
-      "amn": 0.03,
-      "shael": 0.03
-    }
-  },
-  "0x72Ad2f1a8A72a888E64c366229D4Ce0C26f648AC": {
-    "pending": {
-      "sol": 0.14,
-      "thul": 0.16,
-      "amn": 0.16,
-      "tir": 0.16,
-      "tal": 0.07,
-      "zod": 0.22,
-      "shael": 0.13,
-      "nef": 0.08,
-      "ort": 0.06,
-      "ith": 0.04
-    }
-  },
-  "0x15A75d3bf7392050aBBA58AA2834DA5d26380742": {
-    "pending": {
-      "thul": 1.27,
-      "tal": 1.51,
-      "sol": 1.53,
-      "shael": 1.4,
-      "tir": 1.43,
-      "amn": 1.39,
-      "ort": 1.31,
-      "nef": 1.43,
-      "zod": 1.32,
-      "ith": 1.3
-    }
-  },
-  "0x15675a16DF364B4919231EE0367B5bc68B24833F": {
-    "pending": {}
-  },
-  "0x095364fa3204da09d853fAC9AD598b188F2A446b": {
-    "pending": {
-      "ith": 0.1,
-      "tal": 0.03,
-      "zod": 0.07,
-      "tir": 0.06,
-      "nef": 0.08,
-      "amn": 0.04,
-      "shael": 0.02,
-      "thul": 0.02
-    }
-  },
-  "0x42854315d0665383904F8A2d92a772ddfADcb5bB": {
-    "pending": {
-      "sol": 0.04,
-      "nef": 0.03,
-      "ort": 0.04,
-      "zod": 0.05,
-      "ith": 0.02,
-      "thul": 0.02,
-      "tir": 0.03,
-      "amn": 0.02
-    }
-  },
-  "0x339A79F876a598A83A8bc423F27c421EF106Dff5": {
-    "pending": {}
-  },
-  "0x99BaF1CB02E04920267FC866E1e7c37cf146815a": {
-    "pending": {}
-  },
-  "0xB7E0d54527A62185665DB01564460F7cd47FC663": {
-    "pending": {}
   },
   "0xf06f1B803D68bFefE1E3bdd5E20Bc3dFc1527666": {
     "pending": {}
   },
-  "0x97B342386B4291d22F5BF573715BDC23D38B173F": {
-    "pending": {}
-  },
-  "0x566F2b16a402b34Bd07350AB9bbE1A11efE8212C": {
-    "pending": {}
-  },
-  "0x43892291Fa016D01cFF6C1f99b461E187cb7E4c3": {
-    "pending": {}
-  },
-  "0xb7E9d78533Cd8E1d027c723F54fE8059CfDc0F2B": {
-    "pending": {}
-  },
-  "0x883d9974a635d0110dA994f24B459C249a543934": {
+  "0x17b1d9a1a8F0363E04bcCDF2839cB107B2297774": {
     "pending": {
-      "sol": 0.15,
-      "shael": 0.22,
-      "thul": 0.22,
-      "ort": 0.14,
-      "ith": 0.24,
-      "amn": 0.26,
-      "nef": 0.27,
-      "tir": 0.24,
-      "zod": 0.2,
-      "tal": 0.12
+      "shael": 0.02,
+      "tal": 0.04,
+      "thul": 0.03,
+      "zod": 0.01,
+      "sol": 0.01,
+      "ith": 0.01,
+      "nef": 0.01,
+      "ort": 0.02
     }
   },
-  "0xd71D351656dd09967838f3D0bde79D0790057908": {
-    "pending": {}
-  },
-  "0x8149E48e809278E9Eb72B2F0258e136db7D70DA5": {
-    "pending": {}
-  },
-  "0xBe82C743ce57555bc12821CeA7220DF44069407E": {
-    "pending": {}
-  },
-  "0xD13b5FBc990fAc89E466E70E6138C7Af3C95723D": {
-    "pending": {}
-  },
-  "0x3D330E81108B4c62d72b9d3005Cf04645C3Cdd99": {
+  "0x5f88D25cAA16662d7d6F07f8B80504d6C7D9479E": {
     "pending": {
-      "sol": 0.07,
-      "nef": 0.07,
-      "ith": 0.02,
-      "ort": 0.04,
-      "tal": 0.1,
+      "ith": 0.04,
+      "tal": 0.06,
+      "shael": 0.04,
+      "amn": 0.07,
+      "zod": 0.12,
+      "thul": 0.06,
+      "ort": 0.05,
+      "sol": 0.05,
       "tir": 0.02,
-      "shael": 0.07,
-      "amn": 0.06,
-      "thul": 0.12
+      "nef": 0.03
     }
   },
-  "0x37Ec8aE0F5452fe59aE65afC1e77d990A8DFFd09": {
+  "0x4A2F26aA0fAA95A4f8780277EC5d2791f6887759": {
     "pending": {
-      "shael": 0.24,
-      "sol": 0.11,
-      "tal": 0.28,
-      "nef": 0.22,
-      "ith": 0.15,
-      "tir": 0.13,
-      "amn": 0.2,
-      "ort": 0.12,
-      "zod": 0.14,
-      "thul": 0.18
+      "shael": 1.24,
+      "sol": 0.87,
+      "tir": 1.01,
+      "thul": 1.14,
+      "zod": 0.8,
+      "nef": 0.96,
+      "tal": 1.24,
+      "amn": 0.91,
+      "ith": 1.03,
+      "ort": 0.98
     }
   },
-  "0xdE5c2769ED3638e32d65E995D5caC9e0e133B521": {
+  "0xEB373A9e9Be695C479c1785b56508eD5d2C95313": {
     "pending": {}
+  },
+  "0x37470038C615Def104e1bee33c710bD16a09FdEf": {
+    "pending": {
+      "tir": 0.02
+    }
+  },
+  "0xFA9727327258F7c05f308Fe72E1133Dba11f55Ee": {
+    "pending": {
+      "shael": 0.02,
+      "amn": 0.02,
+      "tir": 0.04,
+      "nef": 0.04,
+      "sol": 0.02,
+      "zod": 0.02,
+      "ort": 0.02,
+      "ith": 0.04
+    }
   },
   "0x4E93fa03AfBae1D171189BE4878A101113499A7f": {
     "pending": {}
   },
+  "0x14BCBBD60feB02A9b816697622bAa30ac59D59Fb": {
+    "pending": {
+      "tir": 0.12,
+      "ith": 0.07,
+      "ort": 0.09,
+      "amn": 0.09,
+      "thul": 0.06,
+      "zod": 0.31,
+      "nef": 0.11,
+      "tal": 0.04,
+      "sol": 0.06,
+      "shael": 0.04
+    }
+  },
   "0x319201652C5093f06bfe493e4371120548ac3368": {
     "pending": {}
   },
-  "0x7255690035ce683F82de1f93d2d4aF97BeA624DA": {
-    "pending": {}
-  },
-  "0xFD096F691d1C4b2DBe06288B9799bDEb7bB2fe86": {
-    "pending": {}
-  },
-  "0xd3a8CC929e335B217D6e47563E146B9ffDF7892F": {
+  "0xF0659403c811154b704afC121Cb6152104B5d289": {
     "pending": {}
   },
   "0x1db2C212222d5A06b38F84d71feeCf301dc56EdE": {
     "pending": {}
   },
-  "0xc7CB51597A4c53847388CA172F5a125DE6380caA": {
+  "0x37Ec8aE0F5452fe59aE65afC1e77d990A8DFFd09": {
+    "pending": {
+      "zod": 0.03,
+      "thul": 0.01
+    }
+  },
+  "0xF649a341ec9B57b3469F506b0475EE4aD54acF16": {
+    "pending": {
+      "tir": 0.09,
+      "thul": 0.1,
+      "amn": 0.09,
+      "zod": 0.22,
+      "shael": 0.11,
+      "ith": 0.04,
+      "tal": 0.07,
+      "nef": 0.05,
+      "sol": 0.07,
+      "ort": 0.06
+    }
+  },
+  "0x81f3ADeF7b358c244e66021a0c81C465b305ea86": {
+    "pending": {
+      "ort": 0.17,
+      "zod": 0.29,
+      "nef": 0.07,
+      "shael": 0.13,
+      "tal": 0.1,
+      "sol": 0.09,
+      "ith": 0.09,
+      "thul": 0.13,
+      "tir": 0.08,
+      "amn": 0.11
+    }
+  },
+  "0x614E622B022A24199f5CfF349D7C5B8E5B4E9869": {
+    "pending": {
+      "ort": 0.01,
+      "shael": 0.04,
+      "tir": 0.03,
+      "sol": 0.03,
+      "thul": 0.02,
+      "zod": 0.07,
+      "amn": 0.01
+    }
+  },
+  "0xEB16739C0286115A0Bf00a4a22E3721a0764F04e": {
+    "pending": {
+      "tal": 0.01,
+      "sol": 0.02,
+      "nef": 0.05,
+      "thul": 0.06,
+      "shael": 0.02,
+      "zod": 0.1,
+      "tir": 0.02
+    }
+  },
+  "0x9a3a55723DC8974289Ec64EE6517FcFb20577B40": {
+    "pending": {
+      "tal": 0.2,
+      "tir": 0.24,
+      "thul": 0.15,
+      "ith": 0.12,
+      "sol": 0.2,
+      "shael": 0.14,
+      "zod": 0.24,
+      "amn": 0.2,
+      "ort": 0.18,
+      "nef": 0.18
+    }
+  },
+  "0xe548D924fF6347d82F208fC9fA06E8bccb7E3E53": {
     "pending": {}
   },
-  "0x48951f8Feacd04106EA64396306E0D78e4033dD9": {
+  "0xec1851e28209a209E98F2847ccE354f36173395d": {
+    "pending": {
+      "ith": 0.05,
+      "tir": 0.12,
+      "amn": 0.08,
+      "thul": 0.11,
+      "shael": 0.12,
+      "zod": 0.29,
+      "nef": 0.06,
+      "ort": 0.09,
+      "tal": 0.08,
+      "sol": 0.07
+    }
+  },
+  "0x46A67E6ddA0Acd0B69384E30b1cDA862c7e082aB": {
+    "pending": {
+      "shael": 0.01,
+      "ort": 0.03,
+      "ith": 0.02,
+      "zod": 0.03
+    }
+  },
+  "0xdF129DE64B3caC7432FABE4C4433e61fE37743E2": {
     "pending": {}
   },
-  "0x82CcF5ac6dDa7A492906cC92521f9C84a6075BfF": {
+  "0xc1122bc5BBDD54b8519ce572E46cbd2096dEd9D3": {
     "pending": {}
   },
-  "0xc09Fa339ca2B1f9780d9ae3b80a4f80bC4c76C20": {
-    "pending": {}
-  },
-  "0x64118c7C5D882d0E50166D250E15e10282f0cc99": {
-    "pending": {}
-  },
-  "0x1B2915e6cC30dD70ff59F6294B2D97434f0eF611": {
-    "pending": {}
-  },
-  "0x902506515eb60FdECD7d5fCCE07777022C6ba40F": {
-    "pending": {}
-  },
-  "0xe982e9c32DBeA0eb5836fa86f9ff7E705767292c": {
-    "pending": {}
-  },
-  "0x0585363bA152D19b7fB72B889fB9A7cDb82087F1": {
-    "pending": {}
-  },
-  "0x698cB7E570652Ac9Fba7a565cecdA79D3A5b1333": {
-    "pending": {}
-  },
-  "0x2238A38311985573e8483f1c9Ef7Ff528A722bc7": {
-    "pending": {}
-  },
-  "0xF9981bAfD238D9979e30B0Cbbd9c6897857d1fe0": {
-    "pending": {}
-  },
-  "0x13eD04c48B5225823aae5460Dd7f897A9EfAd011": {
-    "pending": {}
+  "0xDa0d95B34DFee997925e9bFe8BF1d2F96bF8AB9c": {
+    "pending": {
+      "tir": 0.03,
+      "tal": 0.03,
+      "thul": 0.03,
+      "sol": 0.03,
+      "amn": 0.03,
+      "zod": 0.08,
+      "shael": 0.09,
+      "ith": 0.04,
+      "nef": 0.08,
+      "ort": 0.04
+    }
   }
 }
