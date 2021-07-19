@@ -746,6 +746,7 @@ io.on('connection', function(socket) {
     device: null,
     position: spawnPoint,
     target: spawnPoint,
+    clientPosition: spawnPoint,
     rotation: null,
     xp: 50,
     latency: 0,
@@ -988,7 +989,7 @@ io.on('connection', function(socket) {
 
     const pack = decodePayload(msg)
 
-    const newPosition = {x: parseFloat(parseFloat(pack.position.split(':')[0]).toFixed(2)), y: parseFloat(parseFloat(pack.position.split(':')[1]).toFixed(2))}
+    currentPlayer.clientPosition = {x: parseFloat(parseFloat(pack.position.split(':')[0]).toFixed(2)), y: parseFloat(parseFloat(pack.position.split(':')[1]).toFixed(2))}
     const newTarget = {x: parseFloat(parseFloat(pack.target.split(':')[0]).toFixed(2)), y: parseFloat(parseFloat(pack.target.split(':')[1]).toFixed(2))}
 
     // console.log('a', newPosition)
@@ -1250,7 +1251,12 @@ function detectCollisions() {
     if (player.isDead) continue
     if (player.isSpectating) continue
 
-    player.position = moveTowards(player.position, player.target, player.speed * deltaTime)
+    if (distanceBetweenPoints(player.position, player.clientPosition) > config.checkPositionDistance) {
+      // Do nothing for now
+      player.position = player.clientPosition
+    } else {
+      player.position = moveTowards(player.position, player.target, player.speed * deltaTime)
+    }
   }
 
   // Check players
@@ -1626,7 +1632,8 @@ const initRoutes = async () => {
       connectedPlayers: clients.map(c => c.name),
       rewardItemAmount: config.rewardItemAmount,
       rewardWinnerAmount: config.rewardWinnerAmount,
-      totalLegitPlayers: totalLegitPlayers
+      totalLegitPlayers: totalLegitPlayers,
+      gameMode: config.gameMode
     })
   })
 
@@ -1671,7 +1678,11 @@ const initRoutes = async () => {
     if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
     if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
     if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending[req.params.symbol] = 0
+    if (!db.playerRewards[req.params.address].tx) db.playerRewards[req.params.address].tx = []
 
+    if (req.params.symbol !== 'zod') {
+      return res.json({ success: true })
+    }
     const newReward = {
       type: "rune",
       symbol: req.params.symbol,
@@ -1687,6 +1698,7 @@ const initRoutes = async () => {
     saveRewardHistory()
 
     db.playerRewards[req.params.address].pending[req.params.symbol] = 0
+    db.playerRewards[req.params.address].tx.push(req.params.tx)
 
     savePlayerRewards()
 
