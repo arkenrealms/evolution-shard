@@ -695,9 +695,9 @@ const registerKill = (winner, loser) => {
   loser.log.deaths.push(winner.hash)
 
   if (winner.points < 0) winner.points = 0
-  if (winner.loser < 0) winner.loser = 0
+  if (loser.points < 0) loser.points = 0
 
-  if (winner.log.deaths.length && winner.log.deaths[winner.log.deaths-1] === loser.hash) {
+  if (winner.log.deaths.length && winner.log.deaths[winner.log.deaths.length-1] === loser.hash) {
     winner.log.revenge += 1
   }
 
@@ -1452,80 +1452,80 @@ function fastGameloop() {
 }
 
 async function claimRewards(socket, player) {
-  if (config.isMaintenance) {
-    emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Maintenance. Try again later.' })))
-    return
-  }
-  if (config.claimingRewards) {
-    emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Busy. Try again later.' })))
-    return
-  }
-  if (!db.playerRewards[player.address]) db.playerRewards[player.address] = {}
-  if (!db.playerRewards[player.address].pending) db.playerRewards[player.address].pending = {}
+  // if (config.isMaintenance) {
+  //   emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Maintenance. Try again later.' })))
+  //   return
+  // }
+  // if (config.claimingRewards) {
+  //   emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Busy. Try again later.' })))
+  //   return
+  // }
+  // if (!db.playerRewards[player.address]) db.playerRewards[player.address] = {}
+  // if (!db.playerRewards[player.address].pending) db.playerRewards[player.address].pending = {}
 
-  if (db.playerRewards[player.address].claiming) {
-    emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Youre already claiming. Try again later.' })))
-    return
-  }
-  config.claimingRewards = true
-  db.playerRewards[player.address].claiming = true
+  // if (db.playerRewards[player.address].claiming) {
+  //   emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Youre already claiming. Try again later.' })))
+  //   return
+  // }
+  // config.claimingRewards = true
+  // db.playerRewards[player.address].claiming = true
 
-  const transactions = []
+  // const transactions = []
 
-  for (const id in db.playerRewards[player.address].pending) {
-    const pr = db.playerRewards[player.address].pending[id]
-    if (pr && pr >= 1) {
-      try {
-        const tx = await sendRune(id, player.address, pr)
-        if (tx) {
-          db.playerRewards[player.address].pending[id] = 0
-          savePlayerRewards()
+  // for (const id in db.playerRewards[player.address].pending) {
+  //   const pr = db.playerRewards[player.address].pending[id]
+  //   if (pr && pr >= 1) {
+  //     try {
+  //       const tx = await sendRune(id, player.address, pr)
+  //       if (tx) {
+  //         db.playerRewards[player.address].pending[id] = 0
+  //         savePlayerRewards()
 
-          if (!db.playerRewards[player.address].tx) db.playerRewards[player.address].tx = []
+  //         if (!db.playerRewards[player.address].tx) db.playerRewards[player.address].tx = []
   
-          transactions.push(tx)
-          db.playerRewards[player.address].tx.push(tx)
-          savePlayerRewards()
+  //         transactions.push(tx)
+  //         db.playerRewards[player.address].tx.push(tx)
+  //         savePlayerRewards()
 
-          const newReward = {
-            type: "rune",
-            symbol: id,
-            quantity: pr,
-            winner: {
-              address: player.address
-            },
-            tx
-          }
+  //         const newReward = {
+  //           type: "rune",
+  //           symbol: id,
+  //           quantity: pr,
+  //           winner: {
+  //             address: player.address
+  //           },
+  //           tx
+  //         }
 
-          db.rewardHistory.push(newReward)
+  //         db.rewardHistory.push(newReward)
 
-          saveRewardHistory()
-        } else {
-          db.playerRewards[player.address].claiming = false
-          savePlayerRewards()
+  //         saveRewardHistory()
+  //       } else {
+  //         db.playerRewards[player.address].claiming = false
+  //         savePlayerRewards()
 
-          config.claimingRewards = false
-          emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Transaction failed. Try again later.' })))
-          return
-        }
-      } catch(e) {
-        console.log(e)
+  //         config.claimingRewards = false
+  //         emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Transaction failed. Try again later.' })))
+  //         return
+  //       }
+  //     } catch(e) {
+  //       console.log(e)
 
-        db.playerRewards[player.address].claiming = false
-        savePlayerRewards()
+  //       db.playerRewards[player.address].claiming = false
+  //       savePlayerRewards()
 
-        config.claimingRewards = false
-        emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Error: ' + e + '. Try again later.' })))
-        return
-      }
-    }
-  }
+  //       config.claimingRewards = false
+  //       emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Error: ' + e + '. Try again later.' })))
+  //       return
+  //     }
+  //   }
+  // }
 
-  db.playerRewards[player.address].claiming = false
-  savePlayerRewards()
+  // db.playerRewards[player.address].claiming = false
+  // savePlayerRewards()
 
-  config.claimingRewards = false
-  emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Done.' })))
+  // config.claimingRewards = false
+  // emitDirect(socket, 'OnClaimStatus', escape(JSON.stringify({ text: 'Done.' })))
 }
 
 const initWebServer = async () => {
@@ -1667,67 +1667,93 @@ const initRoutes = async () => {
     res.json(db.playerRewards[req.params.address].pending)
   })
 
-  server.get('/claim/all', async function(req, res) {
-    if (config.isMaintenance) return res.json({error: 'Maintenance. Try again later.'})
-    if (config.claimingRewards) return res.json({error: 'Busy. Try again later.'})
-    
-    for (const address in db.playerRewards) {
-      if (!db.playerRewards[address]) db.playerRewards[address] = {}
-      if (!db.playerRewards[address].pending) db.playerRewards[address].pending = {}
+  server.get('/admin/claim/:address/:symbol/:tx', function(req, res) {
+    if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
+    if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
+    if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending[req.params.symbol] = 0
 
-      if (db.playerRewards[address].claiming) continue
-
-      config.claimingRewards = true
-      db.playerRewards[address].claiming = true
-
-      const transactions = []
-
-      for (const id in db.playerRewards[address].pending) {
-        const pr = db.playerRewards[address].pending[id]
-
-        if (pr && pr >= 1) {
-          try {
-            const tx = await sendRune(id, address, pr)
-            if (tx) {
-              db.playerRewards[address].pending[id] = 0
-              savePlayerRewards()
-    
-              if (!db.playerRewards[address].tx) db.playerRewards[address].tx = []
-      
-              transactions.push(tx)
-              db.playerRewards[address].tx.push(tx)
-              savePlayerRewards()
-
-              const newReward = {
-                type: "rune",
-                symbol: id,
-                quantity: pr,
-                winner: {
-                  address: address
-                },
-                tx
-              }
-
-              db.rewardHistory.push(newReward)
-
-              saveRewardHistory()
-
-              console.log('Sent ' + pr + ' ' + id + ' to ' + address)
-            } else {
-              console.log('Transaction failed. Try again later. ' + pr + ' ' + id + ' to ' + address)
-            }
-          } catch(e) {
-            console.log('Error: ' + e + '. Try again later. ' + pr + ' ' + id + ' to ' + address)
-          }
-        }
-      }
-
-      db.playerRewards[address].claiming = false
-      savePlayerRewards()
+    const newReward = {
+      type: "rune",
+      symbol: req.params.symbol,
+      quantity: db.playerRewards[req.params.address].pending[req.params.symbol],
+      winner: {
+        address: req.params.address
+      },
+      tx: req.params.tx
     }
 
-    config.claimingRewards = false
-    return res.json({ success: 1 })
+    db.rewardHistory.push(newReward)
+
+    saveRewardHistory()
+
+    db.playerRewards[req.params.address].pending[req.params.symbol] = 0
+
+    savePlayerRewards()
+
+    res.json({ success: true })
+  })
+
+  server.get('/claim/all', async function(req, res) {
+    // if (config.isMaintenance) return res.json({error: 'Maintenance. Try again later.'})
+    // if (config.claimingRewards) return res.json({error: 'Busy. Try again later.'})
+    
+    // for (const address in db.playerRewards) {
+    //   if (!db.playerRewards[address]) db.playerRewards[address] = {}
+    //   if (!db.playerRewards[address].pending) db.playerRewards[address].pending = {}
+
+    //   if (db.playerRewards[address].claiming) continue
+
+    //   config.claimingRewards = true
+    //   db.playerRewards[address].claiming = true
+
+    //   const transactions = []
+
+    //   for (const id in db.playerRewards[address].pending) {
+    //     const pr = db.playerRewards[address].pending[id]
+
+    //     if (pr && pr >= 1) {
+    //       try {
+    //         const tx = await sendRune(id, address, pr)
+    //         if (tx) {
+    //           db.playerRewards[address].pending[id] = 0
+    //           savePlayerRewards()
+    
+    //           if (!db.playerRewards[address].tx) db.playerRewards[address].tx = []
+      
+    //           transactions.push(tx)
+    //           db.playerRewards[address].tx.push(tx)
+    //           savePlayerRewards()
+
+    //           const newReward = {
+    //             type: "rune",
+    //             symbol: id,
+    //             quantity: pr,
+    //             winner: {
+    //               address: address
+    //             },
+    //             tx
+    //           }
+
+    //           db.rewardHistory.push(newReward)
+
+    //           saveRewardHistory()
+
+    //           console.log('Sent ' + pr + ' ' + id + ' to ' + address)
+    //         } else {
+    //           console.log('Transaction failed. Try again later. ' + pr + ' ' + id + ' to ' + address)
+    //         }
+    //       } catch(e) {
+    //         console.log('Error: ' + e + '. Try again later. ' + pr + ' ' + id + ' to ' + address)
+    //       }
+    //     }
+    //   }
+
+    //   db.playerRewards[address].claiming = false
+    //   savePlayerRewards()
+    // }
+
+    // config.claimingRewards = false
+    // return res.json({ success: 1 })
   })
 
   server.get('/readiness_check', (req, res) => res.sendStatus(200))
