@@ -3,7 +3,6 @@ import Web3 from 'web3'
 import * as ArcaneItems from './contracts/ArcaneItems.json'
 import * as BEP20Contract from './contracts/BEP20.json'
 import contracts from './contracts'
-import * as secrets from './secrets'
 import { env } from 'process'
 
 export const getAddress = (address) => {
@@ -33,36 +32,16 @@ const gasPrice = 6
 // const web3Provider = new ethers.providers.Web3Provider(getRandomProvider())
 // web3Provider.pollingInterval = 15000
 
-const signer = new ethers.Wallet(secrets.key, provider) //web3Provider.getSigner()
+// const signer = new ethers.Wallet(secrets.key, provider) //web3Provider.getSigner()
 
-const busdContract = new ethers.Contract(getAddress(contracts.busd), BEP20Contract.abi, signer)
-const wbnbContract = new ethers.Contract(getAddress(contracts.wbnb), BEP20Contract.abi, signer)
-const arcaneItemsContract = new ethers.Contract(getAddress(contracts.items), ArcaneItems.abi, signer)
-const runeContracts = {}
-let nonce
-let lastUpdatedNonce
+// const busdContract = new ethers.Contract(getAddress(contracts.busd), BEP20Contract.abi, signer)
+// const wbnbContract = new ethers.Contract(getAddress(contracts.wbnb), BEP20Contract.abi, signer)
+// const arcaneItemsContract = new ethers.Contract(getAddress(contracts.items), ArcaneItems.abi, signer)
+// const runeContracts = {}
+// let nonce
+// let lastUpdatedNonce
 
 export const sendItem = async (tokenId, address) => {
-  if (process.env.NODE_ENV !== 'production') return 'none'
-  if (address === '0xc84ce216fef4EC8957bD0Fb966Bb3c3E2c938082') return 'none'
-
-  const now = Math.round(Date.now() / 1000)
-
-  if (!nonce || now > (lastUpdatedNonce + 60)) {
-    nonce = await signer.getTransactionCount()
-    lastUpdatedNonce = Math.round(Date.now() / 1000)
-    console.log('Updated nonce', nonce)
-  }
-
-  await arcaneItemsContract.approve(address, ethers.utils.hexlify(ethers.BigNumber.from(tokenId)), { nonce, gasLimit: 100000, gasPrice: ethers.utils.parseUnits(gasPrice + "", "gwei") })
-
-  nonce++
-
-  const tx = await arcaneItemsContract.transferFrom(secrets.address, address, ethers.utils.hexlify(ethers.BigNumber.from(tokenId)), { nonce, gasLimit: 200000, gasPrice: ethers.utils.parseUnits(gasPrice + "", "gwei") })
-
-  nonce++
-
-  return tx?.hash
 }
 
 
@@ -75,32 +54,4 @@ export const sendBnb = (address, amount) => {
 }
 
 export const sendRune = async (symbol, address, amount) => {
-  // if (process.env.NODE_ENV !== 'production') return
-  if (address === '0xc84ce216fef4EC8957bD0Fb966Bb3c3E2c938082') return
-
-  if (!runeContracts[symbol]) {
-    runeContracts[symbol] = new ethers.Contract(getAddress(contracts[symbol]), BEP20Contract.abi, signer)
-  }
-
-  const now = Math.round(Date.now() / 1000)
-
-  if (!nonce) {// || now > (lastUpdatedNonce + 60)) {
-    const newNonce = await signer.getTransactionCount('pending')
-
-    if (Number.isNaN(parseInt(newNonce + ''))) {
-      console.log('Invalid nonce')
-      return
-    }
-
-    nonce = newNonce
-
-    lastUpdatedNonce = Math.round(Date.now() / 1000)
-    console.log('Updated nonce', nonce)
-  }
-
-  const tx = await runeContracts[symbol].transfer(address, ethers.utils.parseEther(amount + ''), { nonce, gasLimit: 100000, gasPrice: ethers.utils.parseUnits(gasPrice + "", "gwei") })
-
-  nonce++
-
-  return tx?.hash
 }

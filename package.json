@@ -69,6 +69,7 @@
     "start": "NODE_ENV=production node build/index.js",
     "release": "NODE_ENV=production tsc && gcloud app deploy app.yaml --project evident-ethos-317302",
     "release-europe1": "NODE_ENV=production tsc && gcloud app deploy app.yaml --project rune-evolution-europe1",
+    "release-na1": "NODE_ENV=production tsc && gcloud app deploy app.yaml --project rune-evolution-useast1",
     "release-ptr": "NODE_ENV=staging tsc && gcloud app deploy app.ptr.yaml --project rune-evolution-ptr"
   },
   "author": "Binzy",
