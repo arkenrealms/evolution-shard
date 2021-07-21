@@ -1353,10 +1353,9 @@ function detectCollisions() {
       }
   
       const rewards = [currentReward]
-  console.log(currentReward, player.position)
+
       for (const reward of rewards) {
         if (!reward) continue
-        console.log(distanceBetweenPoints(player.position, reward.position), touchDistance)
         if (distanceBetweenPoints(player.position, reward.position) > touchDistance) continue
   
         // player.rewards += 1
