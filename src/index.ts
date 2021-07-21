@@ -21,7 +21,6 @@ const io = require('socket.io')(http)
 const shortId = require('shortid')
 const path = require('path')
 
-const anticheatEnabled = false
 const playerWhitelist = ['Botter', 'Bin Zy']
 
 const eventCache: any = {
@@ -60,6 +59,17 @@ const saveBanList = () => {
 const testMode = false
 
 const baseConfig = {
+  calcRoundRewards: true,
+  anticheat: {
+    enabled: false,
+    samePlayerCantClaimRewardTwiceInRow: false
+  },
+  optimization: {
+    sendPlayerUpdateWithNoChanges: true
+  }
+}
+
+const sharedConfig = {
   antifeed1: true,
   avatarDecayPower0: 2,
   avatarDecayPower1: 2.5,
@@ -77,9 +87,9 @@ const baseConfig = {
   checkPositionDistance: 0.5,
   claimingRewards: false,
   decayPower: 1.4,
-  disconnectPlayerSeconds: testMode ? 999 : 10,
+  disconnectPlayerSeconds: testMode ? 999 : 2 * 60,
   disconnectPositionJumps: true,
-  fastestLoopSeconds: 0.005,
+  fastestLoopSeconds: 0.010,
   fastLoopSeconds: 0.020,
   gameMode: 'Standard',
   immunitySeconds: 5,
@@ -117,7 +127,8 @@ const baseConfig = {
 }
 
 let config = {
-  ...baseConfig
+  ...baseConfig,
+  ...sharedConfig
 }
 
 const presets = [
@@ -156,6 +167,8 @@ const presets = [
     pointsPerKill: -200,
     orbTimeoutSeconds: 9999,
     orbOnDeathPercent: 0,
+    antifeed1: false,
+    calcRoundRewards: false
   },
   // Mix 1
   {
@@ -386,16 +399,16 @@ const spawnRandomReward = () => {
   currentReward.position = rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)]
   
   if (currentReward.type === 'rune') {
-    baseConfig.rewardItemType = 0
-    baseConfig.rewardItemName = currentReward.symbol.toUpperCase()
-    config.rewardItemName = baseConfig.rewardItemName
-    config.rewardItemType = baseConfig.rewardItemType
+    sharedConfig.rewardItemType = 0
+    sharedConfig.rewardItemName = currentReward.symbol.toUpperCase()
+    config.rewardItemName = sharedConfig.rewardItemName
+    config.rewardItemType = sharedConfig.rewardItemType
   } else if (currentReward.type === 'item') {
     const item = decodeItem(currentReward.tokenId)
-    baseConfig.rewardItemName = item.name
-    baseConfig.rewardItemType = 1
-    config.rewardItemName = baseConfig.rewardItemName
-    config.rewardItemType = baseConfig.rewardItemType
+    sharedConfig.rewardItemName = item.name
+    sharedConfig.rewardItemType = 1
+    config.rewardItemName = sharedConfig.rewardItemName
+    config.rewardItemType = sharedConfig.rewardItemType
   }
 
   publishEvent('OnSpawnReward', currentReward.id, config.rewardItemType, config.rewardItemName, config.rewardItemAmount, currentReward.position.x, currentReward.position.y)
@@ -420,12 +433,12 @@ function moveTowards(current, target, maxDistanceDelta)
  }
 
 const claimReward = (currentPlayer) => {
+  console.log(currentPlayer, currentReward)
   if (!currentReward) return
 
-  if (anticheatEnabled && lastReward?.winner.name === currentPlayer.name) return
+  if (config.anticheat.samePlayerCantClaimRewardTwiceInRow && lastReward?.winner.name === currentPlayer.name) return
 
   currentReward.winner = currentPlayer
-
   try {
     if (currentPlayer.address) {
       if (currentReward.type === 'item') {
@@ -593,6 +606,7 @@ function randomRoundPreset() {
   while(config.gameMode === gameMode) {
     config = {
       ...baseConfig,
+      ...sharedConfig,
       ...presets[random(0, presets.length-1)]
     }
   }
@@ -763,7 +777,8 @@ io.on('connection', function(socket) {
     log: {
       kills: [],
       deaths: [],
-      revenge: 0
+      revenge: 0,
+      resetPosition: 0
     }
   }
 
@@ -808,7 +823,7 @@ io.on('connection', function(socket) {
       } else if (data.event === 'SetMaintenance') {
         if (!playerWhitelist.includes(currentPlayer?.name)) return
     
-        baseConfig.isMaintenance = data.value
+        sharedConfig.isMaintenance = data.value
         config.isMaintenance = data.value
     
         publishEvent('OnMaintenance', config.isMaintenance)
@@ -816,7 +831,7 @@ io.on('connection', function(socket) {
         if (!playerWhitelist.includes(currentPlayer?.name)) return
     
         for (const item of data.value) {
-          baseConfig[item.key] = item.value
+          sharedConfig[item.key] = item.value
       
           if (item.publish) {
             publishEvent(item.publish.eventName, ...item.publish.eventArgs)
@@ -1081,7 +1096,7 @@ function sendLeaderReward(leader) {
 }
 
 function getRoundInfo() {
-  return Object.keys(config).sort().reduce(
+  return Object.keys(sharedConfig).sort().reduce(
     (obj, key) => {
       obj.push(config[key])
       return obj;
@@ -1103,11 +1118,11 @@ function calcRoundRewards() {
     }
   }
 
-  baseConfig.rewardItemAmount = Math.min(totalLegitPlayers * 0.005, 0.05)
-  baseConfig.rewardWinnerAmount = Math.min(totalLegitPlayers * 0.02, 0.2)
+  sharedConfig.rewardItemAmount = Math.min(totalLegitPlayers * 0.005, 0.05)
+  sharedConfig.rewardWinnerAmount = Math.min(totalLegitPlayers * 0.02, 0.2)
 
-  config.rewardItemAmount = baseConfig.rewardItemAmount
-  config.rewardWinnerAmount = baseConfig.rewardWinnerAmount
+  config.rewardItemAmount = sharedConfig.rewardItemAmount
+  config.rewardWinnerAmount = sharedConfig.rewardWinnerAmount
 }
 
 
@@ -1133,7 +1148,9 @@ function resetLeaderboard() {
 
   saveLeaderboardHistory()
 
-  calcRoundRewards()
+  if (config.calcRoundRewards) {
+    calcRoundRewards()
+  }
 
   randomRoundPreset()
 
@@ -1242,7 +1259,8 @@ function detectCollisions() {
 
     if (distanceBetweenPoints(player.position, player.clientPosition) > config.checkPositionDistance) {
       // Do nothing for now
-      player.position = player.clientPosition
+      player.position = moveTowards(player.position, player.clientPosition, player.speed * deltaTime)
+      player.log.resetPosition += 1
     } else {
       player.position = moveTowards(player.position, player.target, player.speed * deltaTime)
     }
@@ -1335,9 +1353,10 @@ function detectCollisions() {
       }
   
       const rewards = [currentReward]
-  
+  console.log(currentReward, player.position)
       for (const reward of rewards) {
         if (!reward) continue
+        console.log(distanceBetweenPoints(player.position, reward.position), touchDistance)
         if (distanceBetweenPoints(player.position, reward.position) > touchDistance) continue
   
         // player.rewards += 1
@@ -1421,7 +1440,7 @@ function fastGameloop() {
 
     const cacheKey = client.position.x + client.position.y + isInvincible
   
-    if (eventCache['OnUpdatePlayer'][client.id] !== cacheKey) {
+    if (config.optimization.sendPlayerUpdateWithNoChanges || eventCache['OnUpdatePlayer'][client.id] !== cacheKey) {
       client.latency = ((now - client.lastReportedTime) / 2)// - (now - lastFastGameloopTime)
 
       if (Number.isNaN(client.latency)) {

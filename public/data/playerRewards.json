@@ -14,8 +14,12 @@
   },
   "0xa987f487639920A3c2eFe58C8FBDedB96253ed9B": {
     "pending": {
-      "sol": 0.01,
-      "tal": 0.01
+      "sol": 0.05,
+      "tal": 0.03,
+      "amn": 0.01,
+      "ort": 0.05,
+      "shael": 0.02,
+      "ith": 0.01
     }
   },
   "0x0B0185c82B7e6A7e0825a2E29dcDedb824fB874A": {
