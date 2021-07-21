@@ -38891,5 +38891,156 @@
         "revenge": 0
       }
     }
+  ],
+  [],
+  [
+    {
+      "name": "Botter",
+      "id": "QR3DOCWPGGcCa-bMAAAB",
+      "avatar": 0,
+      "network": "bsc",
+      "address": "0xa987f487639920A3c2eFe58C8FBDedB96253ed9B",
+      "device": "desktop",
+      "position": {
+        "x": -5.590000000000002,
+        "y": -6.99
+      },
+      "target": {
+        "x": -4.82,
+        "y": -6.99
+      },
+      "clientPosition": {
+        "x": -6.03,
+        "y": -6.99
+      },
+      "rotation": null,
+      "xp": 0,
+      "latency": 502.5,
+      "kills": 0,
+      "deaths": 0,
+      "points": 103,
+      "evolves": 7,
+      "powerups": 103,
+      "rewards": 2,
+      "orbs": 0,
+      "isMasterClient": true,
+      "isDisconnected": true,
+      "isDead": true,
+      "isSpectating": false,
+      "overrideSpeed": null,
+      "overrideCameraSize": null,
+      "cameraSize": 3,
+      "speed": 4,
+      "joinedAt": null,
+      "hash": "",
+      "lastReportedTime": "1626817974602",
+      "lastUpdate": 1626817952,
+      "log": {
+        "kills": [],
+        "deaths": [],
+        "revenge": 0,
+        "resetPosition": 343
+      }
+    }
+  ],
+  [
+    {
+      "name": "Botter",
+      "id": "565QvP5Z1ll3Y0xeAAAD",
+      "avatar": 0,
+      "network": "bsc",
+      "address": "0xa987f487639920A3c2eFe58C8FBDedB96253ed9B",
+      "device": "desktop",
+      "position": {
+        "x": -5.165349799378598,
+        "y": -12.334384029508948
+      },
+      "target": {
+        "x": -2.76,
+        "y": -8.91
+      },
+      "clientPosition": {
+        "x": -5.23,
+        "y": -12.38
+      },
+      "rotation": null,
+      "xp": 0,
+      "latency": 21,
+      "kills": 0,
+      "deaths": 0,
+      "points": 158,
+      "evolves": 11,
+      "powerups": 122,
+      "rewards": 5,
+      "orbs": 0,
+      "isMasterClient": true,
+      "isDisconnected": true,
+      "isDead": true,
+      "isSpectating": false,
+      "overrideSpeed": null,
+      "overrideCameraSize": null,
+      "cameraSize": 3,
+      "speed": 3,
+      "joinedAt": null,
+      "hash": "",
+      "lastReportedTime": "1626818537720",
+      "lastUpdate": 1626818538,
+      "log": {
+        "kills": [],
+        "deaths": [],
+        "revenge": 0,
+        "resetPosition": 155
+      }
+    }
+  ],
+  [
+    {
+      "name": "Botter",
+      "id": "565QvP5Z1ll3Y0xeAAAD",
+      "avatar": 0,
+      "network": "bsc",
+      "address": "0xa987f487639920A3c2eFe58C8FBDedB96253ed9B",
+      "device": "desktop",
+      "position": {
+        "x": -5.165349799378598,
+        "y": -12.334384029508948
+      },
+      "target": {
+        "x": -2.76,
+        "y": -8.91
+      },
+      "clientPosition": {
+        "x": -5.23,
+        "y": -12.38
+      },
+      "rotation": null,
+      "xp": 0,
+      "latency": 21,
+      "kills": 0,
+      "deaths": 0,
+      "points": 158,
+      "evolves": 11,
+      "powerups": 122,
+      "rewards": 5,
+      "orbs": 0,
+      "isMasterClient": true,
+      "isDisconnected": true,
+      "isDead": true,
+      "isSpectating": false,
+      "overrideSpeed": null,
+      "overrideCameraSize": null,
+      "cameraSize": 3,
+      "speed": 3,
+      "joinedAt": null,
+      "hash": "",
+      "lastReportedTime": "1626818537720",
+      "lastUpdate": 1626818538,
+      "log": {
+        "kills": [],
+        "deaths": [],
+        "revenge": 0,
+        "resetPosition": 155
+      }
+    }
   ]
 ]
