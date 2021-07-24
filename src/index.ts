@@ -1,5 +1,7 @@
 
 import * as utf8 from 'utf8'
+import * as ethers from 'ethers'
+import * as Web3 from 'web3'
 import * as express from 'express'
 import * as helmet from 'helmet'
 import * as cors from 'cors'
@@ -12,6 +14,7 @@ import middleware from './middleware'
 import * as database from './db'
 import * as services from './services'
 import { decodeItem } from './decodeItem'
+import Provider from './util/provider'
 
 const serverVersion = "0.14.0"
 
@@ -27,6 +30,7 @@ const eventCache: any = {
   'OnUpdateMyself': {},
   'OnUpdatePlayer': {}
 }
+
 const db: any = {}
 
 db.config = jetpack.read(path.resolve('./public/data/config.json'), 'json')
@@ -59,10 +63,22 @@ const saveBanList = () => {
 const testMode = false
 
 const baseConfig = {
+  startAvatar: 0,
+  spriteXpMultiplier: 1,
+  dynamicDecayPower: false,
+  decayPowerPerMaxEvolvedPlayers: 0.2,
+  antifeed2: true,
+  antifeed3: true,
+  avatarDirection: 1,
   calcRoundRewards: true,
+  rewardItemAmountPerLegitPlayer: 0.01,
+  rewardItemAmountMax: 0.05,
+  rewardWinnerAmountPerLegitPlayer: 0.04,
+  rewardWinnerAmountMax: 0.2,
   anticheat: {
     enabled: false,
-    samePlayerCantClaimRewardTwiceInRow: false
+    samePlayerCantClaimRewardTwiceInRow: false,
+    disconnectPositionJumps: false
   },
   optimization: {
     sendPlayerUpdateWithNoChanges: true
@@ -74,9 +90,9 @@ const sharedConfig = {
   avatarDecayPower0: 2,
   avatarDecayPower1: 2.5,
   avatarDecayPower2: 3,
-  avatarTouchDistance0: 0.25,
-  avatarTouchDistance1: 0.35,
-  avatarTouchDistance2: 0.45,
+  avatarTouchDistance0: 0.2,
+  avatarTouchDistance1: 0.25,
+  avatarTouchDistance2: 0.3,
   avatarSpeedMultiplier0: 1,
   avatarSpeedMultiplier1: 0.85,
   avatarSpeedMultiplier2: 0.65,
@@ -88,7 +104,7 @@ const sharedConfig = {
   claimingRewards: false,
   decayPower: 1.4,
   disconnectPlayerSeconds: testMode ? 999 : 2 * 60,
-  disconnectPositionJumps: true,
+  disconnectPositionJumps: true, // TODO: remove
   fastestLoopSeconds: 0.010,
   fastLoopSeconds: 0.020,
   gameMode: 'Standard',
@@ -116,7 +132,7 @@ const sharedConfig = {
   rewardItemName: '?',
   rewardItemType: 0,
   rewardSpawnLoopSeconds: testMode ? 1 : 3 * 60 / 20,
-  rewardWinnerAmount: 0.05,
+  rewardWinnerAmount: 0.04,
   rewardWinnerName: 'ZOD',
   roundLoopSeconds: testMode ? 2 * 60 : 5 * 60,
   sendUpdateLoopSeconds: 2,
@@ -126,10 +142,28 @@ const sharedConfig = {
   spritesTotal: 50
 }
 
+
 let config = {
   ...baseConfig,
   ...sharedConfig
 }
+
+  // Decay
+  // {
+  //   gameMode: 'Decay 2X',
+  //   decayPower: 2.8,
+  // },
+  // Orb
+  // {
+  //   gameMode: 'Orb 50%',
+  //   orbOnDeathPercent: 50,
+  //   orbCutoffSeconds: 0
+  // },
+  // Fast game
+  // {
+  //   gameMode: 'Speedy',
+  //   baseSpeed: 6,
+  // },
 
 const presets = [
   // Lazy Mode
@@ -150,17 +184,6 @@ const presets = [
     pointsPerKill: 20,
     pointsPerReward: 5,
   },
-  // Decay
-  // {
-  //   gameMode: 'Decay 2X',
-  //   decayPower: 2.8,
-  // },
-  // Orb
-  // {
-  //   gameMode: 'Orb 50%',
-  //   orbOnDeathPercent: 50,
-  //   orbCutoffSeconds: 0
-  // },
   // Pacifism
   {
     gameMode: 'Lets Be Friends',
@@ -195,7 +218,9 @@ const presets = [
     pointsPerPowerup: 1,
     pointsPerReward: 0,
     baseSpeed: 4,
-    antifeed1: false
+    antifeed1: false,
+    dynamicDecayPower: true,
+    decayPowerPerMaxEvolvedPlayers: 0.2,
   },
   // Evolve game
   {
@@ -213,11 +238,6 @@ const presets = [
     pointsPerKill: 0,
     orbCutoffSeconds: 0
   },
-  // Fast game
-  // {
-  //   gameMode: 'Speedy',
-  //   baseSpeed: 6,
-  // },
   // Sprite game
   {
     gameMode: 'Sprite Leader',
@@ -251,7 +271,59 @@ const presets = [
     baseSpeed: 4,
     decayPower: 2.8,
   },
+  {
+    gameMode: 'Friendly Reverse',
+    pointsPerKill: -200,
+    orbTimeoutSeconds: 9999,
+    orbOnDeathPercent: 0,
+    antifeed1: false,
+    pointsPerEvolve: 25,
+    decayPower: -1.4,
+    avatarDecayPower0: 4,
+    avatarDecayPower1: 3,
+    avatarDecayPower2: 2,
+    spriteXpMultiplier: -1
+  },
+  {
+    gameMode: 'Reverse Evolve',
+    startAvatar: 2,
+    decayPower: -1,
+    avatarDecayPower0: 4,
+    avatarDecayPower1: 3,
+    avatarDecayPower2: 2,
+    spriteXpMultiplier: -1,
+    // avatarDirection: -1
+  },
+  {
+    gameMode: 'Marco Polo',
+    cameraSize: 2,
+    baseSpeed: 1.5,
+    decayPower: 1.4,
+    avatarSpeedMultiplier0: 1,
+    avatarSpeedMultiplier1: 1,
+    avatarSpeedMultiplier2: 1,
+  },
+  {
+    gameMode: 'Dynamic Decay',
+    pointsPerEvolve: 1,
+    pointsPerPowerup: 1,
+    pointsPerKill: 20,
+    pointsPerReward: 5,
+    dynamicDecayPower: true,
+    decayPowerPerMaxEvolvedPlayers: 1,
+  },
+  // {
+  //   gameMode: 'Collapse',
+  //   fortnight: true
+  // },
 ]
+
+let currentPreset = presets[(Math.floor(Math.random() * presets.length))]
+let roundConfig = {
+  ...baseConfig,
+  ...sharedConfig,
+  ...currentPreset
+}
 
 let totalLegitPlayers = 0
 const debug = testMode
@@ -273,9 +345,14 @@ let round = {
   startedAt: Math.round(Date.now() / 1000)
 }
 
-const mapBoundary = {
+const spawnBoundary = {
   x: {min: -15, max: 0},
   y: {min: -13, max: -4}
+}
+
+const mapBoundary = {
+  x: {min: -17, max: 0},
+  y: {min: -17, max: 0}
 }
 
 const rewardSpawnPoints = [
@@ -305,6 +382,9 @@ const log = (...msgs) => {
   console.log(...msgs)
 }
 
+// @ts-ignore
+const web3 = new Web3(new Provider())
+
 //auxiliary function to sort the best players
 function comparePlayers(a, b) {
   if (a.points > b.points) {
@@ -328,7 +408,7 @@ const howManyRewardsPerHour = (playerCount) => {
 }
 
 const emitAll = (...args) => {
-  log('emitAll', ...args)
+  // log('emitAll', ...args)
   io.emit(...args)
 }
 
@@ -367,6 +447,16 @@ const emitAllFast = (socket, ...args) => {
 
 const publishEvent = (...args) => {
   eventQueue.push(args)
+}
+
+const verifySignature = (signature, address) => {
+  console.log('Verifying', signature)
+  try {
+    return web3.eth.accounts.recover(signature.value, signature.hash).toLowerCase() === address.toLowerCase()
+  } catch(e) {
+    console.log(e)
+    return false
+  }
 }
 
 const spawnRandomReward = () => {
@@ -433,7 +523,6 @@ function moveTowards(current, target, maxDistanceDelta)
  }
 
 const claimReward = (currentPlayer) => {
-  console.log(currentPlayer, currentReward)
   if (!currentReward) return
 
   if (config.anticheat.samePlayerCantClaimRewardTwiceInRow && lastReward?.winner.name === currentPlayer.name) return
@@ -584,9 +673,9 @@ function disconnectPlayer(player) {
       }
     }
 
-    emitDirect(sockets[player.id], 'OnUserDisconnected', player.id)
-    
-    if (sockets[player.id]) {
+    if (sockets[player.id] && sockets[player.id].emit) {
+      emitDirect(sockets[player.id], 'OnUserDisconnected', player.id)
+
       sockets[player.id].disconnect()
 
       delete sockets[player.id]
@@ -603,12 +692,15 @@ function disconnectPlayer(player) {
 function randomRoundPreset() {
   const gameMode = config.gameMode
 
+  currentPreset = presets[random(0, presets.length-1)]
+
   while(config.gameMode === gameMode) {
-    config = {
+    roundConfig = {
       ...baseConfig,
       ...sharedConfig,
-      ...presets[random(0, presets.length-1)]
+      ...currentPreset
     }
+    config = JSON.parse(JSON.stringify(roundConfig))
   }
 }
 
@@ -642,8 +734,8 @@ function removeReward(id) {
 
 function spawnSprites(amount) {
   for (let i = 0; i < amount; i++) {
-    const spawnX = randomPosition(mapBoundary.x.min, mapBoundary.x.max)
-    const spawnY = randomPosition(mapBoundary.y.min, mapBoundary.y.max)
+    const spawnX = randomPosition(spawnBoundary.x.min, spawnBoundary.x.max)
+    const spawnY = randomPosition(spawnBoundary.y.min, spawnBoundary.y.max)
 
     const powerupSpawnPoint = {
       id: shortId.generate(),
@@ -687,8 +779,16 @@ function sha256(str) {
 const registerKill = (winner, loser) => {
   if (loser.isInvincible) return
 
+  const totalKills = winner.log.kills.filter(h => h === loser.hash).length
+  const notReallyTrying = config.antifeed1 ? (totalKills >= 2 && loser.rewards <= 1) || (totalKills >= 2 && loser.powerups <= 100) : false
+  const tooManyKills = config.antifeed2 ? totalKills >= 2 && totalKills > winner.log.kills.length / clients.filter(c => !c.isDead).length : false
+  const killingThemselves = config.antifeed3 ? winner.hash === loser.hash : false
+  const allowKill = !notReallyTrying && !tooManyKills && !killingThemselves
+
+  if (!allowKill) return
+
   winner.kills += 1
-  winner.points += config.antifeed1 && ((loser.deaths > 0 && loser.rewards < 2) || (loser.deaths > 0 && loser.powerups < 100)) ? 0 : config.pointsPerKill * (loser.avatar + 1)
+  winner.points += config.pointsPerKill * (loser.avatar + 1)
   winner.log.kills.push(loser.hash)
 
   const orbOnDeathPercent = config.lazycap && loser.name === 'Lazy' ? 75 : config.orbOnDeathPercent
@@ -718,7 +818,10 @@ const registerKill = (winner, loser) => {
   }
 
   publishEvent('OnGameOver', loser.id, winner.id)
-  disconnectPlayer(loser)
+
+  setTimeout(() => {
+    disconnectPlayer(loser)
+  }, 5 * 1000)
 
   if (!roundEndingSoon(config.orbCutoffSeconds)) {
     const currentRound = round.index
@@ -774,6 +877,7 @@ io.on('connection', function(socket) {
     hash: hash.slice(hash.length - 10, hash.length - 1),
     lastReportedTime: Date.now(),
     lastUpdate: Date.now(),
+    gameMode: config.gameMode,
     log: {
       kills: [],
       deaths: [],
@@ -801,27 +905,40 @@ io.on('connection', function(socket) {
 
   clients.push(currentPlayer)
 
-  spawnSprites(config.spritesPerPlayerCount)
-
   socket.on('Passthrough', function(msg) {
     const pack = decodePayload(msg)
     const data = JSON.parse(unescape(pack.data))
-
     try {
       if (data.event === 'Ban') {
         if (!playerWhitelist.includes(currentPlayer?.name)) return
+        if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+        if (!verifySignature(data.signature, currentPlayer?.address)) return
     
         const offender = data.value
     
         db.banList.push(offender)
     
         saveBanList()
+      } else if (data.event === 'Unban') {
+        if (!playerWhitelist.includes(currentPlayer?.name)) return
+        if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+        if (!verifySignature(data.signature, currentPlayer?.address)) return
+    
+        const offender = data.value
+    
+        db.banList.splice(db.banList.indexOf(offender), 1)
+    
+        saveBanList()
       } else if (data.event === 'SetBroadcast') {
         if (!playerWhitelist.includes(currentPlayer?.name)) return
+        if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+        if (!verifySignature(data.signature, currentPlayer?.address)) return
     
         publishEvent('OnBroadcast', escape(JSON.stringify(data.value)))
       } else if (data.event === 'SetMaintenance') {
         if (!playerWhitelist.includes(currentPlayer?.name)) return
+        if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+        if (!verifySignature(data.signature, currentPlayer?.address)) return
     
         sharedConfig.isMaintenance = data.value
         config.isMaintenance = data.value
@@ -829,6 +946,8 @@ io.on('connection', function(socket) {
         publishEvent('OnMaintenance', config.isMaintenance)
       } else if (data.event === 'SetConfig') {
         if (!playerWhitelist.includes(currentPlayer?.name)) return
+        if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+        if (!verifySignature(data.signature, currentPlayer?.address)) return
     
         for (const item of data.value) {
           sharedConfig[item.key] = item.value
@@ -839,20 +958,28 @@ io.on('connection', function(socket) {
         }
       } else if (data.event === 'SetClaiming') {
         if (!playerWhitelist.includes(currentPlayer?.name)) return
+        if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+        if (!verifySignature(data.signature, currentPlayer?.address)) return
     
         db.playerRewards[data.value.address].claiming = data.value.value
       } else if (data.event === 'ResetClaiming') {
         if (!playerWhitelist.includes(currentPlayer?.name)) return
+        if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+        if (!verifySignature(data.signature, currentPlayer?.address)) return
     
         for (const address in db.playerRewards) {
           db.playerRewards[address].claiming = false
         }
       } else if (data.event === 'SetPreset') {
         if (!playerWhitelist.includes(currentPlayer?.name)) return
+        if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+        if (!verifySignature(data.signature, currentPlayer?.address)) return
     
         presets[data.value.index] = data.value.config
       } else if (data.event === 'SetGodmode') {
         if (!playerWhitelist.includes(currentPlayer?.name)) return
+        if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+        if (!verifySignature(data.signature, currentPlayer?.address)) return
     
         let client
         for (let i = 0; i < clients.length; i++) {
@@ -911,6 +1038,12 @@ io.on('connection', function(socket) {
       return
     }
 
+    if (db.banList.includes(pack.name)) {
+      emitDirect(socket, 'OnBanned', true)
+      disconnectPlayer(currentPlayer)
+      return
+    }
+
     if (currentPlayer.name !== pack.name || currentPlayer.address !== pack.address) {
       currentPlayer.name = pack.name
       currentPlayer.address = pack.address
@@ -923,6 +1056,7 @@ io.on('connection', function(socket) {
       currentPlayer.evolves = recentPlayers.find(r => r.name === pack.name)?.evolves || currentPlayer.evolves
       currentPlayer.powerups = recentPlayers.find(r => r.name === pack.name)?.powerups || currentPlayer.powerups
       currentPlayer.rewards = recentPlayers.find(r => r.name === pack.name)?.rewards || currentPlayer.rewards
+      currentPlayer.log = recentPlayers.find(r => r.name === pack.name)?.log || currentPlayer.log
 
       addToRecentPlayers(currentPlayer)
   
@@ -939,16 +1073,10 @@ io.on('connection', function(socket) {
       return
     }
 
-    if (db.banList.includes(pack.name)) {
-      emitDirect(socket, 'OnBanned', true)
-      disconnectPlayer(currentPlayer)
-      return
-    }
-
     log('JoinRoom')
 
     currentPlayer.isDead = false
-    currentPlayer.avatar = 0
+    currentPlayer.avatar = config.startAvatar
     currentPlayer.joinedAt = Math.round(Date.now() / 1000)
 
     log("[INFO] player " + currentPlayer.id + ": logged!")
@@ -959,6 +1087,8 @@ io.on('connection', function(socket) {
     emitDirect(socket, 'OnSetInfo', currentPlayer.id, currentPlayer.name, currentPlayer.address, currentPlayer.network, currentPlayer.device)
     emitDirect(socket, 'OnSetRoundInfo', roundTimer + ':' + getRoundInfo().join(':'))
     emitDirect(socket, 'OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
+
+    spawnSprites(config.spritesPerPlayerCount)
 
     // spawn all connected clients for currentUser client 
     for (const client of clients) {
@@ -993,17 +1123,26 @@ io.on('connection', function(socket) {
 
     const pack = decodePayload(msg)
 
-    currentPlayer.clientPosition = {x: parseFloat(parseFloat(pack.position.split(':')[0]).toFixed(2)), y: parseFloat(parseFloat(pack.position.split(':')[1]).toFixed(2))}
-    const newTarget = {x: parseFloat(parseFloat(pack.target.split(':')[0]).toFixed(2)), y: parseFloat(parseFloat(pack.target.split(':')[1]).toFixed(2))}
+    const positionX = parseFloat(parseFloat(pack.position.split(':')[0]).toFixed(2))
+    const positionY = parseFloat(parseFloat(pack.position.split(':')[1]).toFixed(2))
 
-    // console.log('a', newPosition)
-    // if (config.disconnectPositionJumps && distanceBetweenPoints(currentPlayer.position, newPosition) > 3) {
-    //   disconnectPlayer(currentPlayer)
-    //   return
-    // }
+    const targetX = parseFloat(parseFloat(pack.target.split(':')[0]).toFixed(2))
+    const targetY = parseFloat(parseFloat(pack.target.split(':')[1]).toFixed(2))
 
-    // currentPlayer.position = newPosition
-    currentPlayer.target = newTarget
+
+    if (!Number.isFinite(positionX) || !Number.isFinite(positionY) || !Number.isFinite(targetX) || !Number.isFinite(targetY)) return
+    if (positionX < mapBoundary.x.min) return
+    if (positionX > mapBoundary.x.max) return
+    if (positionY < mapBoundary.y.min) return
+    if (positionY > mapBoundary.y.max) return
+  
+    if (config.anticheat.disconnectPositionJumps && distanceBetweenPoints(currentPlayer.position, { x: positionY, y: positionY }) > 5) {
+      disconnectPlayer(currentPlayer)
+      return
+    }
+
+    currentPlayer.clientPosition = { x: positionY, y: positionY }
+    currentPlayer.target = { x: targetX, y: targetY }
     currentPlayer.lastReportedTime = pack.time
 
     const cacheKey = Math.floor(pack.target.split(':')[0])
@@ -1039,7 +1178,7 @@ io.on('connection', function(socket) {
 
       currentPlayer.powerups += 1
       currentPlayer.points += config.pointsPerPowerup
-      currentPlayer.xp += value
+      currentPlayer.xp += (value * config.spriteXpMultiplier)
   
       publishEvent('OnUpdatePickup', currentPlayer.id, pack.id, value)
 
@@ -1118,8 +1257,8 @@ function calcRoundRewards() {
     }
   }
 
-  sharedConfig.rewardItemAmount = Math.min(totalLegitPlayers * 0.005, 0.05)
-  sharedConfig.rewardWinnerAmount = Math.min(totalLegitPlayers * 0.02, 0.2)
+  sharedConfig.rewardItemAmount = Math.min(totalLegitPlayers * config.rewardItemAmountPerLegitPlayer, config.rewardItemAmountMax)
+  sharedConfig.rewardWinnerAmount = Math.min(totalLegitPlayers * config.rewardWinnerAmountPerLegitPlayer, config.rewardWinnerAmountMax)
 
   config.rewardItemAmount = sharedConfig.rewardItemAmount
   config.rewardWinnerAmount = sharedConfig.rewardWinnerAmount
@@ -1144,7 +1283,9 @@ function resetLeaderboard() {
     sendLeaderReward(leader)
   }
 
-  db.leaderboardHistory.push(JSON.parse(JSON.stringify(leaderboard)))
+  const roundPlayers = recentPlayers.filter(p => !p.isSpectating)
+
+  db.leaderboardHistory.push(JSON.parse(JSON.stringify(roundPlayers)))
 
   saveLeaderboardHistory()
 
@@ -1163,15 +1304,26 @@ function resetLeaderboard() {
     client.evolves = 0
     client.rewards = 0
     client.powerups = 0
-    client.avatar = 0
+    client.avatar = config.startAvatar
     client.orbs = 0
     client.xp = 50
     client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
     client.cameraSize = client.overrideCameraSize || config.cameraSize
-
-    recentPlayers.push(client)
+    client.log = {
+      kills: [],
+      deaths: [],
+      revenge: 0,
+      resetPosition: 0
+    }
+    client.gameMode = config.gameMode
 
     publishEvent('OnUpdateRegression', client.id, client.avatar, client.speed)
+
+    if (client.isDead || client.isSpectating) continue
+
+    client.startedRoundAt = Math.round(Date.now() / 1000)
+
+    recentPlayers.push(client)
   }
 
   for (let i = 0; i < orbs.length; i++) {
@@ -1183,6 +1335,8 @@ function resetLeaderboard() {
   orbs.splice(0, orbs.length)
 
   randomizeSpriteXp()
+
+  syncSprites()
 
   round.startedAt = Math.round(Date.now() / 1000)
   round.index++
@@ -1220,7 +1374,9 @@ function getPayload(messages) {
 
 //updates the list of best players every 1000 milliseconds
 function slowGameloop() {
-  if (recentPlayers.length !== 0) {
+  if (recentPlayers.length === 0) {
+    leaderboard = []
+  } else {
     const topPlayers = recentPlayers.filter(p => !p.isSpectating).sort(comparePlayers).slice(0, 10)
   
     // @ts-ignore
@@ -1235,6 +1391,16 @@ function slowGameloop() {
       }
     }
   }
+
+  if (config.dynamicDecayPower) {
+    const players = clients.filter(p => !p.isDead && !p.isSpectating)
+    const maxEvolvedPlayers = players.filter(p => p.avatar === config.maxEvolves - 1)
+    
+    // if (maxEvolvedPlayers.length > players.length / 2) {
+      config.decayPower = roundConfig.decayPower + (maxEvolvedPlayers.length * config.decayPowerPerMaxEvolvedPlayers)
+    // }
+  }
+  
   
   setTimeout(slowGameloop, config.slowLoopSeconds * 1000)
 }
@@ -1257,13 +1423,18 @@ function detectCollisions() {
     if (player.isDead) continue
     if (player.isSpectating) continue
 
-    if (distanceBetweenPoints(player.position, player.clientPosition) > config.checkPositionDistance) {
-      // Do nothing for now
-      player.position = moveTowards(player.position, player.clientPosition, player.speed * deltaTime)
-      player.log.resetPosition += 1
-    } else {
-      player.position = moveTowards(player.position, player.target, player.speed * deltaTime)
+    if (!Number.isFinite(player.position.x) || !Number.isFinite(player.speed)) { // Not sure what happened
+      disconnectPlayer(player)
+      continue
     }
+
+    // if (distanceBetweenPoints(player.position, player.clientPosition) > config.checkPositionDistance) {
+    //   // Do nothing for now
+    //   player.position = moveTowards(player.position, player.clientPosition, player.speed * deltaTime)
+    //   player.log.resetPosition += 1
+    // } else {
+      player.position = moveTowards(player.position, player.target, player.speed * deltaTime)
+    // }
   }
 
   // Check players
@@ -1328,7 +1499,7 @@ function detectCollisions() {
 
       player.powerups += 1
       player.points += config.pointsPerPowerup
-      player.xp += value
+      player.xp += (value * config.spriteXpMultiplier)
   
       publishEvent('OnUpdatePickup', player.id, powerup.id, value)
 
@@ -1392,31 +1563,27 @@ function fastGameloop() {
     const currentTime = Math.round(now / 1000)
     const isInvincible = client.isInvincible ? true : (client.joinedAt >= currentTime - config.immunitySeconds)
 
+    let decay = config.noDecay ? 0 : (client.avatar + 1) / (1 / config.fastLoopSeconds) * ((config['avatarDecayPower' + client.avatar] || 1) * config.decayPower)
+
     if (client.xp > 100) {
-      if (client.avatar < (config.maxEvolves - 1)) {
-        client.xp = client.xp - 100
-        client.avatar = client.avatar + 1
-        client.evolves += 1
-        client.points += config.pointsPerEvolve
-        client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
-
-        if (config.lazycap && client.name === 'Lazy') {
-          client.speed = client.speed * 0.9
+      if (decay > 0) {
+        if (client.avatar < (config.maxEvolves - 1)) {
+          client.xp = client.xp - 100
+          client.avatar = Math.max(Math.min(client.avatar + (1 * config.avatarDirection), config.maxEvolves - 1), 0)
+          client.evolves += 1
+          client.points += config.pointsPerEvolve
+          client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
+  
+          if (config.lazycap && client.name === 'Lazy') {
+            client.speed = client.speed * 0.9
+          }
+  
+          publishEvent('OnUpdateEvolution', client.id, client.avatar, client.speed)
+        } else {
+          client.xp = 100
         }
-
-        publishEvent('OnUpdateEvolution', client.id, client.avatar, client.speed)
       } else {
-        client.xp = 100
-      }
-    } else {
-      let decay = config.noDecay ? 0 : (client.avatar + 1) / (1 / config.fastLoopSeconds) * ((config['avatarDecayPower' + client.avatar] || 1) * config.decayPower)
-  
-      client.xp -= decay
-  
-      if (client.xp <= 0) {
-        client.xp = 0
-  
-        if (client.avatar === 0) {
+        if (client.avatar >= (config.maxEvolves - 1)) {
           const currentTime = Math.round(now / 1000)
           const isNew = client.joinedAt >= currentTime - config.immunitySeconds
             
@@ -1424,15 +1591,58 @@ function fastGameloop() {
             disconnectPlayer(client)
           }
         } else {
-          client.xp = 100
-          client.avatar -= 1
+          client.xp = client.xp - 100
+          client.avatar = Math.max(Math.min(client.avatar + (1 * config.avatarDirection), config.maxEvolves - 1), 0)
+          client.evolves += 1
+          client.points += config.pointsPerEvolve
           client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
-
+  
           if (config.lazycap && client.name === 'Lazy') {
             client.speed = client.speed * 0.9
           }
   
-          publishEvent('OnUpdateRegression', client.id, client.avatar, client.speed)
+          publishEvent('OnUpdateEvolution', client.id, client.avatar, client.speed)
+        }
+      }
+    } else {
+      client.xp -= decay
+
+      if (client.xp <= 0) {
+        client.xp = 0
+
+        if (decay > 0) {
+          if (client.avatar === 0) {
+            const currentTime = Math.round(now / 1000)
+            const isNew = client.joinedAt >= currentTime - config.immunitySeconds
+              
+            if (!config.noBoot && !isInvincible && !isNew) {
+              disconnectPlayer(client)
+            }
+          } else {
+            client.xp = 100
+            client.avatar = Math.max(Math.min(client.avatar - (1 * config.avatarDirection), config.maxEvolves - 1), 0)
+            client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
+
+            if (config.lazycap && client.name === 'Lazy') {
+              client.speed = client.speed * 0.9
+            }
+    
+            publishEvent('OnUpdateRegression', client.id, client.avatar, client.speed)
+          }
+        } else {
+          if (client.avatar === 0) {
+            client.xp = 0
+          } else {
+            client.xp = 100
+            client.avatar = Math.max(Math.min(client.avatar - (1 * config.avatarDirection), config.maxEvolves - 1), 0)
+            client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
+
+            if (config.lazycap && client.name === 'Lazy') {
+              client.speed = client.speed * 0.9
+            }
+    
+            publishEvent('OnUpdateRegression', client.id, client.avatar, client.speed)
+          }
         }
       }
     }
@@ -1453,7 +1663,7 @@ function fastGameloop() {
   }
 
   if (eventQueue.length) {
-    log('Sending queue', eventQueue)
+    // log('Sending queue', eventQueue)
     emitAll('Events', getPayload(eventQueue.map(e => `["${e[0]}","${e.slice(1).join(':')}"]`)))
   
     eventQueue = []
@@ -1563,7 +1773,9 @@ const initRoutes = async () => {
       rewardItemAmount: config.rewardItemAmount,
       rewardWinnerAmount: config.rewardWinnerAmount,
       totalLegitPlayers: totalLegitPlayers,
-      gameMode: config.gameMode
+      gameMode: config.gameMode,
+      orbs: orbs,
+      currentReward
     })
   })
 
