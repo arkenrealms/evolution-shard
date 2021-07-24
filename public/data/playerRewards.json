@@ -3,7 +3,7 @@
     "pending": {
       "ral": 0,
       "tir": 0.02,
-      "amn": 0.97,
+      "amn": 0.98,
       "thul": 0.95,
       "zod": 0.14,
       "sol": 0.09,
@@ -41,18 +41,18 @@
   },
   "0xc84ce216fef4EC8957bD0Fb966Bb3c3E2c938082": {
     "pending": {
-      "zod": 10.31,
-      "nef": 15.2,
-      "shael": 18.72,
-      "ort": 15.92,
-      "tal": 17.93,
-      "thul": 13.18,
-      "tir": 11.68,
-      "ith": 2.5,
-      "amn": 2.74,
+      "zod": 10.39,
+      "nef": 15.31,
+      "shael": 18.87,
+      "ort": 16.12,
+      "tal": 17.98,
+      "thul": 13.23,
+      "tir": 11.73,
+      "ith": 2.61,
+      "amn": 2.79,
       "dol": 0.78,
       "ral": 0.75,
-      "sol": 2.2
+      "sol": 2.25
     },
     "claiming": false
   },
@@ -837,18 +837,18 @@
   },
   "0xf479937B5754dc9F9d8ae5346D69007bb5Ecf53a": {
     "pending": {
-      "tir": 0.02,
-      "nef": 0.22,
-      "tal": 0.11,
-      "ort": 0.07,
-      "shael": 0.05,
-      "thul": 0.05,
-      "zod": 0.12,
+      "tir": 0.14,
+      "nef": 0.49,
+      "tal": 0.22,
+      "ort": 0.14,
+      "shael": 0.27,
+      "thul": 0.32,
+      "zod": 1.28,
       "ral": 0.07,
-      "amn": 0.02,
-      "ith": 0.19,
+      "amn": 0.27,
+      "ith": 0.28,
       "dol": 0.13,
-      "sol": 0.13
+      "sol": 0.4
     },
     "claiming": false,
     "tx": [
@@ -1732,18 +1732,18 @@
   },
   "0xEbBF283cE0b762D3684FE97e20dc806e0e709958": {
     "pending": {
-      "tir": 0.43,
-      "ort": 0.26,
-      "nef": 1.37,
-      "tal": 0.39,
-      "shael": 0.11,
-      "thul": 0.86,
-      "zod": 1.49,
-      "amn": 0.9,
+      "tir": 0.52,
+      "ort": 0.43,
+      "nef": 1.42,
+      "tal": 0.64,
+      "shael": 0.31,
+      "thul": 0.94,
+      "zod": 1.54,
+      "amn": 0.95,
       "ral": 0.4,
       "dol": 0.28,
-      "ith": 1.17,
-      "sol": 0.21
+      "ith": 1.32,
+      "sol": 0.26
     },
     "claiming": false,
     "tx": [
@@ -2145,18 +2145,18 @@
   },
   "0x89dbb66a9a2697914a3838467F767FcDBe5CA723": {
     "pending": {
-      "tir": 0,
-      "thul": 0,
+      "tir": 0.09,
+      "thul": 0.13,
       "tal": 0.04,
-      "nef": 0,
+      "nef": 0.09,
       "shael": 0,
       "ort": 0,
-      "zod": 0,
+      "zod": 0.4,
       "ral": 0.37,
-      "ith": 0,
-      "amn": 0.05,
+      "ith": 0.04,
+      "amn": 0.09,
       "dol": 0.15,
-      "sol": 0
+      "sol": 0.05
     },
     "claiming": false,
     "tx": [
@@ -2349,16 +2349,16 @@
   },
   "0xF0659403c811154b704afC121Cb6152104B5d289": {
     "pending": {
-      "zod": 2.71,
-      "shael": 1.32,
-      "tal": 1.83,
-      "ith": 1.64,
-      "ort": 1.39,
-      "nef": 2.04,
-      "tir": 1.57,
-      "sol": 1.51,
-      "amn": 1.76,
-      "thul": 1.78
+      "zod": 3.08,
+      "shael": 1.73,
+      "tal": 2.19,
+      "ith": 1.87,
+      "ort": 1.64,
+      "nef": 2.28,
+      "tir": 1.93,
+      "sol": 1.9,
+      "amn": 2.01,
+      "thul": 2.26
     },
     "claiming": false,
     "tx": [
@@ -3175,17 +3175,17 @@
   "0xDa0d95B34DFee997925e9bFe8BF1d2F96bF8AB9c": {
     "pending": {
       "thul": 0.61,
-      "nef": 0.62,
-      "shael": 0.56,
-      "ort": 0.67,
-      "tir": 0.51,
-      "tal": 0.54,
-      "zod": 2.48,
-      "ith": 0.64,
+      "nef": 0.77,
+      "shael": 0.61,
+      "ort": 0.72,
+      "tir": 0.66,
+      "tal": 0.69,
+      "zod": 2.78,
+      "ith": 0.84,
       "ral": 0.46,
       "dol": 0.48,
-      "amn": 0.71,
-      "sol": 0.75
+      "amn": 0.86,
+      "sol": 0.84
     },
     "claiming": false,
     "tx": [
@@ -3296,15 +3296,15 @@
   },
   "0x76176615C5E06705BdADC40Ff938a39fE762584E": {
     "pending": {
-      "tal": 0.23,
+      "tal": 0.28,
       "ort": 0.03,
-      "shael": 0.17,
-      "amn": 0.04,
-      "thul": 0.03,
-      "tir": 0.02,
-      "nef": 0.02,
+      "shael": 0.22,
+      "amn": 0.09,
+      "thul": 0.08,
+      "tir": 0.12,
+      "nef": 0.07,
       "sol": 0.01,
-      "zod": 0.02
+      "zod": 0.07
     },
     "claiming": false,
     "tx": [
@@ -3320,18 +3320,18 @@
   },
   "0x20a67C9c00aA3B3b99D32D01d8Ec0719c7E522AF": {
     "pending": {
-      "tal": 1.39,
-      "ort": 2.16,
-      "shael": 0.86,
-      "zod": 5.78,
-      "tir": 1.18,
-      "amn": 2.23,
-      "ith": 1.77,
+      "tal": 1.51,
+      "ort": 2.26,
+      "shael": 0.94,
+      "zod": 6.13,
+      "tir": 1.24,
+      "amn": 2.25,
+      "ith": 1.83,
       "ral": 0,
       "dol": 0,
-      "nef": 1.12,
-      "sol": 2.06,
-      "thul": 1.32
+      "nef": 1.13,
+      "sol": 2.13,
+      "thul": 1.36
     },
     "claiming": true,
     "tx": [
@@ -3469,18 +3469,18 @@
   },
   "0xD8571B1C73d8A8CadB312b727D30B10bf2B3b697": {
     "pending": {
-      "ith": 0.3,
-      "shael": 0.32,
-      "amn": 0.48,
-      "tir": 0.36,
+      "ith": 0.34,
+      "shael": 0.36,
+      "amn": 0.66,
+      "tir": 0.45,
       "dol": 0.39,
-      "tal": 0.34,
-      "nef": 0.41,
+      "tal": 0.4,
+      "nef": 0.54,
       "ral": 0.75,
-      "zod": 0.78,
-      "thul": 0.33,
-      "ort": 0.34,
-      "sol": 0.33
+      "zod": 1.29,
+      "thul": 0.38,
+      "ort": 0.64,
+      "sol": 0.42
     },
     "claiming": false,
     "tx": [
@@ -4708,16 +4708,16 @@
   },
   "0xDc45368e888b9c9BF02D527eE759A79dEA929048": {
     "pending": {
-      "nef": 1.64,
-      "thul": 1.92,
-      "ort": 1.75,
+      "nef": 1.65,
+      "thul": 1.94,
+      "ort": 1.78,
       "tir": 1.85,
-      "zod": 5.23,
-      "ith": 3.09,
-      "tal": 1.93,
+      "zod": 5.28,
+      "ith": 3.1,
+      "tal": 1.95,
       "amn": 1.77,
-      "shael": 2.23,
-      "sol": 2.4
+      "shael": 2.24,
+      "sol": 2.43
     },
     "tx": [
       "0x87ab9488a7ec826361037051610a47dd7974e3ffb67b6de691131f354aa08d10",
@@ -4785,16 +4785,16 @@
   },
   "0xfb2c48123A05Ff7B6C78426c45044260644c1639": {
     "pending": {
-      "tir": 0.44,
-      "thul": 0.45,
-      "zod": 0.54,
-      "nef": 0.43,
-      "ith": 0.58,
-      "shael": 0.59,
-      "amn": 0.72,
-      "sol": 0.61,
-      "tal": 0.26,
-      "ort": 0.37
+      "tir": 0.64,
+      "thul": 0.55,
+      "zod": 0.59,
+      "nef": 0.53,
+      "ith": 0.68,
+      "shael": 0.64,
+      "amn": 0.77,
+      "sol": 0.76,
+      "tal": 0.41,
+      "ort": 0.57
     }
   },
   "0x7767E2aBA95A0Ae9eCa6c077a80f5260897Af4B1": {
@@ -4942,16 +4942,16 @@
   },
   "0x18310FA987c84e8890907e553A5c90c8bAD01AF1": {
     "pending": {
-      "amn": 0.09,
-      "ith": 0.04,
-      "thul": 0.05,
-      "zod": 0.33,
-      "tir": 0.04,
-      "tal": 0.05,
-      "shael": 0,
-      "sol": 0.08,
-      "ort": 0.19,
-      "nef": 0.17
+      "amn": 0.13,
+      "ith": 0.12,
+      "thul": 0.26,
+      "zod": 0.69,
+      "tir": 0.08,
+      "tal": 0.09,
+      "shael": 0.08,
+      "sol": 0.12,
+      "ort": 0.35,
+      "nef": 0.31
     },
     "tx": [
       "0xf0923bface1652f0eb8272b7f710a51fdb81eac1464cbbc8adca4e5d1700da2a",
@@ -5081,16 +5081,16 @@
   },
   "0x78bfa5E2381Cb0Eb16809eF06Cf1Ce34a5488145": {
     "pending": {
-      "thul": 1,
-      "sol": 1.1,
-      "ith": 1.27,
-      "tir": 1.08,
-      "amn": 1.35,
-      "nef": 0.94,
-      "tal": 0.94,
-      "zod": 1.37,
-      "shael": 0.67,
-      "ort": 0.6
+      "thul": 1.29,
+      "sol": 1.55,
+      "ith": 1.84,
+      "tir": 1.32,
+      "amn": 1.78,
+      "nef": 1.38,
+      "tal": 1.27,
+      "zod": 2.04,
+      "shael": 1.06,
+      "ort": 0.95
     }
   },
   "0x786ef8d6e22E8E76Cae2608a49CbB476267dD326": {
@@ -5581,16 +5581,16 @@
   },
   "0xE672518cA64C807e8F815F0BaEd6FE0b89EFacf7": {
     "pending": {
-      "shael": 0.08,
-      "zod": 0.18,
-      "tal": 0.11,
-      "ort": 0.14,
-      "nef": 0.16,
-      "sol": 0.13,
+      "shael": 0.23,
+      "zod": 0.68,
+      "tal": 0.31,
+      "ort": 0.19,
+      "nef": 0.26,
+      "sol": 0.18,
       "tir": 0.13,
-      "thul": 0.3,
-      "ith": 0.05,
-      "amn": 0.05
+      "thul": 0.45,
+      "ith": 0.1,
+      "amn": 0.2
     }
   },
   "0x47a2a5A8950dd410410f0AF03Af0964cae6Ffec4": {
@@ -5750,15 +5750,16 @@
   },
   "0x3a28A31B1E08b119C8a2f81c7076b716B4468ab9": {
     "pending": {
-      "tir": 0.15,
-      "tal": 0.1,
-      "nef": 0.1,
-      "thul": 0.3,
-      "zod": 0.4,
-      "ort": 0.22,
-      "amn": 0.06,
-      "ith": 0.03,
-      "shael": 0.03
+      "tir": 0.26,
+      "tal": 0.42,
+      "nef": 0.21,
+      "thul": 0.56,
+      "zod": 0.55,
+      "ort": 0.36,
+      "amn": 0.42,
+      "ith": 0.21,
+      "shael": 0.28,
+      "sol": 0.24
     }
   },
   "0x0E78F8eFAFaEacf441b4F9B7008b1ABb09FB4745": {
@@ -5893,6 +5894,72 @@
     "pending": {}
   },
   "0x343e15cdC4c959F4E229C3b04896d6587391C9d8": {
+    "pending": {
+      "ort": 0.23,
+      "sol": 0.12,
+      "shael": 0.34,
+      "ith": 0.31,
+      "amn": 0.22,
+      "zod": 0.13,
+      "tir": 0.19,
+      "nef": 0.22,
+      "thul": 0.19,
+      "tal": 0.09
+    }
+  },
+  "0x14E86f1801f9E8c037964d0Dcb35EE16C0161C41": {
+    "pending": {}
+  },
+  "0x081F654b71917476bbAaEfEEF1Aad3B89dc5A7D9": {
+    "pending": {}
+  },
+  "0xb5B04244696fbab8f28C31BBcCE2f366aF3B4538": {
+    "pending": {}
+  },
+  "0x23360c3992e141714cdD1ba8Acfa3AFb8288825d": {
+    "pending": {}
+  },
+  "0x0d6B656f796E04ed6e04b849ee5B5aE6df123839": {
+    "pending": {
+      "amn": 0.05,
+      "ith": 0.05
+    }
+  },
+  "0xC03d8DB64dfe98ebFD94a84bc1f825CAB90EE15B": {
+    "pending": {}
+  },
+  "0x5A104c15cF9FE266a5fcEd3F54656081efAE7462": {
+    "pending": {
+      "tir": 0.13,
+      "amn": 0.09,
+      "sol": 0.16,
+      "ith": 0.07,
+      "nef": 0.04,
+      "shael": 0.06,
+      "ort": 0.13,
+      "zod": 0.28,
+      "thul": 0.04
+    }
+  },
+  "0x92353D9186a1d02bE280F55C8A563762A9Edc100": {
+    "pending": {}
+  },
+  "0xd4dF17591AcBc7496D3ef753b16e3284A688cb7d": {
+    "pending": {}
+  },
+  "0xf6F718A6F18D9B3e6Faa1113235b2e8a2351d233": {
+    "pending": {}
+  },
+  "0x405BF73F7Ee055A50Ea968373147AF3B27288726": {
+    "pending": {}
+  },
+  "0xf27c223b051aC3264C59B9Ee8ca0F306406003A5": {
+    "pending": {}
+  },
+  "0xE6f0a48D34437be57dcBbe8E344F20dD760d90aD": {
+    "pending": {}
+  },
+  "0x105495d87dBb25292ac8c2A713A8d32c67b824fD": {
     "pending": {}
   }
 }
