@@ -3,52 +3,52 @@
     {
       "type": "rune",
       "symbol": "sol",
-      "quantity": 99.95999999999998
+      "quantity": 99.92999999999996
     },
     {
       "type": "rune",
       "symbol": "tir",
-      "quantity": 100
+      "quantity": 99.93999999999997
     },
     {
       "type": "rune",
       "symbol": "nef",
-      "quantity": 100
-    },
-    {
-      "type": "rune",
-      "symbol": "ith",
-      "quantity": 99.99
-    },
-    {
-      "type": "rune",
-      "symbol": "thul",
-      "quantity": 100
-    },
-    {
-      "type": "rune",
-      "symbol": "amn",
-      "quantity": 99.99
-    },
-    {
-      "type": "rune",
-      "symbol": "ort",
       "quantity": 99.94999999999997
     },
     {
       "type": "rune",
+      "symbol": "ith",
+      "quantity": 99.94999999999997
+    },
+    {
+      "type": "rune",
+      "symbol": "thul",
+      "quantity": 99.94999999999997
+    },
+    {
+      "type": "rune",
+      "symbol": "amn",
+      "quantity": 99.92999999999996
+    },
+    {
+      "type": "rune",
+      "symbol": "ort",
+      "quantity": 99.87999999999994
+    },
+    {
+      "type": "rune",
       "symbol": "shael",
-      "quantity": 999.98
+      "quantity": 999.9200000000001
     },
     {
       "type": "rune",
       "symbol": "tal",
-      "quantity": 99.97999999999999
+      "quantity": 99.84999999999992
     },
     {
       "type": "rune",
       "symbol": "zod",
-      "quantity": 100
+      "quantity": 99.95999999999998
     }
   ],
   "items": [],
