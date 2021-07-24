@@ -16,6 +16,28 @@ import * as services from './services'
 import { decodeItem } from './decodeItem'
 import Provider from './util/provider'
 
+
+function logError(err) {
+  const errorLog = jetpack.read(path.resolve('./public/data/errors.json'), 'json')
+
+  errorLog.push(err + '')
+  
+  jetpack.write(path.resolve('./public/data/errors.json'), JSON.stringify(errorLog, null, 2))
+  
+  console.log(err)
+}
+
+process
+  .on("unhandledRejection", (reason, p) => {
+    console.warn(reason, "Unhandled Rejection at Promise", p);
+    logError(reason + ". Unhandled Rejection at Promise:" + p);
+  })
+  .on("uncaughtException", (err) => {
+    console.warn(err, "Uncaught Exception thrown");
+    logError(err + ". Uncaught Exception thrown");
+    //process.exit(1);
+  })
+
 const serverVersion = "0.14.0"
 
 const server = express()
@@ -384,6 +406,7 @@ const log = (...msgs) => {
 
 // @ts-ignore
 const web3 = new Web3(new Provider())
+
 
 //auxiliary function to sort the best players
 function comparePlayers(a, b) {
@@ -837,367 +860,371 @@ const registerKill = (winner, loser) => {
 }
 
 io.on('connection', function(socket) {
-  const ip = socket.handshake.headers['x-forwarded-for']?.split(',')[0] || socket.conn.remoteAddress?.split(":")[3]
-  // socket.request.connection.remoteAddress ::ffff:127.0.0.1
-  // socket.conn.remoteAddress ::ffff:127.0.0.1
-  // socket.conn.transport.socket._socket.remoteAddress ::ffff:127.0.0.1
-  const hash = ip ? sha256(ip.slice(ip.length/2)) : ''
+  try {
+    const ip = socket.handshake.headers['x-forwarded-for']?.split(',')[0] || socket.conn.remoteAddress?.split(":")[3]
+    // socket.request.connection.remoteAddress ::ffff:127.0.0.1
+    // socket.conn.remoteAddress ::ffff:127.0.0.1
+    // socket.conn.transport.socket._socket.remoteAddress ::ffff:127.0.0.1
+    const hash = ip ? sha256(ip.slice(ip.length/2)) : ''
 
-  const spawnPoint = playerSpawnPoints[(Math.floor(Math.random() * playerSpawnPoints.length))]
+    const spawnPoint = playerSpawnPoints[(Math.floor(Math.random() * playerSpawnPoints.length))]
 
-  let currentPlayer = {
-    name: 'Unknown' + Math.floor(Math.random() * 999),
-    id: socket.id,
-    avatar: null,
-    network: null,
-    address: null,
-    device: null,
-    position: spawnPoint,
-    target: spawnPoint,
-    clientPosition: spawnPoint,
-    rotation: null,
-    xp: 50,
-    latency: 0,
-    kills: 0,
-    deaths: 0,
-    points: 0,
-    evolves: 0,
-    powerups: 0,
-    rewards: 0,
-    orbs: 0,
-    isMasterClient: false,
-    isDisconnected: false,
-    isDead: true,
-    isSpectating: false,
-    overrideSpeed: null,
-    overrideCameraSize: null,
-    cameraSize: config.cameraSize,
-    speed: config.baseSpeed * config.avatarSpeedMultiplier0,
-    joinedAt: null,
-    hash: hash.slice(hash.length - 10, hash.length - 1),
-    lastReportedTime: Date.now(),
-    lastUpdate: Date.now(),
-    gameMode: config.gameMode,
-    log: {
-      kills: [],
-      deaths: [],
-      revenge: 0,
-      resetPosition: 0
-    }
-  }
-
-  log('User connected from ' + ip + ' with hash ' + hash)
-
-  if (!testMode && killSameNetworkClients) {
-    const sameNetworkClients = clients.filter(r => r.hash === currentPlayer.hash && r.id !== currentPlayer.id)
-
-    for (const client of sameNetworkClients) {
-      disconnectPlayer(client)
-    }
-  }
-
-  sockets[currentPlayer.id] = socket
-  clientLookup[currentPlayer.id] = currentPlayer
-
-  if (Object.keys(clientLookup).length == 1) {
-    currentPlayer.isMasterClient = true // first client to join the game
-  }
-
-  clients.push(currentPlayer)
-
-  socket.on('Passthrough', function(msg) {
-    const pack = decodePayload(msg)
-    const data = JSON.parse(unescape(pack.data))
-    try {
-      if (data.event === 'Ban') {
-        if (!playerWhitelist.includes(currentPlayer?.name)) return
-        if (!(data.signature.value > 0 && data.signature.value < 1000)) return
-        if (!verifySignature(data.signature, currentPlayer?.address)) return
-    
-        const offender = data.value
-    
-        db.banList.push(offender)
-    
-        saveBanList()
-      } else if (data.event === 'Unban') {
-        if (!playerWhitelist.includes(currentPlayer?.name)) return
-        if (!(data.signature.value > 0 && data.signature.value < 1000)) return
-        if (!verifySignature(data.signature, currentPlayer?.address)) return
-    
-        const offender = data.value
-    
-        db.banList.splice(db.banList.indexOf(offender), 1)
-    
-        saveBanList()
-      } else if (data.event === 'SetBroadcast') {
-        if (!playerWhitelist.includes(currentPlayer?.name)) return
-        if (!(data.signature.value > 0 && data.signature.value < 1000)) return
-        if (!verifySignature(data.signature, currentPlayer?.address)) return
-    
-        publishEvent('OnBroadcast', escape(JSON.stringify(data.value)))
-      } else if (data.event === 'SetMaintenance') {
-        if (!playerWhitelist.includes(currentPlayer?.name)) return
-        if (!(data.signature.value > 0 && data.signature.value < 1000)) return
-        if (!verifySignature(data.signature, currentPlayer?.address)) return
-    
-        sharedConfig.isMaintenance = data.value
-        config.isMaintenance = data.value
-    
-        publishEvent('OnMaintenance', config.isMaintenance)
-      } else if (data.event === 'SetConfig') {
-        if (!playerWhitelist.includes(currentPlayer?.name)) return
-        if (!(data.signature.value > 0 && data.signature.value < 1000)) return
-        if (!verifySignature(data.signature, currentPlayer?.address)) return
-    
-        for (const item of data.value) {
-          sharedConfig[item.key] = item.value
-      
-          if (item.publish) {
-            publishEvent(item.publish.eventName, ...item.publish.eventArgs)
-          }
-        }
-      } else if (data.event === 'SetClaiming') {
-        if (!playerWhitelist.includes(currentPlayer?.name)) return
-        if (!(data.signature.value > 0 && data.signature.value < 1000)) return
-        if (!verifySignature(data.signature, currentPlayer?.address)) return
-    
-        db.playerRewards[data.value.address].claiming = data.value.value
-      } else if (data.event === 'ResetClaiming') {
-        if (!playerWhitelist.includes(currentPlayer?.name)) return
-        if (!(data.signature.value > 0 && data.signature.value < 1000)) return
-        if (!verifySignature(data.signature, currentPlayer?.address)) return
-    
-        for (const address in db.playerRewards) {
-          db.playerRewards[address].claiming = false
-        }
-      } else if (data.event === 'SetPreset') {
-        if (!playerWhitelist.includes(currentPlayer?.name)) return
-        if (!(data.signature.value > 0 && data.signature.value < 1000)) return
-        if (!verifySignature(data.signature, currentPlayer?.address)) return
-    
-        presets[data.value.index] = data.value.config
-      } else if (data.event === 'SetGodmode') {
-        if (!playerWhitelist.includes(currentPlayer?.name)) return
-        if (!(data.signature.value > 0 && data.signature.value < 1000)) return
-        if (!verifySignature(data.signature, currentPlayer?.address)) return
-    
-        let client
-        for (let i = 0; i < clients.length; i++) {
-          if (clients[i].name == data.value) {
-            client = clients[i]
-            break;
-          }
-        }
-    
-        if (client) {
-          client.isInvincible = true
-        }
+    let currentPlayer = {
+      name: 'Unknown' + Math.floor(Math.random() * 999),
+      id: socket.id,
+      avatar: null,
+      network: null,
+      address: null,
+      device: null,
+      position: spawnPoint,
+      target: spawnPoint,
+      clientPosition: spawnPoint,
+      rotation: null,
+      xp: 50,
+      latency: 0,
+      kills: 0,
+      deaths: 0,
+      points: 0,
+      evolves: 0,
+      powerups: 0,
+      rewards: 0,
+      orbs: 0,
+      isMasterClient: false,
+      isDisconnected: false,
+      isDead: true,
+      isSpectating: false,
+      overrideSpeed: null,
+      overrideCameraSize: null,
+      cameraSize: config.cameraSize,
+      speed: config.baseSpeed * config.avatarSpeedMultiplier0,
+      joinedAt: null,
+      hash: hash.slice(hash.length - 10, hash.length - 1),
+      lastReportedTime: Date.now(),
+      lastUpdate: Date.now(),
+      gameMode: config.gameMode,
+      log: {
+        kills: [],
+        deaths: [],
+        revenge: 0,
+        resetPosition: 0
       }
-    } catch (e) {
-      console.log(e)
-    }
-  })
-
-  socket.on('Load', function() {
-    emitDirect(socket, 'OnLoaded', 1)
-  })
-
-  socket.on('Spectate', function() {
-    if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) {
-      return
     }
 
-    currentPlayer.isSpectating = true
-    currentPlayer.points = 0
-    currentPlayer.xp = 0
-    currentPlayer.avatar = 0
-    currentPlayer.speed = 5
-    currentPlayer.overrideSpeed = 5
-    currentPlayer.cameraSize = 6
-    currentPlayer.overrideCameraSize = 6
+    log('User connected from ' + ip + ' with hash ' + hash)
 
-    syncSprites()
+    if (!testMode && killSameNetworkClients) {
+      const sameNetworkClients = clients.filter(r => r.hash === currentPlayer.hash && r.id !== currentPlayer.id)
 
-    publishEvent('OnSpectate', currentPlayer.id, currentPlayer.speed, currentPlayer.cameraSize)
-  })
+      for (const client of sameNetworkClients) {
+        disconnectPlayer(client)
+      }
+    }
 
-  // socket.on('Ping', function() {
-  //   if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) {
-  //     return
-  //   }
+    sockets[currentPlayer.id] = socket
+    clientLookup[currentPlayer.id] = currentPlayer
 
-  //   emitDirect(socket, 'Pong', "pong!!!")
-  // })
+    if (Object.keys(clientLookup).length == 1) {
+      currentPlayer.isMasterClient = true // first client to join the game
+    }
 
-  socket.on('SetInfo', function(msg) {
-    const pack = decodePayload(msg)
+    clients.push(currentPlayer)
 
-    if (config.isMaintenance && !playerWhitelist.includes(pack.name)) {
-      emitDirect(socket, 'OnMaintenance', true)
+    socket.on('Passthrough', function(msg) {
+      const pack = decodePayload(msg)
+      const data = JSON.parse(unescape(pack.data))
+      try {
+        if (data.event === 'Ban') {
+          if (!playerWhitelist.includes(currentPlayer?.name)) return
+          if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+          if (!verifySignature(data.signature, currentPlayer?.address)) return
+      
+          const offender = data.value
+      
+          db.banList.push(offender)
+      
+          saveBanList()
+        } else if (data.event === 'Unban') {
+          if (!playerWhitelist.includes(currentPlayer?.name)) return
+          if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+          if (!verifySignature(data.signature, currentPlayer?.address)) return
+      
+          const offender = data.value
+      
+          db.banList.splice(db.banList.indexOf(offender), 1)
+      
+          saveBanList()
+        } else if (data.event === 'SetBroadcast') {
+          if (!playerWhitelist.includes(currentPlayer?.name)) return
+          if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+          if (!verifySignature(data.signature, currentPlayer?.address)) return
+      
+          publishEvent('OnBroadcast', escape(JSON.stringify(data.value)))
+        } else if (data.event === 'SetMaintenance') {
+          if (!playerWhitelist.includes(currentPlayer?.name)) return
+          if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+          if (!verifySignature(data.signature, currentPlayer?.address)) return
+      
+          sharedConfig.isMaintenance = data.value
+          config.isMaintenance = data.value
+      
+          publishEvent('OnMaintenance', config.isMaintenance)
+        } else if (data.event === 'SetConfig') {
+          if (!playerWhitelist.includes(currentPlayer?.name)) return
+          if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+          if (!verifySignature(data.signature, currentPlayer?.address)) return
+      
+          for (const item of data.value) {
+            sharedConfig[item.key] = item.value
+        
+            if (item.publish) {
+              publishEvent(item.publish.eventName, ...item.publish.eventArgs)
+            }
+          }
+        } else if (data.event === 'SetClaiming') {
+          if (!playerWhitelist.includes(currentPlayer?.name)) return
+          if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+          if (!verifySignature(data.signature, currentPlayer?.address)) return
+      
+          db.playerRewards[data.value.address].claiming = data.value.value
+        } else if (data.event === 'ResetClaiming') {
+          if (!playerWhitelist.includes(currentPlayer?.name)) return
+          if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+          if (!verifySignature(data.signature, currentPlayer?.address)) return
+      
+          for (const address in db.playerRewards) {
+            db.playerRewards[address].claiming = false
+          }
+        } else if (data.event === 'SetPreset') {
+          if (!playerWhitelist.includes(currentPlayer?.name)) return
+          if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+          if (!verifySignature(data.signature, currentPlayer?.address)) return
+      
+          presets[data.value.index] = data.value.config
+        } else if (data.event === 'SetGodmode') {
+          if (!playerWhitelist.includes(currentPlayer?.name)) return
+          if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+          if (!verifySignature(data.signature, currentPlayer?.address)) return
+      
+          let client
+          for (let i = 0; i < clients.length; i++) {
+            if (clients[i].name == data.value) {
+              client = clients[i]
+              break;
+            }
+          }
+      
+          if (client) {
+            client.isInvincible = true
+          }
+        }
+      } catch (e) {
+        console.log(e)
+      }
+    })
+
+    socket.on('Load', function() {
+      emitDirect(socket, 'OnLoaded', 1)
+    })
+
+    socket.on('Spectate', function() {
+      if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) {
+        return
+      }
+
+      currentPlayer.isSpectating = true
+      currentPlayer.points = 0
+      currentPlayer.xp = 0
+      currentPlayer.avatar = 0
+      currentPlayer.speed = 5
+      currentPlayer.overrideSpeed = 5
+      currentPlayer.cameraSize = 6
+      currentPlayer.overrideCameraSize = 6
+
+      syncSprites()
+
+      publishEvent('OnSpectate', currentPlayer.id, currentPlayer.speed, currentPlayer.cameraSize)
+    })
+
+    // socket.on('Ping', function() {
+    //   if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) {
+    //     return
+    //   }
+
+    //   emitDirect(socket, 'Pong', "pong!!!")
+    // })
+
+    socket.on('SetInfo', function(msg) {
+      const pack = decodePayload(msg)
+
+      if (config.isMaintenance && !playerWhitelist.includes(pack.name)) {
+        emitDirect(socket, 'OnMaintenance', true)
+        disconnectPlayer(currentPlayer)
+        return
+      }
+
+      if (db.banList.includes(pack.name)) {
+        emitDirect(socket, 'OnBanned', true)
+        disconnectPlayer(currentPlayer)
+        return
+      }
+
+      if (currentPlayer.name !== pack.name || currentPlayer.address !== pack.address) {
+        currentPlayer.name = pack.name
+        currentPlayer.address = pack.address
+        currentPlayer.network = pack.network
+        currentPlayer.device = pack.device
+
+        currentPlayer.kills = recentPlayers.find(r => r.name === pack.name)?.kills || currentPlayer.kills
+        currentPlayer.deaths = recentPlayers.find(r => r.name === pack.name)?.deaths || currentPlayer.deaths
+        currentPlayer.points = recentPlayers.find(r => r.name === pack.name)?.points || currentPlayer.points
+        currentPlayer.evolves = recentPlayers.find(r => r.name === pack.name)?.evolves || currentPlayer.evolves
+        currentPlayer.powerups = recentPlayers.find(r => r.name === pack.name)?.powerups || currentPlayer.powerups
+        currentPlayer.rewards = recentPlayers.find(r => r.name === pack.name)?.rewards || currentPlayer.rewards
+        currentPlayer.log = recentPlayers.find(r => r.name === pack.name)?.log || currentPlayer.log
+
+        addToRecentPlayers(currentPlayer)
+    
+        publishEvent('OnSetInfo', currentPlayer.id, pack.name, pack.address, pack.network, pack.device)
+      }
+    })
+
+    socket.on('JoinRoom', function(msg) {
+      const pack = decodePayload(msg)
+
+      if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) {
+        emitDirect(socket, 'OnMaintenance', true)
+        disconnectPlayer(currentPlayer)
+        return
+      }
+
+      log('JoinRoom')
+
+      currentPlayer.isDead = false
+      currentPlayer.avatar = config.startAvatar
+      currentPlayer.joinedAt = Math.round(Date.now() / 1000)
+
+      log("[INFO] player " + currentPlayer.id + ": logged!")
+
+      log("[INFO] Total players: " + Object.keys(clientLookup).length)
+      const roundTimer = (round.startedAt + config.roundLoopSeconds) - Math.round(Date.now() / 1000)
+      emitDirect(socket, 'OnJoinGame', currentPlayer.id, currentPlayer.name, currentPlayer.avatar, currentPlayer.isMasterClient ? 'true' : 'false', roundTimer, spawnPoint.x, spawnPoint.y)
+      emitDirect(socket, 'OnSetInfo', currentPlayer.id, currentPlayer.name, currentPlayer.address, currentPlayer.network, currentPlayer.device)
+      emitDirect(socket, 'OnSetRoundInfo', roundTimer + ':' + getRoundInfo().join(':'))
+      emitDirect(socket, 'OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
+
+      spawnSprites(config.spritesPerPlayerCount)
+
+      // spawn all connected clients for currentUser client 
+      for (const client of clients) {
+        if (client.id === currentPlayer.id) continue
+        if (client.isDisconnected || client.isDead || client.isSpectating) continue
+
+        emitDirect(socket, 'OnSpawnPlayer', client.id, client.name, client.speed, client.avatar, client.position.x, client.position.y, client.position.x, client.position.y)
+      }
+
+      for (let c = 0; c < powerups.length; c++) {
+        emitDirect(socket, 'OnSpawnPowerUp', powerups[c].id, powerups[c].type, powerups[c].position.x, powerups[c].position.y, powerups[c].scale) // spawn power up in unity scene
+      }
+
+      for (let c = 0; c < orbs.length; c++) {
+        emitDirect(socket, 'OnSpawnPowerUp', orbs[c].id, orbs[c].type, orbs[c].position.x, orbs[c].position.y, orbs[c].scale) // spawn power up in unity scene
+      }
+
+      if (currentReward) {
+        emitDirect(socket, 'OnSpawnReward', currentReward.id, config.rewardItemType, config.rewardItemName, config.rewardItemAmount, currentReward.position.x, currentReward.position.y)
+      }
+
+      // spawn currentPlayer client on clients in broadcast
+      publishEvent('OnSpawnPlayer', currentPlayer.id, currentPlayer.name, currentPlayer.speed, currentPlayer.avatar, currentPlayer.position.x, currentPlayer.position.y, currentPlayer.position.x, currentPlayer.position.y)
+
+      currentPlayer.lastUpdate = Date.now()
+    })
+
+    socket.on('UpdateMyself', function(msg) {
+      if (currentPlayer.isDead) return
+      if (currentPlayer.isSpectating) return
+      if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) return
+
+      const pack = decodePayload(msg)
+
+      const positionX = parseFloat(parseFloat(pack.position.split(':')[0]).toFixed(2))
+      const positionY = parseFloat(parseFloat(pack.position.split(':')[1]).toFixed(2))
+
+      const targetX = parseFloat(parseFloat(pack.target.split(':')[0]).toFixed(2))
+      const targetY = parseFloat(parseFloat(pack.target.split(':')[1]).toFixed(2))
+
+
+      if (!Number.isFinite(positionX) || !Number.isFinite(positionY) || !Number.isFinite(targetX) || !Number.isFinite(targetY)) return
+      if (positionX < mapBoundary.x.min) return
+      if (positionX > mapBoundary.x.max) return
+      if (positionY < mapBoundary.y.min) return
+      if (positionY > mapBoundary.y.max) return
+    
+      if (config.anticheat.disconnectPositionJumps && distanceBetweenPoints(currentPlayer.position, { x: positionY, y: positionY }) > 5) {
+        disconnectPlayer(currentPlayer)
+        return
+      }
+
+      currentPlayer.clientPosition = { x: positionY, y: positionY }
+      currentPlayer.target = { x: targetX, y: targetY }
+      currentPlayer.lastReportedTime = pack.time
+
+      const cacheKey = Math.floor(pack.target.split(':')[0])
+
+      if (eventCache['OnUpdateMyself'][socket.id] !== cacheKey) {
+        currentPlayer.lastUpdate = Math.round(Date.now() / 1000)
+
+        // publishEvent('OnUpdateMyself', data.id, data.position, data.target)
+        eventCache['OnUpdateMyself'][socket.id] = cacheKey
+      }
+    })
+
+    socket.on('Pickup', async function (msg) {
+      if (currentPlayer.isDead) return
+      if (currentPlayer.isSpectating) return
+      if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) return
+
+      const pack = decodePayload(msg)
+
+      const powerup = powerupLookup[pack.id]
+
+      log('Pickup', msg, powerup)
+
+      if (powerup) {
+        removeSprite(pack.id)
+
+        let value = 0
+
+        if (powerup.type == 0) value = config.powerupXp0
+        if (powerup.type == 1) value = config.powerupXp1
+        if (powerup.type == 2) value = config.powerupXp2
+        if (powerup.type == 3) value = config.powerupXp3
+
+        currentPlayer.powerups += 1
+        currentPlayer.points += config.pointsPerPowerup
+        currentPlayer.xp += (value * config.spriteXpMultiplier)
+    
+        publishEvent('OnUpdatePickup', currentPlayer.id, pack.id, value)
+
+        removeSprite(pack.id)
+        spawnSprites(1)
+      }
+    })
+    
+    socket.on('GetBestKillers', function(pack) {
+      for (let j = 0; j < leaderboard.length; j++) {
+        emitDirect(socket, 'OnUpdateBestKiller', leaderboard[j].name, j, leaderboard[j].points, leaderboard[j].kills, leaderboard[j].deaths, leaderboard[j].powerups, leaderboard[j].evolves, leaderboard[j].rewards, leaderboard[j].isDead ? '-' : Math.round(leaderboard[j].latency))
+      }
+    })
+
+    socket.on('disconnect', function() {
+      log("User has disconnected")
+
       disconnectPlayer(currentPlayer)
-      return
-    }
-
-    if (db.banList.includes(pack.name)) {
-      emitDirect(socket, 'OnBanned', true)
-      disconnectPlayer(currentPlayer)
-      return
-    }
-
-    if (currentPlayer.name !== pack.name || currentPlayer.address !== pack.address) {
-      currentPlayer.name = pack.name
-      currentPlayer.address = pack.address
-      currentPlayer.network = pack.network
-      currentPlayer.device = pack.device
-
-      currentPlayer.kills = recentPlayers.find(r => r.name === pack.name)?.kills || currentPlayer.kills
-      currentPlayer.deaths = recentPlayers.find(r => r.name === pack.name)?.deaths || currentPlayer.deaths
-      currentPlayer.points = recentPlayers.find(r => r.name === pack.name)?.points || currentPlayer.points
-      currentPlayer.evolves = recentPlayers.find(r => r.name === pack.name)?.evolves || currentPlayer.evolves
-      currentPlayer.powerups = recentPlayers.find(r => r.name === pack.name)?.powerups || currentPlayer.powerups
-      currentPlayer.rewards = recentPlayers.find(r => r.name === pack.name)?.rewards || currentPlayer.rewards
-      currentPlayer.log = recentPlayers.find(r => r.name === pack.name)?.log || currentPlayer.log
-
-      addToRecentPlayers(currentPlayer)
-  
-      publishEvent('OnSetInfo', currentPlayer.id, pack.name, pack.address, pack.network, pack.device)
-    }
-  })
-
-  socket.on('JoinRoom', function(msg) {
-    const pack = decodePayload(msg)
-
-    if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) {
-      emitDirect(socket, 'OnMaintenance', true)
-      disconnectPlayer(currentPlayer)
-      return
-    }
-
-    log('JoinRoom')
-
-    currentPlayer.isDead = false
-    currentPlayer.avatar = config.startAvatar
-    currentPlayer.joinedAt = Math.round(Date.now() / 1000)
-
-    log("[INFO] player " + currentPlayer.id + ": logged!")
-
-    log("[INFO] Total players: " + Object.keys(clientLookup).length)
-    const roundTimer = (round.startedAt + config.roundLoopSeconds) - Math.round(Date.now() / 1000)
-    emitDirect(socket, 'OnJoinGame', currentPlayer.id, currentPlayer.name, currentPlayer.avatar, currentPlayer.isMasterClient ? 'true' : 'false', roundTimer, spawnPoint.x, spawnPoint.y)
-    emitDirect(socket, 'OnSetInfo', currentPlayer.id, currentPlayer.name, currentPlayer.address, currentPlayer.network, currentPlayer.device)
-    emitDirect(socket, 'OnSetRoundInfo', roundTimer + ':' + getRoundInfo().join(':'))
-    emitDirect(socket, 'OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
-
-    spawnSprites(config.spritesPerPlayerCount)
-
-    // spawn all connected clients for currentUser client 
-    for (const client of clients) {
-      if (client.id === currentPlayer.id) continue
-      if (client.isDisconnected || client.isDead || client.isSpectating) continue
-
-      emitDirect(socket, 'OnSpawnPlayer', client.id, client.name, client.speed, client.avatar, client.position.x, client.position.y, client.position.x, client.position.y)
-    }
-
-    for (let c = 0; c < powerups.length; c++) {
-      emitDirect(socket, 'OnSpawnPowerUp', powerups[c].id, powerups[c].type, powerups[c].position.x, powerups[c].position.y, powerups[c].scale) // spawn power up in unity scene
-    }
-
-    for (let c = 0; c < orbs.length; c++) {
-      emitDirect(socket, 'OnSpawnPowerUp', orbs[c].id, orbs[c].type, orbs[c].position.x, orbs[c].position.y, orbs[c].scale) // spawn power up in unity scene
-    }
-
-    if (currentReward) {
-      emitDirect(socket, 'OnSpawnReward', currentReward.id, config.rewardItemType, config.rewardItemName, config.rewardItemAmount, currentReward.position.x, currentReward.position.y)
-    }
-
-    // spawn currentPlayer client on clients in broadcast
-    publishEvent('OnSpawnPlayer', currentPlayer.id, currentPlayer.name, currentPlayer.speed, currentPlayer.avatar, currentPlayer.position.x, currentPlayer.position.y, currentPlayer.position.x, currentPlayer.position.y)
-
-    currentPlayer.lastUpdate = Date.now()
-  })
-
-  socket.on('UpdateMyself', function(msg) {
-    if (currentPlayer.isDead) return
-    if (currentPlayer.isSpectating) return
-    if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) return
-
-    const pack = decodePayload(msg)
-
-    const positionX = parseFloat(parseFloat(pack.position.split(':')[0]).toFixed(2))
-    const positionY = parseFloat(parseFloat(pack.position.split(':')[1]).toFixed(2))
-
-    const targetX = parseFloat(parseFloat(pack.target.split(':')[0]).toFixed(2))
-    const targetY = parseFloat(parseFloat(pack.target.split(':')[1]).toFixed(2))
-
-
-    if (!Number.isFinite(positionX) || !Number.isFinite(positionY) || !Number.isFinite(targetX) || !Number.isFinite(targetY)) return
-    if (positionX < mapBoundary.x.min) return
-    if (positionX > mapBoundary.x.max) return
-    if (positionY < mapBoundary.y.min) return
-    if (positionY > mapBoundary.y.max) return
-  
-    if (config.anticheat.disconnectPositionJumps && distanceBetweenPoints(currentPlayer.position, { x: positionY, y: positionY }) > 5) {
-      disconnectPlayer(currentPlayer)
-      return
-    }
-
-    currentPlayer.clientPosition = { x: positionY, y: positionY }
-    currentPlayer.target = { x: targetX, y: targetY }
-    currentPlayer.lastReportedTime = pack.time
-
-    const cacheKey = Math.floor(pack.target.split(':')[0])
-
-    if (eventCache['OnUpdateMyself'][socket.id] !== cacheKey) {
-      currentPlayer.lastUpdate = Math.round(Date.now() / 1000)
-
-      // publishEvent('OnUpdateMyself', data.id, data.position, data.target)
-      eventCache['OnUpdateMyself'][socket.id] = cacheKey
-    }
-  })
-
-  socket.on('Pickup', async function (msg) {
-    if (currentPlayer.isDead) return
-    if (currentPlayer.isSpectating) return
-    if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) return
-
-    const pack = decodePayload(msg)
-
-    const powerup = powerupLookup[pack.id]
-
-    log('Pickup', msg, powerup)
-
-    if (powerup) {
-      removeSprite(pack.id)
-
-      let value = 0
-
-      if (powerup.type == 0) value = config.powerupXp0
-      if (powerup.type == 1) value = config.powerupXp1
-      if (powerup.type == 2) value = config.powerupXp2
-      if (powerup.type == 3) value = config.powerupXp3
-
-      currentPlayer.powerups += 1
-      currentPlayer.points += config.pointsPerPowerup
-      currentPlayer.xp += (value * config.spriteXpMultiplier)
-  
-      publishEvent('OnUpdatePickup', currentPlayer.id, pack.id, value)
-
-      removeSprite(pack.id)
-      spawnSprites(1)
-    }
-  })
-  
-  socket.on('GetBestKillers', function(pack) {
-    for (let j = 0; j < leaderboard.length; j++) {
-      emitDirect(socket, 'OnUpdateBestKiller', leaderboard[j].name, j, leaderboard[j].points, leaderboard[j].kills, leaderboard[j].deaths, leaderboard[j].powerups, leaderboard[j].evolves, leaderboard[j].rewards, leaderboard[j].isDead ? '-' : Math.round(leaderboard[j].latency))
-    }
-  })
-
-  socket.on('disconnect', function() {
-    log("User has disconnected")
-
-    disconnectPlayer(currentPlayer)
-  })
+    })
+  } catch(e) {
+    logError(e)
+  }
 })
 
 function sendUpdates() {
@@ -1704,148 +1731,152 @@ const initWebServer = async () => {
 }
 
 const initRoutes = async () => {
-  const api = {}
+  try {
+    const api = {}
 
-  const routes = [
-    // require('./routes/info/get')
-  ]
+    const routes = [
+      // require('./routes/info/get')
+    ]
 
-  for (const route of routes) {
-    api[route.operationId] = function (options, db, req, res) {
-      return route.run(options, db, req, res).catch((error) => {
-        log(`Route error:`, error.stack)
+    for (const route of routes) {
+      api[route.operationId] = function (options, db, req, res) {
+        return route.run(options, db, req, res).catch((error) => {
+          log(`Route error:`, error.stack)
 
-        res.status(500).json({ message: `Error encountered: ${error}` })
-      })
-    }
-  }
-
-  const notFound = (options, db, req, res) => res.status(404).end()
-  const notImplemented = (options, db, req, res) => res.status(501).end()
-
-  const paths = [
-    // {
-    //   operationId: 'getInfo',
-    //   method: 'get',
-    //   route: '/info',
-    // },
-  ]
-
-  paths.forEach((p: any) => {
-    const runSequence = []
-    const options = {
-      body: p.body || [],
-      parameters: p.parameters || [],
-      responses: p.responses || {},
-      security: p.security || {},
-    }
-
-    let routeRun = notFound
-
-    if (p.operationId) {
-      if (typeof api[p.operationId] === 'function') {
-        routeRun = api[p.operationId]
-      } else {
-        routeRun = notImplemented
+          res.status(500).json({ message: `Error encountered: ${error}` })
+        })
       }
     }
 
-    for (const item of middleware) {
-      runSequence.push(item.bind(null, options, db))
-    }
+    const notFound = (options, db, req, res) => res.status(404).end()
+    const notImplemented = (options, db, req, res) => res.status(501).end()
 
-    runSequence.push(routeRun.bind(null, options, db))
+    const paths = [
+      // {
+      //   operationId: 'getInfo',
+      //   method: 'get',
+      //   route: '/info',
+      // },
+    ]
 
-    server[p.method](p.route, ...runSequence)
-  })
+    paths.forEach((p: any) => {
+      const runSequence = []
+      const options = {
+        body: p.body || [],
+        parameters: p.parameters || [],
+        responses: p.responses || {},
+        security: p.security || {},
+      }
 
-  server.get('/info', async function(req, res) {
-    return res.json({
-      version: serverVersion,
-      round: round,
-      clientTotal: clients.length,
-      playerTotal: clients.filter(c => !c.isDead && !c.isSpectating).length,
-      spectatorTotal: clients.filter(c => c.isSpectating).length,
-      recentPlayersTotal: recentPlayers.length,
-      spritesTotal: config.spritesTotal,
-      leaderboard: leaderboard,
-      connectedPlayers: clients.map(c => c.name),
-      rewardItemAmount: config.rewardItemAmount,
-      rewardWinnerAmount: config.rewardWinnerAmount,
-      totalLegitPlayers: totalLegitPlayers,
-      gameMode: config.gameMode,
-      orbs: orbs,
-      currentReward
+      let routeRun = notFound
+
+      if (p.operationId) {
+        if (typeof api[p.operationId] === 'function') {
+          routeRun = api[p.operationId]
+        } else {
+          routeRun = notImplemented
+        }
+      }
+
+      for (const item of middleware) {
+        runSequence.push(item.bind(null, options, db))
+      }
+
+      runSequence.push(routeRun.bind(null, options, db))
+
+      server[p.method](p.route, ...runSequence)
     })
-  })
 
-  server.get('/db', async function(req, res) {
-    return res.json(db)
-  })
+    server.get('/info', async function(req, res) {
+      return res.json({
+        version: serverVersion,
+        round: round,
+        clientTotal: clients.length,
+        playerTotal: clients.filter(c => !c.isDead && !c.isSpectating).length,
+        spectatorTotal: clients.filter(c => c.isSpectating).length,
+        recentPlayersTotal: recentPlayers.length,
+        spritesTotal: config.spritesTotal,
+        leaderboard: leaderboard,
+        connectedPlayers: clients.map(c => c.name),
+        rewardItemAmount: config.rewardItemAmount,
+        rewardWinnerAmount: config.rewardWinnerAmount,
+        totalLegitPlayers: totalLegitPlayers,
+        gameMode: config.gameMode,
+        orbs: orbs,
+        currentReward
+      })
+    })
 
-  server.get('/config', async function(req, res) {
-    return res.json(config)
-  })
+    server.get('/db', async function(req, res) {
+      return res.json(db)
+    })
 
-  server.get('/buff/binzy', async function(req, res) {
-    db.playerRewards['0xa987f487639920A3c2eFe58C8FBDedB96253ed9B'].pending = {
-      "ral": 1,
-      "tir": 0.9,
-      "amn": 0.9,
-      "thul": 0.9,
-      "zod": 0.9,
-      "sol": 1.1,
-      "tal": 0.9,
-      "ort": 1.2,
-      "shael": 0.9,
-      "nef": 0.9
-    }
+    server.get('/config', async function(req, res) {
+      return res.json(config)
+    })
 
-    config.claimingRewards = false
-    db.playerRewards['0xa987f487639920A3c2eFe58C8FBDedB96253ed9B'].claiming = false
+    server.get('/buff/binzy', async function(req, res) {
+      db.playerRewards['0xa987f487639920A3c2eFe58C8FBDedB96253ed9B'].pending = {
+        "ral": 1,
+        "tir": 0.9,
+        "amn": 0.9,
+        "thul": 0.9,
+        "zod": 0.9,
+        "sol": 1.1,
+        "tal": 0.9,
+        "ort": 1.2,
+        "shael": 0.9,
+        "nef": 0.9
+      }
 
-    savePlayerRewards()
-  
-    res.json(db.playerRewards['0xa987f487639920A3c2eFe58C8FBDedB96253ed9B'].pending)
-  })
+      config.claimingRewards = false
+      db.playerRewards['0xa987f487639920A3c2eFe58C8FBDedB96253ed9B'].claiming = false
 
-  server.get('/user/:address', function(req, res) {
-    if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
-    if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
+      savePlayerRewards()
+    
+      res.json(db.playerRewards['0xa987f487639920A3c2eFe58C8FBDedB96253ed9B'].pending)
+    })
 
-    res.json(db.playerRewards[req.params.address].pending)
-  })
+    server.get('/user/:address', function(req, res) {
+      if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
+      if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
 
-  server.get('/admin/claim/:address/:symbol/:tx', function(req, res) {
-    if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
-    if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
-    if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending[req.params.symbol] = 0
-    if (!db.playerRewards[req.params.address].tx) db.playerRewards[req.params.address].tx = []
+      res.json(db.playerRewards[req.params.address].pending)
+    })
 
-    const newReward = {
-      type: "rune",
-      symbol: req.params.symbol,
-      quantity: db.playerRewards[req.params.address].pending[req.params.symbol],
-      winner: {
-        address: req.params.address
-      },
-      tx: req.params.tx
-    }
+    server.get('/admin/claim/:address/:symbol/:tx', function(req, res) {
+      if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
+      if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
+      if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending[req.params.symbol] = 0
+      if (!db.playerRewards[req.params.address].tx) db.playerRewards[req.params.address].tx = []
 
-    db.rewardHistory.push(newReward)
+      const newReward = {
+        type: "rune",
+        symbol: req.params.symbol,
+        quantity: db.playerRewards[req.params.address].pending[req.params.symbol],
+        winner: {
+          address: req.params.address
+        },
+        tx: req.params.tx
+      }
 
-    saveRewardHistory()
+      db.rewardHistory.push(newReward)
 
-    db.playerRewards[req.params.address].pending[req.params.symbol] = 0
-    db.playerRewards[req.params.address].tx.push(req.params.tx)
+      saveRewardHistory()
 
-    savePlayerRewards()
+      db.playerRewards[req.params.address].pending[req.params.symbol] = 0
+      db.playerRewards[req.params.address].tx.push(req.params.tx)
 
-    res.json({ success: true })
-  })
+      savePlayerRewards()
 
-  server.get('/readiness_check', (req, res) => res.sendStatus(200))
-  server.get('/liveness_check', (req, res) => res.sendStatus(200))
+      res.json({ success: true })
+    })
+
+    server.get('/readiness_check', (req, res) => res.sendStatus(200))
+    server.get('/liveness_check', (req, res) => res.sendStatus(200))
+  } catch(e) {
+    logError(e)
+  }
 }
 
 function clearSprites() {
@@ -1880,21 +1911,25 @@ const initServices = async () => {
 }
 
 const init = async () => {
-  // db = await database.init()
-  // db.initCollections('app', {
-  //   leaderHistory: [],
-  // })
+  try {
+    // db = await database.init()
+    // db.initCollections('app', {
+    //   leaderHistory: [],
+    // })
 
-  await initServices()
-  await initGameServer()
-  await initWebServer()
-  await initRoutes()
+    await initServices()
+    await initGameServer()
+    await initWebServer()
+    await initRoutes()
 
-  const port = process.env.PORT || 3001
+    const port = process.env.PORT || 3001
 
-  http.listen(port, function() {
-    log(`:: Backend ready and listening on *: ${port}`)
-  })
+    http.listen(port, function() {
+      log(`:: Backend ready and listening on *: ${port}`)
+    })
+  } catch(e) {
+    logError(e)
+  }
 }
 
 init()
