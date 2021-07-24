@@ -670,13 +670,20 @@ function distanceBetweenPoints(pos1, pos2) {
 }
 
 function syncSprites() {
-  const deletedPoints = powerups.splice(0, powerups.length - (config.spritesStartCount + clients.filter(c => !c.isDead && !c.isSpectating && !c.isInvincible).length * config.spritesPerPlayerCount))
+  const playerCount = clients.filter(c => !c.isDead && !c.isSpectating && !c.isInvincible).length
+  const length = config.spritesStartCount + playerCount * config.spritesPerPlayerCount
 
-  for (let i = 0; i < deletedPoints.length; i++) {
-    publishEvent('OnUpdatePickup', 'null', deletedPoints[i].id, 0)
+  if (powerups.length > length) {
+    const deletedPoints = powerups.splice(length)
+  
+    for (let i = 0; i < deletedPoints.length; i++) {
+      publishEvent('OnUpdatePickup', 'null', deletedPoints[i].id, 0)
+    }
+  
+    config.spritesTotal = powerups.length
+  } else if (length > powerups.length) {
+    spawnSprites(length - powerups.length)
   }
-
-  config.spritesTotal = powerups.length
 }
 
 
@@ -715,9 +722,9 @@ function disconnectPlayer(player) {
 function randomRoundPreset() {
   const gameMode = config.gameMode
 
-  currentPreset = presets[random(0, presets.length-1)]
-
   while(config.gameMode === gameMode) {
+    currentPreset = presets[random(0, presets.length-1)]
+  
     roundConfig = {
       ...baseConfig,
       ...sharedConfig,
@@ -1112,7 +1119,7 @@ io.on('connection', function(socket) {
       emitDirect(socket, 'OnSetRoundInfo', roundTimer + ':' + getRoundInfo().join(':'))
       emitDirect(socket, 'OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
 
-      spawnSprites(config.spritesPerPlayerCount)
+      syncSprites()
 
       // spawn all connected clients for currentUser client 
       for (const client of clients) {

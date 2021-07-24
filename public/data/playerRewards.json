@@ -48,7 +48,7 @@
       "tal": 17.93,
       "thul": 13.18,
       "tir": 11.68,
-      "ith": 2.5,
+      "ith": 2.51,
       "amn": 2.74,
       "dol": 0.78,
       "ral": 0.75,
@@ -5893,6 +5893,30 @@
     "pending": {}
   },
   "0x343e15cdC4c959F4E229C3b04896d6587391C9d8": {
+    "pending": {}
+  },
+  "0x3Ed1D19E887bd24C172a207355c3a76aB09e0D98": {
+    "pending": {
+      "zod": 0.08,
+      "ort": 0.01
+    }
+  },
+  "0x405BF73F7Ee055A50Ea968373147AF3B27288726": {
+    "pending": {}
+  },
+  "0xC03d8DB64dfe98ebFD94a84bc1f825CAB90EE15B": {
+    "pending": {}
+  },
+  "0xEDe47d982248079d4C2033e8f80d69D325Cf1756": {
+    "pending": {}
+  },
+  "0x12Fe20De6b441F18BA9a3C9A7A78C9BD16723E8d": {
+    "pending": {}
+  },
+  "0xA68E4054E7D1f3eace8a6E992d9d2E0fBb0031E2": {
+    "pending": {}
+  },
+  "0x105495d87dBb25292ac8c2A713A8d32c67b824fD": {
     "pending": {}
   }
 }
