@@ -85,10 +85,12 @@ const saveBanList = () => {
 const testMode = false
 
 const baseConfig = {
+  rebootSeconds: 2 * 60 * 60,
   startAvatar: 0,
   spriteXpMultiplier: 1,
   dynamicDecayPower: false,
   decayPowerPerMaxEvolvedPlayers: 0.2,
+  pickupCheckPositionDistance: 1,
   antifeed2: true,
   antifeed3: true,
   avatarDirection: 1,
@@ -122,7 +124,7 @@ const sharedConfig = {
   cameraSize: 3,
   checkConnectionLoopSeconds: 2,
   checkInterval: 0.1,
-  checkPositionDistance: 0.5,
+  checkPositionDistance: 0.2,
   claimingRewards: false,
   decayPower: 1.4,
   disconnectPlayerSeconds: testMode ? 999 : 2 * 60,
@@ -213,6 +215,7 @@ const presets = [
     orbTimeoutSeconds: 9999,
     orbOnDeathPercent: 0,
     antifeed1: false,
+    antifeed2: false,
     calcRoundRewards: false
   },
   // Mix 1
@@ -299,6 +302,7 @@ const presets = [
     orbTimeoutSeconds: 9999,
     orbOnDeathPercent: 0,
     antifeed1: false,
+    antifeed2: false,
     pointsPerEvolve: 25,
     decayPower: -1.4,
     avatarDecayPower0: 4,
@@ -310,6 +314,8 @@ const presets = [
     gameMode: 'Reverse Evolve',
     startAvatar: 2,
     decayPower: -1,
+    antifeed1: false,
+    antifeed2: false,
     avatarDecayPower0: 4,
     avatarDecayPower1: 3,
     avatarDecayPower2: 2,
@@ -347,6 +353,8 @@ let roundConfig = {
   ...currentPreset
 }
 
+let announceReboot = false
+let rebootAfterRound = false
 let totalLegitPlayers = 0
 const debug = testMode
 const killSameNetworkClients = false
@@ -373,8 +381,8 @@ const spawnBoundary = {
 }
 
 const mapBoundary = {
-  x: {min: -17, max: 0},
-  y: {min: -17, max: 0}
+  x: {min: -20, max: -5},
+  y: {min: -20, max: -5}
 }
 
 const rewardSpawnPoints = [
@@ -547,7 +555,7 @@ function moveTowards(current, target, maxDistanceDelta)
 
 const claimReward = (currentPlayer) => {
   if (!currentReward) return
-
+console.log(currentReward, currentPlayer)
   if (config.anticheat.samePlayerCantClaimRewardTwiceInRow && lastReward?.winner.name === currentPlayer.name) return
 
   currentReward.winner = currentPlayer
@@ -1114,10 +1122,10 @@ io.on('connection', function(socket) {
 
       log("[INFO] Total players: " + Object.keys(clientLookup).length)
       const roundTimer = (round.startedAt + config.roundLoopSeconds) - Math.round(Date.now() / 1000)
+      emitDirect(socket, 'OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
       emitDirect(socket, 'OnJoinGame', currentPlayer.id, currentPlayer.name, currentPlayer.avatar, currentPlayer.isMasterClient ? 'true' : 'false', roundTimer, spawnPoint.x, spawnPoint.y)
       emitDirect(socket, 'OnSetInfo', currentPlayer.id, currentPlayer.name, currentPlayer.address, currentPlayer.network, currentPlayer.device)
       emitDirect(socket, 'OnSetRoundInfo', roundTimer + ':' + getRoundInfo().join(':'))
-      emitDirect(socket, 'OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
 
       syncSprites()
 
@@ -1377,6 +1385,22 @@ function resetLeaderboard() {
 
   publishEvent('OnSetRoundInfo', config.roundLoopSeconds + ':' + getRoundInfo().join(':'))
 
+  if (rebootAfterRound) {
+    publishEvent('OnMaintenance', true)
+
+    setTimeout(() => {
+      process.exit()
+    }, 3 * 1000)
+  }
+
+  if (announceReboot) {
+    const value = { text: 'Restarting server at end of this round.' }
+
+    publishEvent('OnBroadcast', escape(JSON.stringify(value)))
+    
+    rebootAfterRound = true
+  }
+
   setTimeout(resetLeaderboard, config.roundLoopSeconds * 1000)
 }
 
@@ -1467,6 +1491,7 @@ function detectCollisions() {
     //   player.position = moveTowards(player.position, player.clientPosition, player.speed * deltaTime)
     //   player.log.resetPosition += 1
     // } else {
+      // if (player.lastReportedTime > )
       player.position = moveTowards(player.position, player.target, player.speed * deltaTime)
     // }
   }
@@ -1495,6 +1520,7 @@ function detectCollisions() {
       if (distanceBetweenPoints(player1.position, player2.position) > distance) continue
 
       if (player2.avatar > player1.avatar) {
+        if (distanceBetweenPoints(player2.position, player2.clientPosition) > config.pickupCheckPositionDistance) continue
         // playerDamageGiven[currentPlayer.id + pack.id] = now
         // // console.log('Player Damage Given', currentPlayer.id + pack.id)
         // if (playerDamageTaken[currentPlayer.id + pack.id] > now - 500) {
@@ -1502,6 +1528,7 @@ function detectCollisions() {
           break
         // }
       } else if (player1.avatar > player2.avatar) {
+        if (distanceBetweenPoints(player1.position, player1.clientPosition) > config.pickupCheckPositionDistance) continue
         // playerDamageGiven[pack.id + currentPlayer.id] = now
         // // console.log('Player Damage Given', pack.id + currentPlayer.id)
         // if (playerDamageTaken[pack.id + currentPlayer.id] > now - 500) {
@@ -1518,6 +1545,9 @@ function detectCollisions() {
 
     if (player.isDead) continue
     if (player.isSpectating) continue
+    console.log(player.position, player.clientPosition, distanceBetweenPoints(player.position, player.clientPosition))
+    console.log(currentReward)
+    if (distanceBetweenPoints(player.position, player.clientPosition) > config.pickupCheckPositionDistance) continue
 
     const touchDistance = config.pickupDistance + config['avatarTouchDistance' + player.avatar]
 
@@ -1561,6 +1591,7 @@ function detectCollisions() {
 
       for (const reward of rewards) {
         if (!reward) continue
+        console.log(player.position, reward.position)
         if (distanceBetweenPoints(player.position, reward.position) > touchDistance) continue
   
         // player.rewards += 1
@@ -1890,6 +1921,10 @@ function clearSprites() {
   powerups.splice(0, powerups.length) // clear the powerup list
 }
 
+function periodicReboot() {
+  announceReboot = true
+}
+
 const initGameServer = async () => {
   if (Object.keys(clientLookup).length == 0) {
     randomRoundPreset()
@@ -1904,6 +1939,7 @@ const initGameServer = async () => {
   setTimeout(spawnRewards, config.rewardSpawnLoopSeconds * 1000)
   setTimeout(checkConnectionLoop, config.checkConnectionLoopSeconds * 1000)
   setTimeout(resetLeaderboard, config.roundLoopSeconds * 1000)
+  setTimeout(periodicReboot, config.rebootSeconds * 1000)
 }
 
 const initServices = async () => {
