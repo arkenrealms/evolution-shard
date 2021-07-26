@@ -18,12 +18,12 @@
     {
       "type": "rune",
       "symbol": "ith",
-      "quantity": 99.94999999999997
+      "quantity": 99.93999999999997
     },
     {
       "type": "rune",
       "symbol": "thul",
-      "quantity": 99.94999999999997
+      "quantity": 99.93999999999997
     },
     {
       "type": "rune",
@@ -48,7 +48,7 @@
     {
       "type": "rune",
       "symbol": "zod",
-      "quantity": 99.95999999999998
+      "quantity": 0
     }
   ],
   "items": [],
