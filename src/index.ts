@@ -90,9 +90,10 @@ const baseConfig = {
   spriteXpMultiplier: 1,
   dynamicDecayPower: false,
   decayPowerPerMaxEvolvedPlayers: 0.2,
-  pickupCheckPositionDistance: 1,
+  pickupCheckPositionDistance: 0.5,
   antifeed2: true,
   antifeed3: true,
+  antifeed4: true,
   avatarDirection: 1,
   calcRoundRewards: true,
   rewardItemAmountPerLegitPlayer: 0.01,
@@ -381,8 +382,8 @@ const spawnBoundary = {
 }
 
 const mapBoundary = {
-  x: {min: -20, max: -5},
-  y: {min: -20, max: -5}
+  x: {min: -30, max: 10},
+  y: {min: -30, max: 10}
 }
 
 const rewardSpawnPoints = [
@@ -815,6 +816,7 @@ function sha256(str) {
 }
 
 const registerKill = (winner, loser) => {
+  if (winner.isInvincible) return
   if (loser.isInvincible) return
 
   const totalKills = winner.log.kills.filter(h => h === loser.hash).length
@@ -823,7 +825,15 @@ const registerKill = (winner, loser) => {
   const killingThemselves = config.antifeed3 ? winner.hash === loser.hash : false
   const allowKill = !notReallyTrying && !tooManyKills && !killingThemselves
 
-  if (!allowKill) return
+  if (!allowKill) {
+    loser.isInvincible = true
+
+    setTimeout(() => {
+      loser.isInvincible = false
+    }, 10 * 1000)
+
+    return
+  }
 
   winner.kills += 1
   winner.points += config.pointsPerKill * (loser.avatar + 1)
@@ -1180,7 +1190,7 @@ io.on('connection', function(socket) {
         return
       }
 
-      currentPlayer.clientPosition = { x: positionY, y: positionY }
+      currentPlayer.clientPosition = { x: positionX, y: positionY }
       currentPlayer.target = { x: targetX, y: targetY }
       currentPlayer.lastReportedTime = pack.time
 
@@ -1545,8 +1555,8 @@ function detectCollisions() {
 
     if (player.isDead) continue
     if (player.isSpectating) continue
-    console.log(player.position, player.clientPosition, distanceBetweenPoints(player.position, player.clientPosition))
-    console.log(currentReward)
+    // console.log(player.position, player.clientPosition, distanceBetweenPoints(player.position, player.clientPosition))
+    // console.log(currentReward)
     if (distanceBetweenPoints(player.position, player.clientPosition) > config.pickupCheckPositionDistance) continue
 
     const touchDistance = config.pickupDistance + config['avatarTouchDistance' + player.avatar]
