@@ -85,7 +85,7 @@ const saveBanList = () => {
 const testMode = false
 
 const baseConfig = {
-  rebootSeconds: 2 * 60 * 60,
+  rebootSeconds: 12 * 60 * 60,
   startAvatar: 0,
   spriteXpMultiplier: 1,
   dynamicDecayPower: false,
@@ -556,7 +556,7 @@ function moveTowards(current, target, maxDistanceDelta)
 
 const claimReward = (currentPlayer) => {
   if (!currentReward) return
-console.log(currentReward, currentPlayer)
+
   if (config.anticheat.samePlayerCantClaimRewardTwiceInRow && lastReward?.winner.name === currentPlayer.name) return
 
   currentReward.winner = currentPlayer
@@ -820,7 +820,7 @@ const registerKill = (winner, loser) => {
   if (loser.isInvincible) return
 
   const totalKills = winner.log.kills.filter(h => h === loser.hash).length
-  const notReallyTrying = config.antifeed1 ? (totalKills >= 2 && loser.rewards <= 1) || (totalKills >= 2 && loser.powerups <= 100) : false
+  const notReallyTrying = config.antifeed1 ? (totalKills >= 2 && loser.kills < 2 && loser.rewards <= 1) || (totalKills >= 2 && loser.kills < 2 && loser.powerups <= 100) : false
   const tooManyKills = config.antifeed2 ? totalKills >= 2 && totalKills > winner.log.kills.length / clients.filter(c => !c.isDead).length : false
   const killingThemselves = config.antifeed3 ? winner.hash === loser.hash : false
   const allowKill = !notReallyTrying && !tooManyKills && !killingThemselves
@@ -1267,23 +1267,45 @@ function spawnRewards() {
   setTimeout(spawnRewards, config.rewardSpawnLoopSeconds * 1000)
 }
 
-function sendLeaderReward(leader) {
-  log('Leader: ', leader)
-  // send zod to leader.address
-  if (leader.address) {
+function sendLeaderReward(leader1, leader2, leader3) {
+  log('Leader: ', leader1)
+
+  if (leader1?.address) {
     try {
-      if (!db.playerRewards[leader.address]) db.playerRewards[leader.address] = {}
-      if (!db.playerRewards[leader.address].pending) db.playerRewards[leader.address].pending = {}
-      if (!db.playerRewards[leader.address].pending.zod) db.playerRewards[leader.address].pending.zod = 0
+      if (!db.playerRewards[leader1.address]) db.playerRewards[leader1.address] = {}
+      if (!db.playerRewards[leader1.address].pending) db.playerRewards[leader1.address].pending = {}
+      if (!db.playerRewards[leader1.address].pending.zod) db.playerRewards[leader1.address].pending.zod = 0
     
-      db.playerRewards[leader.address].pending.zod  = Math.round((db.playerRewards[leader.address].pending.zod + config.rewardWinnerAmount) * 100) / 100
-      savePlayerRewards()
+      db.playerRewards[leader1.address].pending.zod  = Math.round((db.playerRewards[leader1.address].pending.zod + config.rewardWinnerAmount * 0.5) * 1000) / 1000
+    } catch(e) {
+      console.log(e)
+    }
+  }
+  if (leader2?.address) {
+    try {
+      if (!db.playerRewards[leader2.address]) db.playerRewards[leader2.address] = {}
+      if (!db.playerRewards[leader2.address].pending) db.playerRewards[leader2.address].pending = {}
+      if (!db.playerRewards[leader2.address].pending.zod) db.playerRewards[leader2.address].pending.zod = 0
+    
+      db.playerRewards[leader2.address].pending.zod  = Math.round((db.playerRewards[leader2.address].pending.zod + config.rewardWinnerAmount * 0.3) * 1000) / 1000
+    } catch(e) {
+      console.log(e)
+    }
+  }
+  if (leader3?.address) {
+    try {
+      if (!db.playerRewards[leader3.address]) db.playerRewards[leader3.address] = {}
+      if (!db.playerRewards[leader3.address].pending) db.playerRewards[leader3.address].pending = {}
+      if (!db.playerRewards[leader3.address].pending.zod) db.playerRewards[leader3.address].pending.zod = 0
+    
+      db.playerRewards[leader3.address].pending.zod  = Math.round((db.playerRewards[leader3.address].pending.zod + config.rewardWinnerAmount * 0.2) * 1000) / 1000
     } catch(e) {
       console.log(e)
     }
   }
 
-  publishEvent('OnRoundWinner', leader.name)
+  savePlayerRewards()
+  publishEvent('OnRoundWinner', leader1.name)
 }
 
 function getRoundInfo() {
@@ -1331,8 +1353,10 @@ function resetLeaderboard() {
     }
   }
 
-  if (leader) {
-    sendLeaderReward(leader)
+  const leaders = recentPlayers.filter(p => !p.isDead && !p.isSpectating).sort((a, b) => b.points - a.points)
+
+  if (leaders.length) {
+    sendLeaderReward(leaders[0], leaders[1], leaders[2])
   }
 
   const roundPlayers = recentPlayers.filter(p => !p.isSpectating)
