@@ -326,7 +326,7 @@ const presets = [
   {
     gameMode: 'Marco Polo',
     cameraSize: 2,
-    baseSpeed: 1.5,
+    baseSpeed: 2,
     decayPower: 1.4,
     avatarSpeedMultiplier0: 1,
     avatarSpeedMultiplier1: 1,
