@@ -819,6 +819,8 @@ const registerKill = (winner, loser) => {
   if (winner.isInvincible) return
   if (loser.isInvincible) return
 
+  const currentRound = round.index
+
   const totalKills = winner.log.kills.filter(h => h === loser.hash).length
   const notReallyTrying = config.antifeed1 ? (totalKills >= 2 && loser.kills < 2 && loser.rewards <= 1) || (totalKills >= 2 && loser.kills < 2 && loser.powerups <= 100) : false
   const tooManyKills = config.antifeed2 ? totalKills >= 2 && totalKills > winner.log.kills.length / clients.filter(c => !c.isDead).length : false
@@ -872,7 +874,6 @@ const registerKill = (winner, loser) => {
   }, 2 * 1000)
 
   if (!roundEndingSoon(config.orbCutoffSeconds)) {
-    const currentRound = round.index
     setTimeout(function() {
       if (currentRound !== round.index) return
       
@@ -1127,6 +1128,7 @@ io.on('connection', function(socket) {
       currentPlayer.isDead = false
       currentPlayer.avatar = config.startAvatar
       currentPlayer.joinedAt = Math.round(Date.now() / 1000)
+      currentPlayer.speed = currentPlayer.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + currentPlayer.avatar])
 
       log("[INFO] player " + currentPlayer.id + ": logged!")
 
