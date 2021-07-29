@@ -6775,5 +6775,77 @@
       "address": "0xE672518cA64C807e8F815F0BaEd6FE0b89EFacf7"
     },
     "tx": "0xd6bb2ed6d2c9d4fd421670fa36f855da98e0672765ec12b064d4814d343f4c8a"
+  },
+  {
+    "type": "rune",
+    "symbol": "zod",
+    "quantity": 6.06,
+    "winner": {
+      "address": "0xeb3fCb993dDe8a2Cd081FbE36238E4d64C286AC0"
+    },
+    "tx": "0xcaa898f10b6059fbd7c8eeaab62d28ad08419ffa8d8c79870963c4ce1206608a"
+  },
+  {
+    "type": "rune",
+    "symbol": "zod",
+    "quantity": 6.438,
+    "winner": {
+      "address": "0x5f88D25cAA16662d7d6F07f8B80504d6C7D9479E"
+    },
+    "tx": "0xaf247c9f6928ee5e08694296512089f0e9e7fdfb44741921d3619ee04392f6ab"
+  },
+  {
+    "type": "rune",
+    "symbol": "zod",
+    "quantity": 6.576,
+    "winner": {
+      "address": "0x18310FA987c84e8890907e553A5c90c8bAD01AF1"
+    },
+    "tx": "0x93141751449beccd124217a4272814e5e34fcbdce398fe21b17669e129567813"
+  },
+  {
+    "type": "rune",
+    "symbol": "tal",
+    "quantity": 5.26,
+    "winner": {
+      "address": "0x78C16562C0F3E42a23ecF7E8A5a39204861Bd264"
+    },
+    "tx": "0x94365a57432e9aaea153062e18b267e6758fef1628999082f03a0bc116a722a8"
+  },
+  {
+    "type": "rune",
+    "symbol": "shael",
+    "quantity": 5.6,
+    "winner": {
+      "address": "0x78C16562C0F3E42a23ecF7E8A5a39204861Bd264"
+    },
+    "tx": "0xf525985b4044cbdcaacae8390565befd7c1e8fa02062d044f0dc2b114b27ef05"
+  },
+  {
+    "type": "rune",
+    "symbol": "zod",
+    "quantity": 6.8,
+    "winner": {
+      "address": "0x9568b75583B42bd2FaBFA3E11B5dD28035EeaC51"
+    },
+    "tx": "0x010a69f68c1f2c193f964f2196172818ae8147626cb64d20f185dcc3721cb98d"
+  },
+  {
+    "type": "rune",
+    "symbol": "zod",
+    "quantity": 7.93,
+    "winner": {
+      "address": "0x32Ea1081D93834367584b7bf661C51fE93CC52aF"
+    },
+    "tx": "0x342fd4604d29f5b02316a684a4a82c44d90f575cc3c0dc29de0e25f1ff1dbae9"
+  },
+  {
+    "type": "rune",
+    "symbol": "zod",
+    "quantity": 5.56,
+    "winner": {
+      "address": "0xD88097810296098d01C0422411c746390f60E0d2"
+    },
+    "tx": "0xce12d7f6cf90b19c932eef7eadbba8cbc8064f6da7352c6e49d1bfd09cf254fb"
   }
 ]
