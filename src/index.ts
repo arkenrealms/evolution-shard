@@ -305,7 +305,7 @@ const presets = [
     antifeed1: false,
     antifeed2: false,
     pointsPerEvolve: 25,
-    decayPower: -1.4,
+    decayPower: -3,
     avatarDecayPower0: 4,
     avatarDecayPower1: 3,
     avatarDecayPower2: 2,
