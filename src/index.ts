@@ -98,8 +98,8 @@ const baseConfig = {
   calcRoundRewards: true,
   rewardItemAmountPerLegitPlayer: 0.01,
   rewardItemAmountMax: 0.05,
-  rewardWinnerAmountPerLegitPlayer: 0.04,
-  rewardWinnerAmountMax: 0.2,
+  rewardWinnerAmountPerLegitPlayer: 0.03,
+  rewardWinnerAmountMax: 0.3,
   anticheat: {
     enabled: false,
     samePlayerCantClaimRewardTwiceInRow: false,
@@ -157,7 +157,7 @@ const sharedConfig = {
   rewardItemName: '?',
   rewardItemType: 0,
   rewardSpawnLoopSeconds: testMode ? 1 : 3 * 60 / 20,
-  rewardWinnerAmount: 0.04,
+  rewardWinnerAmount: 0.03,
   rewardWinnerName: 'ZOD',
   roundLoopSeconds: testMode ? 2 * 60 : 5 * 60,
   sendUpdateLoopSeconds: 2,
@@ -1058,9 +1058,9 @@ io.on('connection', function(socket) {
       }
 
       currentPlayer.isSpectating = true
-      currentPlayer.points = 0
+      // currentPlayer.points = 0
       currentPlayer.xp = 0
-      currentPlayer.avatar = 0
+      currentPlayer.avatar = config.startAvatar
       currentPlayer.speed = 5
       currentPlayer.overrideSpeed = 5
       currentPlayer.cameraSize = 6
@@ -1269,7 +1269,7 @@ function spawnRewards() {
   setTimeout(spawnRewards, config.rewardSpawnLoopSeconds * 1000)
 }
 
-function sendLeaderReward(leader1, leader2, leader3) {
+function sendLeaderReward(leader1, leader2, leader3, leader4, leader5) {
   log('Leader: ', leader1)
 
   if (leader1?.address) {
@@ -1278,7 +1278,7 @@ function sendLeaderReward(leader1, leader2, leader3) {
       if (!db.playerRewards[leader1.address].pending) db.playerRewards[leader1.address].pending = {}
       if (!db.playerRewards[leader1.address].pending.zod) db.playerRewards[leader1.address].pending.zod = 0
     
-      db.playerRewards[leader1.address].pending.zod  = Math.round((db.playerRewards[leader1.address].pending.zod + config.rewardWinnerAmount * 0.5) * 1000) / 1000
+      db.playerRewards[leader1.address].pending.zod  = Math.round((db.playerRewards[leader1.address].pending.zod + config.rewardWinnerAmount * 1) * 1000) / 1000
 
       publishEvent('OnRoundWinner', leader1.name)
     } catch(e) {
@@ -1291,7 +1291,7 @@ function sendLeaderReward(leader1, leader2, leader3) {
       if (!db.playerRewards[leader2.address].pending) db.playerRewards[leader2.address].pending = {}
       if (!db.playerRewards[leader2.address].pending.zod) db.playerRewards[leader2.address].pending.zod = 0
     
-      db.playerRewards[leader2.address].pending.zod  = Math.round((db.playerRewards[leader2.address].pending.zod + config.rewardWinnerAmount * 0.3) * 1000) / 1000
+      db.playerRewards[leader2.address].pending.zod  = Math.round((db.playerRewards[leader2.address].pending.zod + config.rewardWinnerAmount * 0.30) * 1000) / 1000
     } catch(e) {
       console.log(e)
     }
@@ -1302,7 +1302,29 @@ function sendLeaderReward(leader1, leader2, leader3) {
       if (!db.playerRewards[leader3.address].pending) db.playerRewards[leader3.address].pending = {}
       if (!db.playerRewards[leader3.address].pending.zod) db.playerRewards[leader3.address].pending.zod = 0
     
-      db.playerRewards[leader3.address].pending.zod  = Math.round((db.playerRewards[leader3.address].pending.zod + config.rewardWinnerAmount * 0.2) * 1000) / 1000
+      db.playerRewards[leader3.address].pending.zod  = Math.round((db.playerRewards[leader3.address].pending.zod + config.rewardWinnerAmount * 0.15) * 1000) / 1000
+    } catch(e) {
+      console.log(e)
+    }
+  }
+  if (leader4?.address) {
+    try {
+      if (!db.playerRewards[leader4.address]) db.playerRewards[leader4.address] = {}
+      if (!db.playerRewards[leader4.address].pending) db.playerRewards[leader4.address].pending = {}
+      if (!db.playerRewards[leader4.address].pending.zod) db.playerRewards[leader4.address].pending.zod = 0
+    
+      db.playerRewards[leader4.address].pending.zod  = Math.round((db.playerRewards[leader4.address].pending.zod + config.rewardWinnerAmount * 0.05) * 1000) / 1000
+    } catch(e) {
+      console.log(e)
+    }
+  }
+  if (leader5?.address) {
+    try {
+      if (!db.playerRewards[leader5.address]) db.playerRewards[leader5.address] = {}
+      if (!db.playerRewards[leader5.address].pending) db.playerRewards[leader5.address].pending = {}
+      if (!db.playerRewards[leader5.address].pending.zod) db.playerRewards[leader5.address].pending.zod = 0
+    
+      db.playerRewards[leader5.address].pending.zod  = Math.round((db.playerRewards[leader5.address].pending.zod + config.rewardWinnerAmount * 0.05) * 1000) / 1000
     } catch(e) {
       console.log(e)
     }
@@ -1349,7 +1371,7 @@ function resetLeaderboard() {
   const leaders = recentPlayers.filter(p => !p.isDead && !p.isSpectating).sort((a, b) => b.points - a.points)
 
   if (leaders.length) {
-    sendLeaderReward(leaders[0], leaders[1], leaders[2])
+    sendLeaderReward(leaders[0], leaders[1], leaders[2], leaders[3], leaders[4])
   }
 
   const roundPlayers = recentPlayers.filter(p => !p.isSpectating)
