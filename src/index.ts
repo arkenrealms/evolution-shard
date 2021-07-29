@@ -869,7 +869,7 @@ const registerKill = (winner, loser) => {
 
   setTimeout(() => {
     disconnectPlayer(loser)
-  }, 5 * 1000)
+  }, 2 * 1000)
 
   if (!roundEndingSoon(config.orbCutoffSeconds)) {
     const currentRound = round.index
@@ -1277,6 +1277,8 @@ function sendLeaderReward(leader1, leader2, leader3) {
       if (!db.playerRewards[leader1.address].pending.zod) db.playerRewards[leader1.address].pending.zod = 0
     
       db.playerRewards[leader1.address].pending.zod  = Math.round((db.playerRewards[leader1.address].pending.zod + config.rewardWinnerAmount * 0.5) * 1000) / 1000
+
+      publishEvent('OnRoundWinner', leader1.name)
     } catch(e) {
       console.log(e)
     }
@@ -1305,7 +1307,6 @@ function sendLeaderReward(leader1, leader2, leader3) {
   }
 
   savePlayerRewards()
-  publishEvent('OnRoundWinner', leader1.name)
 }
 
 function getRoundInfo() {
@@ -1343,16 +1344,6 @@ let lastFastGameloopTime = Date.now()
 let lastFastestGameloopTime = Date.now()
 
 function resetLeaderboard() {
-  let leader
-  for (const player of recentPlayers) {
-    if (player.isDead) continue
-    if (player.isSpectating) continue
-
-    if (!leader || player.points > leader.points) {
-      leader = player
-    }
-  }
-
   const leaders = recentPlayers.filter(p => !p.isDead && !p.isSpectating).sort((a, b) => b.points - a.points)
 
   if (leaders.length) {
@@ -1606,7 +1597,7 @@ function detectCollisions() {
     }
 
     const currentTime = Math.round(now / 1000)
-    const isNew = player.joinedAt >= currentTime - config.immunitySeconds
+    const isNew = player.joinedAt >= currentTime - config.immunitySeconds || player.isInvincible
 
     if (!isNew) {
       for (const orb of orbs) {
@@ -1625,7 +1616,6 @@ function detectCollisions() {
 
       for (const reward of rewards) {
         if (!reward) continue
-        console.log(player.position, reward.position)
         if (distanceBetweenPoints(player.position, reward.position) > touchDistance) continue
   
         // player.rewards += 1
