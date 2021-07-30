@@ -305,7 +305,7 @@ const presets = [
     antifeed1: false,
     antifeed2: false,
     pointsPerEvolve: 25,
-    decayPower: -1.4,
+    decayPower: -3,
     avatarDecayPower0: 4,
     avatarDecayPower1: 3,
     avatarDecayPower2: 2,
@@ -326,7 +326,7 @@ const presets = [
   {
     gameMode: 'Marco Polo',
     cameraSize: 2,
-    baseSpeed: 1.5,
+    baseSpeed: 2,
     decayPower: 1.4,
     avatarSpeedMultiplier0: 1,
     avatarSpeedMultiplier1: 1,
