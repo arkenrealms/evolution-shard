@@ -25,7 +25,7 @@ const https = require('https').createServer({
   key: fs.readFileSync('privkey.pem'),
   cert: fs.readFileSync('fullchain.pem') 
 }, server)
-const io = require('socket.io')(https)
+const io = require('socket.io')(https, { secure: true })
 const shortId = require('shortid')
 
 const path = require('path')
