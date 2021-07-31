@@ -24,8 +24,8 @@ const serverVersion = "0.14.0"
 const server = express()
 const http = require('http').Server(server)
 const https = require('https').createServer({ 
-  key: fs.readFileSync(path.resolve('../privkey.pem')),
-  cert: fs.readFileSync(path.resolve('../fullchain.pem'))
+  key: fs.readFileSync(path.resolve('./privkey.pem')),
+  cert: fs.readFileSync(path.resolve('./fullchain.pem'))
 }, server)
 const io = require('socket.io')(https, { secure: true })
 const shortId = require('shortid')
