@@ -2014,7 +2014,7 @@ const init = async () => {
     await initWebServer()
     await initRoutes()
 
-    const port = process.env.PORT || 3001
+    const port = process.env.PORT || 3389
 
     http.listen(port, function() {
       log(`:: Backend ready and listening on *: ${port}`)

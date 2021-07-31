@@ -65,7 +65,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "NODE_ENV=development yarn run nodemon",
     "prod": "NODE_ENV=production yarn run nodemon",
-    "build": "tsc",
+    "build": "NODE_ENV=production tsc",
     "start": "NODE_ENV=production node build/index.js",
     "release": "NODE_ENV=production tsc && gcloud app deploy app.yaml --project evident-ethos-317302",
     "release-europe1": "NODE_ENV=production tsc && gcloud app deploy app.yaml --project rune-evolution-europe1",
