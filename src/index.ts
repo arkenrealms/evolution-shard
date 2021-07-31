@@ -2026,7 +2026,7 @@ const init = async () => {
     //   log(`:: Backend ready and listening on *: ${port}`)
     // })
 
-    const port = process.env.PORT || 80
+    const port = process.env.PORT || 3001
 
     http.listen(port, function() {
       log(`:: Backend ready and listening on *: ${port}`)
