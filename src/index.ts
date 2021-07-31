@@ -85,6 +85,7 @@ const saveBanList = () => {
 const testMode = false
 
 const baseConfig = {
+  periodicReboots: false,
   rebootSeconds: 12 * 60 * 60,
   startAvatar: 0,
   spriteXpMultiplier: 1,
@@ -1368,15 +1369,15 @@ let lastFastGameloopTime = Date.now()
 let lastFastestGameloopTime = Date.now()
 
 function resetLeaderboard() {
-  const leaders = recentPlayers.filter(p => !p.isDead && !p.isSpectating).sort((a, b) => b.points - a.points)
+  const fiveSecondsAgo = Math.round(Date.now() / 1000) - 5
+
+  const leaders = recentPlayers.filter(p => p.lastUpdate >= fiveSecondsAgo).sort((a, b) => b.points - a.points)
 
   if (leaders.length) {
     sendLeaderReward(leaders[0], leaders[1], leaders[2], leaders[3], leaders[4])
   }
 
-  const roundPlayers = recentPlayers.filter(p => !p.isSpectating)
-
-  db.leaderboardHistory.push(JSON.parse(JSON.stringify(roundPlayers)))
+  db.leaderboardHistory.push(JSON.parse(JSON.stringify(recentPlayers)))
 
   saveLeaderboardHistory()
 
@@ -1434,7 +1435,7 @@ function resetLeaderboard() {
 
   publishEvent('OnSetRoundInfo', config.roundLoopSeconds + ':' + getRoundInfo().join(':'))
 
-  if (rebootAfterRound) {
+  if (config.periodicReboots && rebootAfterRound) {
     publishEvent('OnMaintenance', true)
 
     setTimeout(() => {
@@ -1442,7 +1443,7 @@ function resetLeaderboard() {
     }, 3 * 1000)
   }
 
-  if (announceReboot) {
+  if (config.periodicReboots && announceReboot) {
     const value = { text: 'Restarting server at end of this round.' }
 
     publishEvent('OnBroadcast', escape(JSON.stringify(value)))
@@ -1484,7 +1485,7 @@ function slowGameloop() {
   if (recentPlayers.length === 0) {
     leaderboard = []
   } else {
-    const topPlayers = recentPlayers.filter(p => !p.isSpectating).sort(comparePlayers).slice(0, 10)
+    const topPlayers = recentPlayers.sort(comparePlayers).slice(0, 10) // filter(p => !p.isSpectating).
   
     // @ts-ignore
     if (isNaN(leaderboard) || leaderboard.length !== topPlayers.length) {
