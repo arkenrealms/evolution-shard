@@ -21,10 +21,10 @@ const serverVersion = "0.14.0"
 
 const server = express()
 const http = require('http').Server(server)
-// const https = require('https').createServer({ 
-//   key: fs.readFileSync('privkey.pem'),
-//   cert: fs.readFileSync('fullchain.pem') 
-// }, server)
+const https = require('https').createServer({ 
+  key: fs.readFileSync('privkey.pem'),
+  cert: fs.readFileSync('fullchain.pem') 
+}, server)
 const io = require('socket.io')(http)
 const shortId = require('shortid')
 
@@ -2022,9 +2022,9 @@ const init = async () => {
     await initWebServer()
     await initRoutes()
 
-    // https.listen(443, function() {
-    //   log(`:: Backend ready and listening on *: ${port}`)
-    // })
+    https.listen(443, function() {
+      log(`:: Backend ready and listening on *: ${port}`)
+    })
 
     const port = process.env.PORT || 80
 
