@@ -71,6 +71,7 @@
     "release-europe1": "NODE_ENV=production tsc && gcloud app deploy app.yaml --project rune-evolution-europe1",
     "release-na1": "NODE_ENV=production tsc && gcloud app deploy app.yaml --project rune-evolution-useast1",
     "release-asia1": "NODE_ENV=production tsc && gcloud app deploy app.yaml --project rune-evolution-asia1",
+    "release-sa1": "NODE_ENV=production tsc && gcloud app deploy app.yaml --project rune-evolution-sa1",
     "release-ptr": "NODE_ENV=staging tsc && gcloud app deploy app.ptr.yaml --project rune-evolution-ptr"
   },
   "author": "Binzy",
