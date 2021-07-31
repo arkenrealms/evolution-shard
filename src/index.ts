@@ -2,6 +2,7 @@
 import * as utf8 from 'utf8'
 import * as ethers from 'ethers'
 import * as Web3 from 'web3'
+import * as fs from 'fs'
 import * as express from 'express'
 import * as helmet from 'helmet'
 import * as cors from 'cors'
@@ -42,7 +43,11 @@ const serverVersion = "0.14.0"
 
 const server = express()
 const http = require('http').Server(server)
-const io = require('socket.io')(http)
+const https = require('https').createServer({ 
+  key: fs.readFileSync('privkey.pem'),
+  cert: fs.readFileSync('fullchain.pem') 
+}, server)
+const io = require('socket.io')(https)
 const shortId = require('shortid')
 const path = require('path')
 
@@ -1961,6 +1966,8 @@ const initRoutes = async () => {
 
     server.get('/readiness_check', (req, res) => res.sendStatus(200))
     server.get('/liveness_check', (req, res) => res.sendStatus(200))
+
+    server.get('/.well-known/acme-challenge/L2DCvQWqz3ZgHwgAG_u1CjJs8YVsdTExWi08JtCsj0I', (req, res) => res.end('L2DCvQWqz3ZgHwgAG_u1CjJs8YVsdTExWi08JtCsj0I.rf1Z-ViQiJBjN-_x-EzQlmFjnB7obDoQD_BId0Z24Oc'))
   } catch(e) {
     logError(e)
   }
@@ -2014,7 +2021,11 @@ const init = async () => {
     await initWebServer()
     await initRoutes()
 
-    const port = process.env.PORT || 3389
+    https.listen(443, function() {
+      log(`:: Backend ready and listening on *: ${port}`)
+    })
+
+    const port = process.env.PORT || 80
 
     http.listen(port, function() {
       log(`:: Backend ready and listening on *: ${port}`)
