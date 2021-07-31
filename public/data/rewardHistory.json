@@ -7948,5 +7948,293 @@
     },
     "tx": "0x6a2f7e23561f02757fcad0a6e5b8b07e0f3cd168934383797dd7a76a3658f18c",
     "monetary": 3.8644151099635384
+  },
+  {
+    "type": "rune",
+    "symbol": "zod",
+    "quantity": 5.418,
+    "winner": {
+      "address": "0xfa1b67D1c296a6aEdB80AE2C0eB7f15b909535e3"
+    },
+    "tx": "0xb9e1aa4b21da13f2d36d5f980dfa41ed595eeb0f029ed690a131184fce5febcb"
+  },
+  {
+    "type": "rune",
+    "symbol": "zod",
+    "quantity": 8.835,
+    "winner": {
+      "address": "0xf9056dbe1CC96a06a6781F773DeE55cf69AD3c8d"
+    },
+    "tx": "0x6434b928aa3fe112eac4870f2356e2793d2cf1a9f995c3fc61cc0decc5e70126"
+  },
+  {
+    "type": "rune",
+    "symbol": "zod",
+    "quantity": 16.94,
+    "winner": {
+      "address": "0xeb3fCb993dDe8a2Cd081FbE36238E4d64C286AC0"
+    },
+    "tx": "0x6224598652377440bf9550d6ffae77279db14c8edfd065aa20f70e6d0dac7f19"
+  },
+  {
+    "type": "rune",
+    "symbol": "sol",
+    "quantity": 5.4,
+    "winner": {
+      "address": "0xeb3fCb993dDe8a2Cd081FbE36238E4d64C286AC0"
+    },
+    "tx": "0xc2892997d39ab3a5b6d6d5f3167de85ecdecdea23a23a0a8d30bafb20330c468"
+  },
+  {
+    "type": "rune",
+    "symbol": "zod",
+    "quantity": 5.802,
+    "winner": {
+      "address": "0x5f88D25cAA16662d7d6F07f8B80504d6C7D9479E"
+    },
+    "tx": "0x9336e05957a74c3d062e25e2e27ca549bed5d721d484c57e1cfbda9940c497c0"
+  },
+  {
+    "type": "rune",
+    "symbol": "zod",
+    "quantity": 8.15,
+    "winner": {
+      "address": "0xDa0d95B34DFee997925e9bFe8BF1d2F96bF8AB9c"
+    },
+    "tx": "0x4613ea66e35283d5830b8543ad9008dc61edce7af7cc437bc0e897d0c8c638da"
+  },
+  {
+    "type": "rune",
+    "symbol": "zod",
+    "quantity": 6.1,
+    "winner": {
+      "address": "0x20a67C9c00aA3B3b99D32D01d8Ec0719c7E522AF"
+    },
+    "tx": "0xe4cf1a8a1eac1c6e3dfb68833f73ca2979932569dff76bc193f47b6ffdd3fa98"
+  },
+  {
+    "type": "rune",
+    "symbol": "zod",
+    "quantity": 5.691,
+    "winner": {
+      "address": "0x78bfa5E2381Cb0Eb16809eF06Cf1Ce34a5488145"
+    },
+    "tx": "0x729108a28784de01747b61a555494c9e4099644d0c4c36a7024954fe93dac7b7"
+  },
+  {
+    "type": "rune",
+    "symbol": "zod",
+    "quantity": 7.434,
+    "winner": {
+      "address": "0xcaEd3f2b0b2B952e98b27e68061ed7aB95AA2c7A"
+    },
+    "tx": "0xadcf759b0f1c62d5a2bdaebeb0cc2e475614c146d6b344851a5295d37cdf1951"
+  },
+  {
+    "type": "rune",
+    "symbol": "zod",
+    "quantity": 6.471,
+    "winner": {
+      "address": "0x9568b75583B42bd2FaBFA3E11B5dD28035EeaC51"
+    },
+    "tx": "0xaafb94aacd4065d001653c02820891d75d896ed3408385ef172364a7ac910f69"
+  },
+  {
+    "type": "rune",
+    "symbol": "zod",
+    "quantity": 11.14,
+    "winner": {
+      "address": "0x32Ea1081D93834367584b7bf661C51fE93CC52aF"
+    },
+    "tx": "0xaf4c4dc7ea5f813073d940cc324d5c9ad118fe83a6c35deedeced50d050842a2"
+  },
+  {
+    "type": "rune",
+    "symbol": "tal",
+    "quantity": 6.75,
+    "winner": {
+      "address": "0x32Ea1081D93834367584b7bf661C51fE93CC52aF"
+    },
+    "tx": "0x041537fda54728c0d344f9ae046c958875f523aba5dd88430376a32493c76d67"
+  },
+  {
+    "type": "rune",
+    "symbol": "nef",
+    "quantity": 5.98,
+    "winner": {
+      "address": "0x5F8A4f50f42e156C97e2596D48a31bc25F5F1034"
+    },
+    "tx": "0xc8231a9f08fb5c43e88b4cad40add9a683dd0ae4715942b0e5002ada3fac2a28"
+  },
+  {
+    "type": "rune",
+    "symbol": "ith",
+    "quantity": 5.94,
+    "winner": {
+      "address": "0x5F8A4f50f42e156C97e2596D48a31bc25F5F1034"
+    },
+    "tx": "0x0cf63bc88c45499071d3970b450588a8b006f5caa1f6b80c06bf533935c6dda8"
+  },
+  {
+    "type": "rune",
+    "symbol": "tal",
+    "quantity": 5.43,
+    "winner": {
+      "address": "0x5F8A4f50f42e156C97e2596D48a31bc25F5F1034"
+    },
+    "tx": "0xc6a7fed9d28561f1ce5833b464489debbae704b5406859bbe1281689b6c4b6c9"
+  },
+  {
+    "type": "rune",
+    "symbol": "thul",
+    "quantity": 5.01,
+    "winner": {
+      "address": "0x5F8A4f50f42e156C97e2596D48a31bc25F5F1034"
+    },
+    "tx": "0x9627db8b847b5750a6414e52f2b5207cfa20985327ef20888d7c9bc327f6a3c3"
+  },
+  {
+    "type": "rune",
+    "symbol": "zod",
+    "quantity": 5.062,
+    "winner": {
+      "address": "0xD88097810296098d01C0422411c746390f60E0d2"
+    },
+    "tx": "0x015edf012021fa528ac7c9199e00102bd0de37f86432e996d095a72009eee05c"
+  },
+  {
+    "type": "rune",
+    "symbol": "zod",
+    "quantity": 5.115,
+    "winner": {
+      "address": "0x33ad12C02A215f3d01fBCcCcf0D91158546b329b"
+    },
+    "tx": "0x121d28c004625da48578809eb724e6b8eb718cac7597b8a38099e514abeb2e13"
+  },
+  {
+    "type": "rune",
+    "symbol": "zod",
+    "quantity": 6.549,
+    "winner": {
+      "address": "0x0bDf4daB8e0CF111AD0fE42E7b1cad0D07eA95F8"
+    },
+    "tx": "0xb28a9678b4dd64c6cae78712935d01abe14633943bf9e3975fbb5ce24fc79db8"
+  },
+  {
+    "type": "rune",
+    "symbol": "tir",
+    "quantity": 6.49,
+    "winner": {
+      "address": "0x0bDf4daB8e0CF111AD0fE42E7b1cad0D07eA95F8"
+    },
+    "tx": "0x8b237aa2ee9d8ea8a97b9598e0aae6e6fce3d4058c02d58cd0c1f74ea6cc6eb8"
+  },
+  {
+    "type": "rune",
+    "symbol": "ith",
+    "quantity": 5.97,
+    "winner": {
+      "address": "0x0bDf4daB8e0CF111AD0fE42E7b1cad0D07eA95F8"
+    },
+    "tx": "0x4e60f9fb7c232360472825c31c4c0060eac737b117d76a203e064b37a6941303"
+  },
+  {
+    "type": "rune",
+    "symbol": "tal",
+    "quantity": 6.7,
+    "winner": {
+      "address": "0x0bDf4daB8e0CF111AD0fE42E7b1cad0D07eA95F8"
+    },
+    "tx": "0xb6937868e0c7a8644016bf2a0b5038fdf843114f2727a4c3d93e9032c7706d36"
+  },
+  {
+    "type": "rune",
+    "symbol": "thul",
+    "quantity": 6.93,
+    "winner": {
+      "address": "0x0bDf4daB8e0CF111AD0fE42E7b1cad0D07eA95F8"
+    },
+    "tx": "0xdbdc6a864b46dad4f8c34e5bdcc03b5c74bbcbef626fdbb50cd4431c6f7615a4"
+  },
+  {
+    "type": "rune",
+    "symbol": "nef",
+    "quantity": 7.85,
+    "winner": {
+      "address": "0x0bDf4daB8e0CF111AD0fE42E7b1cad0D07eA95F8"
+    },
+    "tx": "0x25366a72cd7b6d65bbccfef422c26a06fd45df57b6236ba6c6564702b10d8ce8"
+  },
+  {
+    "type": "rune",
+    "symbol": "amn",
+    "quantity": 6.98,
+    "winner": {
+      "address": "0x0bDf4daB8e0CF111AD0fE42E7b1cad0D07eA95F8"
+    },
+    "tx": "0x33f8ffc32f8396c7b224ae43d527089b6e0b09ee0ebae87152e06de14923b018"
+  },
+  {
+    "type": "rune",
+    "symbol": "ort",
+    "quantity": 7.3,
+    "winner": {
+      "address": "0x0bDf4daB8e0CF111AD0fE42E7b1cad0D07eA95F8"
+    },
+    "tx": "0x4ed118aedb2b6c89713af0f7a9f95050dacfee559b256f0e87fa104f0da5d5a3"
+  },
+  {
+    "type": "rune",
+    "symbol": "sol",
+    "quantity": 5.72,
+    "winner": {
+      "address": "0x0bDf4daB8e0CF111AD0fE42E7b1cad0D07eA95F8"
+    },
+    "tx": "0xe2c345e3ab00923582e55edd198224937dbd1033431d991b840ccb9c70b74efe"
+  },
+  {
+    "type": "rune",
+    "symbol": "shael",
+    "quantity": 6.16,
+    "winner": {
+      "address": "0x0bDf4daB8e0CF111AD0fE42E7b1cad0D07eA95F8"
+    },
+    "tx": "0x75024b937060a904c30716319d278712d3774b566dd3efb9c47f3636a37d5bd0"
+  },
+  {
+    "type": "rune",
+    "symbol": "dol",
+    "quantity": 5.09,
+    "winner": {
+      "address": "0x0bDf4daB8e0CF111AD0fE42E7b1cad0D07eA95F8"
+    },
+    "tx": "0xba703190192f5a0b08d2ebf8220c4a801db7780e1e6e539c8c7866deff3b9b98"
+  },
+  {
+    "type": "rune",
+    "symbol": "sol",
+    "quantity": 6.41,
+    "winner": {
+      "address": "0xcD1F02b1d8620E53905E68e629cb86c0629B5eEd"
+    },
+    "tx": "0x32eeb99532da14a20b3eeae79f16f2431ef7f579c187f27aaf74f17449066098"
+  },
+  {
+    "type": "rune",
+    "symbol": "zod",
+    "quantity": 8.49,
+    "winner": {
+      "address": "0xcD1F02b1d8620E53905E68e629cb86c0629B5eEd"
+    },
+    "tx": "0xf43ef1e7c22c18261e3386961b46af247eda97337f84044b076caf932ce0d2e5"
+  },
+  {
+    "type": "rune",
+    "symbol": "sol",
+    "quantity": 5.24,
+    "winner": {
+      "address": "0xd5a7f024b2985d7DF74e6c71d579f5e9653EB3A5"
+    },
+    "tx": "0x4b1c7fc4e47c9d6d69f8f53ea3366380893b5a083afa9d0e56db061a21eaf33c"
   }
 ]
