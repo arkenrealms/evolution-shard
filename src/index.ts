@@ -17,18 +17,18 @@ import * as services from './services'
 import { decodeItem } from './decodeItem'
 import Provider from './util/provider'
 
+const path = require('path')
+
 const serverVersion = "0.14.0"
 
 const server = express()
 const http = require('http').Server(server)
 const https = require('https').createServer({ 
-  key: fs.readFileSync('privkey.pem'),
-  cert: fs.readFileSync('fullchain.pem') 
+  key: fs.readFileSync(path.resolve('../privkey.pem')),
+  cert: fs.readFileSync(path.resolve('../fullchain.pem'))
 }, server)
 const io = require('socket.io')(https, { secure: true })
 const shortId = require('shortid')
-
-const path = require('path')
 
 function logError(err) {
   const errorLog = jetpack.read(path.resolve('./public/data/errors.json'), 'json')
