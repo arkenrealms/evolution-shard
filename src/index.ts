@@ -27,7 +27,7 @@ const https = require('https').createServer({
   key: fs.readFileSync(path.resolve('./privkey.pem')),
   cert: fs.readFileSync(path.resolve('./fullchain.pem'))
 }, server)
-const io = require('socket.io')(https, { secure: true })
+const io = require('socket.io')(process.env.NODE_ENV === 'development' ? http : https, { secure: process.env.NODE_ENV === 'development' ? false : true })
 const shortId = require('shortid')
 
 function logError(err) {
@@ -66,6 +66,7 @@ db.rewardHistory = jetpack.read(path.resolve('./public/data/rewardHistory.json')
 db.rewards = jetpack.read(path.resolve('./public/data/rewards.json'), 'json')
 db.leaderboardHistory = jetpack.read(path.resolve('./public/data/leaderboardHistory.json'), 'json')
 db.banList = jetpack.read(path.resolve('./public/data/banList.json'), 'json')
+db.reportList = jetpack.read(path.resolve('./public/data/reports.json'), 'json')
 db.playerRewards = jetpack.read(path.resolve('./public/data/playerRewards.json'), 'json')
 
 const savePlayerRewards = () => {
@@ -88,6 +89,46 @@ const saveBanList = () => {
   jetpack.write(path.resolve('./public/data/banList.json'), JSON.stringify(db.banList, null, 2))
 }
 
+const saveReportList = () => {
+  jetpack.write(path.resolve('./public/data/reports.json'), JSON.stringify(db.reportList, null, 2))
+}
+
+function reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer) {
+  if (currentPlayer.name.indexOf('Guest') !== -1 || currentPlayer.name.indexOf('Unknown') !== -1) return // No guest reports
+
+  if (!db.reportList[reportedPlayer.address])
+    db.reportList[reportedPlayer.address] = []
+  
+  if (!db.reportList[reportedPlayer.address].includes(currentPlayer.address))
+    db.reportList[reportedPlayer.address].push(currentPlayer.address)
+  
+  saveReportList()
+
+  if (db.reportList[reportedPlayer.address].length >= 10) {
+    db.banList.push(reportedPlayer.address)
+
+    saveBanList()
+    disconnectPlayer(reportedPlayer)
+    // emitDirect(sockets[reportedPlayer.id], 'OnBanned', true)
+    return
+  }
+
+  if (currentGamePlayers.length >= 4) {
+    const reportsFromCurrentGamePlayers = db.reportList[reportedPlayer.address].filter(function(n) {
+      return currentGamePlayers.indexOf(n) !== -1;
+    })
+
+    if (reportsFromCurrentGamePlayers.length >= currentGamePlayers.length / 2) {
+      db.banList.push(reportedPlayer.address)
+
+      saveBanList()
+      disconnectPlayer(reportedPlayer)
+      // emitDirect(sockets[reportedPlayer.id], 'OnBanned', true)
+      return
+    }
+  }
+}
+
 const testMode = false
 
 const baseConfig = {
@@ -97,7 +138,7 @@ const baseConfig = {
   spriteXpMultiplier: 1,
   dynamicDecayPower: false,
   decayPowerPerMaxEvolvedPlayers: 0.2,
-  pickupCheckPositionDistance: 0.5,
+  pickupCheckPositionDistance: 1,
   antifeed2: true,
   antifeed3: true,
   antifeed4: true,
@@ -389,8 +430,8 @@ const spawnBoundary = {
 }
 
 const mapBoundary = {
-  x: {min: -30, max: 10},
-  y: {min: -30, max: 10}
+  x: {min: -20, max: 2},
+  y: {min: -20, max: 2}
 }
 
 const rewardSpawnPoints = [
@@ -1077,6 +1118,13 @@ io.on('connection', function(socket) {
 
       publishEvent('OnSpectate', currentPlayer.id, currentPlayer.speed, currentPlayer.cameraSize)
     })
+    
+    socket.on('Report', function(name) {
+      const currentGamePlayers = clients.map(c => c.name)
+      const reportedPlayer = clients.find(c => c.name === name)
+
+      reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer)
+    })
 
     // socket.on('Ping', function() {
     //   if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) {
@@ -1095,7 +1143,7 @@ io.on('connection', function(socket) {
         return
       }
 
-      if (db.banList.includes(pack.name)) {
+      if (db.banList.includes(pack.address)) {
         emitDirect(socket, 'OnBanned', true)
         disconnectPlayer(currentPlayer)
         return
@@ -1549,6 +1597,19 @@ function detectCollisions() {
     // } else {
       // if (player.lastReportedTime > )
       player.position = moveTowards(player.position, player.target, player.speed * deltaTime)
+
+      if (player.position.x > mapBoundary.x.max) {
+        player.position.x = mapBoundary.x.max
+      }
+      if (player.position.x < mapBoundary.x.min) {
+        player.position.x = mapBoundary.x.min
+      }
+      if (player.position.y > mapBoundary.y.max) {
+        player.position.y = mapBoundary.y.max
+      }
+      if (player.position.y < mapBoundary.y.min) {
+        player.position.y = mapBoundary.y.min
+      }
     // }
   }
 
