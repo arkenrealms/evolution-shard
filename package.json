@@ -59,19 +59,22 @@
     "ts-node": "^8.3.0"
   },
   "engines": {
-    "node": "14.16.0"
+    "node": "14.*.*"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "NODE_ENV=development yarn run nodemon",
     "prod": "NODE_ENV=production yarn run nodemon",
-    "build": "tsc",
-    "start": "NODE_ENV=production node build/index.js",
+    "build": "NODE_ENV=production tsc",
+    "start": "NODE_ENV=production tsc && nohup forever start forever-config.json &",
     "release": "NODE_ENV=production tsc && gcloud app deploy app.yaml --project evident-ethos-317302",
     "release-europe1": "NODE_ENV=production tsc && gcloud app deploy app.yaml --project rune-evolution-europe1",
     "release-na1": "NODE_ENV=production tsc && gcloud app deploy app.yaml --project rune-evolution-useast1",
     "release-asia1": "NODE_ENV=production tsc && gcloud app deploy app.yaml --project rune-evolution-asia1",
-    "release-ptr": "NODE_ENV=staging tsc && gcloud app deploy app.ptr.yaml --project rune-evolution-ptr"
+    "release-sa1": "NODE_ENV=production tsc && gcloud app deploy app.yaml --project rune-evolution-sa1",
+    "release-ptr": "NODE_ENV=staging tsc && gcloud app deploy app.ptr.yaml --project rune-evolution-ptr",
+    "config": "sudo /opt/bitnami/ctlscript.sh stop apache",
+    "renew": "certbot renew"
   },
   "author": "Binzy",
   "license": "Unlicensed"

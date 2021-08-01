@@ -2,6 +2,7 @@
 import * as utf8 from 'utf8'
 import * as ethers from 'ethers'
 import * as Web3 from 'web3'
+import * as fs from 'fs'
 import * as express from 'express'
 import * as helmet from 'helmet'
 import * as cors from 'cors'
@@ -16,6 +17,18 @@ import * as services from './services'
 import { decodeItem } from './decodeItem'
 import Provider from './util/provider'
 
+const path = require('path')
+
+const serverVersion = "0.14.0"
+
+const server = express()
+const http = require('http').Server(server)
+const https = require('https').createServer({ 
+  key: fs.readFileSync(path.resolve('./privkey.pem')),
+  cert: fs.readFileSync(path.resolve('./fullchain.pem'))
+}, server)
+const io = require('socket.io')(process.env.NODE_ENV === 'development' ? http : https, { secure: process.env.NODE_ENV === 'development' ? false : true })
+const shortId = require('shortid')
 
 function logError(err) {
   const errorLog = jetpack.read(path.resolve('./public/data/errors.json'), 'json')
@@ -38,13 +51,6 @@ process
     //process.exit(1);
   })
 
-const serverVersion = "0.14.0"
-
-const server = express()
-const http = require('http').Server(server)
-const io = require('socket.io')(http)
-const shortId = require('shortid')
-const path = require('path')
 
 const playerWhitelist = ['Botter', 'Bin Zy']
 
@@ -60,6 +66,7 @@ db.rewardHistory = jetpack.read(path.resolve('./public/data/rewardHistory.json')
 db.rewards = jetpack.read(path.resolve('./public/data/rewards.json'), 'json')
 db.leaderboardHistory = jetpack.read(path.resolve('./public/data/leaderboardHistory.json'), 'json')
 db.banList = jetpack.read(path.resolve('./public/data/banList.json'), 'json')
+db.reportList = jetpack.read(path.resolve('./public/data/reports.json'), 'json')
 db.playerRewards = jetpack.read(path.resolve('./public/data/playerRewards.json'), 'json')
 
 const savePlayerRewards = () => {
@@ -82,15 +89,56 @@ const saveBanList = () => {
   jetpack.write(path.resolve('./public/data/banList.json'), JSON.stringify(db.banList, null, 2))
 }
 
+const saveReportList = () => {
+  jetpack.write(path.resolve('./public/data/reports.json'), JSON.stringify(db.reportList, null, 2))
+}
+
+function reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer) {
+  if (currentPlayer.name.indexOf('Guest') !== -1 || currentPlayer.name.indexOf('Unknown') !== -1) return // No guest reports
+
+  if (!db.reportList[reportedPlayer.address])
+    db.reportList[reportedPlayer.address] = []
+  
+  if (!db.reportList[reportedPlayer.address].includes(currentPlayer.address))
+    db.reportList[reportedPlayer.address].push(currentPlayer.address)
+  
+  saveReportList()
+
+  if (db.reportList[reportedPlayer.address].length >= 10) {
+    db.banList.push(reportedPlayer.address)
+
+    saveBanList()
+    disconnectPlayer(reportedPlayer)
+    // emitDirect(sockets[reportedPlayer.id], 'OnBanned', true)
+    return
+  }
+
+  if (currentGamePlayers.length >= 4) {
+    const reportsFromCurrentGamePlayers = db.reportList[reportedPlayer.address].filter(function(n) {
+      return currentGamePlayers.indexOf(n) !== -1;
+    })
+
+    if (reportsFromCurrentGamePlayers.length >= currentGamePlayers.length / 2) {
+      db.banList.push(reportedPlayer.address)
+
+      saveBanList()
+      disconnectPlayer(reportedPlayer)
+      // emitDirect(sockets[reportedPlayer.id], 'OnBanned', true)
+      return
+    }
+  }
+}
+
 const testMode = false
 
 const baseConfig = {
+  periodicReboots: false,
   rebootSeconds: 12 * 60 * 60,
   startAvatar: 0,
   spriteXpMultiplier: 1,
   dynamicDecayPower: false,
   decayPowerPerMaxEvolvedPlayers: 0.2,
-  pickupCheckPositionDistance: 0.5,
+  pickupCheckPositionDistance: 1,
   antifeed2: true,
   antifeed3: true,
   antifeed4: true,
@@ -382,8 +430,8 @@ const spawnBoundary = {
 }
 
 const mapBoundary = {
-  x: {min: -30, max: 10},
-  y: {min: -30, max: 10}
+  x: {min: -20, max: 2},
+  y: {min: -20, max: 2}
 }
 
 const rewardSpawnPoints = [
@@ -1070,6 +1118,13 @@ io.on('connection', function(socket) {
 
       publishEvent('OnSpectate', currentPlayer.id, currentPlayer.speed, currentPlayer.cameraSize)
     })
+    
+    socket.on('Report', function(name) {
+      const currentGamePlayers = clients.map(c => c.name)
+      const reportedPlayer = clients.find(c => c.name === name)
+
+      reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer)
+    })
 
     // socket.on('Ping', function() {
     //   if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) {
@@ -1088,7 +1143,7 @@ io.on('connection', function(socket) {
         return
       }
 
-      if (db.banList.includes(pack.name)) {
+      if (db.banList.includes(pack.address)) {
         emitDirect(socket, 'OnBanned', true)
         disconnectPlayer(currentPlayer)
         return
@@ -1368,15 +1423,15 @@ let lastFastGameloopTime = Date.now()
 let lastFastestGameloopTime = Date.now()
 
 function resetLeaderboard() {
-  const leaders = recentPlayers.filter(p => !p.isDead && !p.isSpectating).sort((a, b) => b.points - a.points)
+  const fiveSecondsAgo = Math.round(Date.now() / 1000) - 5
+
+  const leaders = recentPlayers.filter(p => p.lastUpdate >= fiveSecondsAgo).sort((a, b) => b.points - a.points)
 
   if (leaders.length) {
     sendLeaderReward(leaders[0], leaders[1], leaders[2], leaders[3], leaders[4])
   }
 
-  const roundPlayers = recentPlayers.filter(p => !p.isSpectating)
-
-  db.leaderboardHistory.push(JSON.parse(JSON.stringify(roundPlayers)))
+  db.leaderboardHistory.push(JSON.parse(JSON.stringify(recentPlayers)))
 
   saveLeaderboardHistory()
 
@@ -1434,7 +1489,7 @@ function resetLeaderboard() {
 
   publishEvent('OnSetRoundInfo', config.roundLoopSeconds + ':' + getRoundInfo().join(':'))
 
-  if (rebootAfterRound) {
+  if (config.periodicReboots && rebootAfterRound) {
     publishEvent('OnMaintenance', true)
 
     setTimeout(() => {
@@ -1442,7 +1497,7 @@ function resetLeaderboard() {
     }, 3 * 1000)
   }
 
-  if (announceReboot) {
+  if (config.periodicReboots && announceReboot) {
     const value = { text: 'Restarting server at end of this round.' }
 
     publishEvent('OnBroadcast', escape(JSON.stringify(value)))
@@ -1484,7 +1539,7 @@ function slowGameloop() {
   if (recentPlayers.length === 0) {
     leaderboard = []
   } else {
-    const topPlayers = recentPlayers.filter(p => !p.isSpectating).sort(comparePlayers).slice(0, 10)
+    const topPlayers = recentPlayers.sort(comparePlayers).slice(0, 10) // filter(p => !p.isSpectating).
   
     // @ts-ignore
     if (isNaN(leaderboard) || leaderboard.length !== topPlayers.length) {
@@ -1542,6 +1597,19 @@ function detectCollisions() {
     // } else {
       // if (player.lastReportedTime > )
       player.position = moveTowards(player.position, player.target, player.speed * deltaTime)
+
+      if (player.position.x > mapBoundary.x.max) {
+        player.position.x = mapBoundary.x.max
+      }
+      if (player.position.x < mapBoundary.x.min) {
+        player.position.x = mapBoundary.x.min
+      }
+      if (player.position.y > mapBoundary.y.max) {
+        player.position.y = mapBoundary.y.max
+      }
+      if (player.position.y < mapBoundary.y.min) {
+        player.position.y = mapBoundary.y.min
+      }
     // }
   }
 
@@ -1960,6 +2028,8 @@ const initRoutes = async () => {
 
     server.get('/readiness_check', (req, res) => res.sendStatus(200))
     server.get('/liveness_check', (req, res) => res.sendStatus(200))
+
+    server.get('/.well-known/acme-challenge/L2DCvQWqz3ZgHwgAG_u1CjJs8YVsdTExWi08JtCsj0I', (req, res) => res.end('L2DCvQWqz3ZgHwgAG_u1CjJs8YVsdTExWi08JtCsj0I.rf1Z-ViQiJBjN-_x-EzQlmFjnB7obDoQD_BId0Z24Oc'))
   } catch(e) {
     logError(e)
   }
@@ -2013,7 +2083,11 @@ const init = async () => {
     await initWebServer()
     await initRoutes()
 
-    const port = process.env.PORT || 3001
+    https.listen(443, function() {
+      log(`:: Backend ready and listening on *: ${port}`)
+    })
+
+    const port = process.env.PORT || 80
 
     http.listen(port, function() {
       log(`:: Backend ready and listening on *: ${port}`)
