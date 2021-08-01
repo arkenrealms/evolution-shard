@@ -27,7 +27,7 @@ const https = require('https').createServer({
   key: fs.readFileSync(path.resolve('./privkey.pem')),
   cert: fs.readFileSync(path.resolve('./fullchain.pem'))
 }, server)
-const io = require('socket.io')(process.env.USE_SSL ? https : http, { secure: process.env.USE_SSL ? true : false })
+const io = require('socket.io')(process.env.OS_FLAVOUR === 'debian-10' ? https : http, { secure: process.env.OS_FLAVOUR === 'debian-10' ? true : false })
 const shortId = require('shortid')
 
 function logError(err) {
