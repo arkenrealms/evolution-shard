@@ -2029,7 +2029,7 @@ const initRoutes = async () => {
     server.get('/readiness_check', (req, res) => res.sendStatus(200))
     server.get('/liveness_check', (req, res) => res.sendStatus(200))
 
-    server.get('/.well-known/acme-challenge/L2DCvQWqz3ZgHwgAG_u1CjJs8YVsdTExWi08JtCsj0I', (req, res) => res.end('L2DCvQWqz3ZgHwgAG_u1CjJs8YVsdTExWi08JtCsj0I.rf1Z-ViQiJBjN-_x-EzQlmFjnB7obDoQD_BId0Z24Oc'))
+    server.get('/.well-known/acme-challenge/IpE7Wudo8zcwhUQAVTTQI5Q2PZnNpDxHqrbHv6YpViU', (req, res) => res.end('IpE7Wudo8zcwhUQAVTTQI5Q2PZnNpDxHqrbHv6YpViU.fcYU-mWE8wVQg6Ph1RWDiR6YLNjWHUyAYqRzVfXa118'))
   } catch(e) {
     logError(e)
   }
