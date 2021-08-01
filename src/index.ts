@@ -1765,12 +1765,13 @@ function fastGameloop() {
         }
       } else {
         if (client.avatar >= (config.maxEvolves - 1)) {
-          const currentTime = Math.round(now / 1000)
-          const isNew = client.joinedAt >= currentTime - config.immunitySeconds
+          client.xp = 100
+          // const currentTime = Math.round(now / 1000)
+          // const isNew = client.joinedAt >= currentTime - config.immunitySeconds
             
-          if (!config.noBoot && !isInvincible && !isNew) {
-            disconnectPlayer(client)
-          }
+          // if (!config.noBoot && !isInvincible && !isNew) {
+          //   disconnectPlayer(client)
+          // }
         } else {
           client.xp = client.xp - 100
           client.avatar = Math.max(Math.min(client.avatar + (1 * config.avatarDirection), config.maxEvolves - 1), 0)
