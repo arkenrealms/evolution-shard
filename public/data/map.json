@@ -1,0 +1,1207 @@
+[
+    {
+      "Id": "-192054",
+      "Name": "Structures",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "383406",
+        "Position": [
+          -5.801094,
+          -8.908676,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": null,
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    },
+    {
+      "Id": "382544",
+      "Name": "FGStructure02 (8)",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "-192054",
+        "Position": [
+          -16.2010956,
+          -17.174675,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          -10.4000015,
+          -8.265999,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          4.0,
+          4.0,
+          4.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": {
+        "Enabled": true,
+        "Min": [
+          -17.3251228,
+          -18.0722389,
+          0.0
+        ],
+        "Max": [
+          -15.0192518,
+          -16.2426949,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    },
+    {
+      "Id": "384294",
+      "Name": "FGStructure02 (9)",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "-192054",
+        "Position": [
+          -5.971092,
+          -21.383873,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          -0.169998169,
+          -12.4751968,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          4.0,
+          4.0,
+          1.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": {
+        "Enabled": true,
+        "Min": [
+          -8.28927,
+          -23.07256,
+          0.0
+        ],
+        "Max": [
+          -3.71451545,
+          -15.9660292,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    },
+    {
+      "Id": "383944",
+      "Name": "FGStructure02 (10)",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "-192054",
+        "Position": [
+          -13.2810974,
+          -21.4470749,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          -7.48000336,
+          -12.5383987,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          4.0,
+          4.0,
+          1.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": {
+        "Enabled": true,
+        "Min": [
+          -15.5992756,
+          -23.1357613,
+          0.0
+        ],
+        "Max": [
+          -11.0245209,
+          -16.0949287,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    },
+    {
+      "Id": "383168",
+      "Name": "FGStructure02 (11)",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "-192054",
+        "Position": [
+          -11.9710922,
+          -20.739975,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          -6.169998,
+          -11.8312988,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          4.0,
+          4.0,
+          1.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": {
+        "Enabled": true,
+        "Min": [
+          -14.28927,
+          -22.4286613,
+          0.0
+        ],
+        "Max": [
+          -9.714516,
+          -14.6891813,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    },
+    {
+      "Id": "382472",
+      "Name": "FGStructure02 (12)",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "-192054",
+        "Position": [
+          -9.171097,
+          -21.3873749,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          -3.37000275,
+          -12.4786987,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          4.0,
+          4.0,
+          1.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": {
+        "Enabled": true,
+        "Min": [
+          -11.489275,
+          -23.0760612,
+          0.0
+        ],
+        "Max": [
+          -6.91452026,
+          -15.9847412,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    },
+    {
+      "Id": "384096",
+      "Name": "FGStructure02 (13)",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "-192054",
+        "Position": [
+          -20.1710968,
+          -11.5086746,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          -14.3700027,
+          -2.59999847,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          4.0,
+          4.0,
+          1.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": {
+        "Enabled": true,
+        "Min": [
+          -22.4892731,
+          -13.19736,
+          0.0
+        ],
+        "Max": [
+          -17.91452,
+          -9.845279,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    },
+    {
+      "Id": "384710",
+      "Name": "FGStructure02 (14)",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "-192054",
+        "Position": [
+          -2.27109528,
+          -20.7444763,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          3.52999878,
+          -11.8358,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          4.0,
+          4.0,
+          1.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": {
+        "Enabled": true,
+        "Min": [
+          -4.600223,
+          -22.4331627,
+          0.0
+        ],
+        "Max": [
+          -0.014518261,
+          -14.6925049,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    },
+    {
+      "Id": "382314",
+      "Name": "FGStructure07 (1)",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "-192054",
+        "Position": [
+          -12.5750885,
+          -11.5246735,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          -6.77399445,
+          -2.61599731,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          4.0,
+          4.0,
+          1.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": {
+        "Enabled": true,
+        "Min": [
+          -12.946455,
+          -12.5373936,
+          0.0
+        ],
+        "Max": [
+          -12.58898,
+          -10.4326,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    },
+    {
+      "Id": "383102",
+      "Name": "FGStructure09 (5)",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "-192054",
+        "Position": [
+          -13.7000885,
+          -10.037674,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          -7.89899445,
+          -1.1289978,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          4.0,
+          4.0,
+          1.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": {
+        "Enabled": true,
+        "Min": [
+          -14.4685516,
+          -10.24835,
+          0.0
+        ],
+        "Max": [
+          -13.2478943,
+          -9.773203,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    },
+    {
+      "Id": "385148",
+      "Name": "FGStructure09 (6)",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "-192054",
+        "Position": [
+          -11.1420975,
+          -12.0467758,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          -5.34100342,
+          -3.13809967,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          4.0,
+          4.0,
+          1.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": {
+        "Enabled": true,
+        "Min": [
+          -12.3651752,
+          -12.2484856,
+          0.0
+        ],
+        "Max": [
+          -10.4656658,
+          -11.7896137,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    },
+    {
+      "Id": "383626",
+      "Name": "FGStructure04 (3)",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "-192054",
+        "Position": [
+          -13.3950958,
+          -10.9586792,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          -7.594002,
+          -2.050003,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          4.0,
+          4.0,
+          1.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": {
+        "Enabled": true,
+        "Min": [
+          -13.8133049,
+          -11.4801617,
+          0.0
+        ],
+        "Max": [
+          -13.1776524,
+          -10.4375134,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    },
+    {
+      "Id": "382488",
+      "Name": "FGStructure07 (2)",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "-192054",
+        "Position": [
+          -13.1190948,
+          -9.020279,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          -7.318001,
+          -0.111602783,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          4.0,
+          4.0,
+          1.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": {
+        "Enabled": true,
+        "Min": [
+          -13.3718052,
+          -9.535913,
+          0.0
+        ],
+        "Max": [
+          -13.1209087,
+          -8.463678,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    },
+    {
+      "Id": "384238",
+      "Name": "FGStructure02 (15)",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "-192054",
+        "Position": [
+          -26.0811,
+          -23.4486771,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          -20.2800064,
+          -14.5400009,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          4.0,
+          4.0,
+          1.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": {
+        "Enabled": true,
+        "Min": [
+          -33.59713,
+          -21.3291473,
+          0.0
+        ],
+        "Max": [
+          -18.66951,
+          -16.2535019,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    },
+    {
+      "Id": "383176",
+      "Name": "FGStructure04 (4)",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "-192054",
+        "Position": [
+          -18.1486969,
+          -18.3286743,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          -12.3476028,
+          -9.419998,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          4.0,
+          4.0,
+          1.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": {
+        "Enabled": true,
+        "Min": [
+          -18.7312183,
+          -20.0916176,
+          0.0
+        ],
+        "Max": [
+          -17.9038677,
+          -16.584301,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    },
+    {
+      "Id": "384978",
+      "Name": "FGStructure01",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "-192054",
+        "Position": [
+          -12.565094,
+          -9.468674,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          -6.764,
+          -0.559997559,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          4.0,
+          4.0,
+          1.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": {
+        "Enabled": true,
+        "Min": [
+          -12.7185163,
+          -10.2141743,
+          0.0
+        ],
+        "Max": [
+          -12.4267721,
+          -8.6936245,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    },
+    {
+      "Id": "382732",
+      "Name": "FGStructure06",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "-192054",
+        "Position": [
+          -10.6985931,
+          -10.287178,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          -4.897499,
+          -1.37850189,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          4.0,
+          4.0,
+          1.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": {
+        "Enabled": true,
+        "Min": [
+          -11.8395653,
+          -11.3676977,
+          0.0
+        ],
+        "Max": [
+          -10.0787735,
+          -9.126401,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    },
+    {
+      "Id": "382844",
+      "Name": "FGStructure04",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "-192054",
+        "Position": [
+          -5.350006,
+          -8.26741,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          0.451087952,
+          0.641265869,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          4.0,
+          4.0,
+          1.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": {
+        "Enabled": true,
+        "Min": [
+          -5.9082427,
+          -10.017704,
+          0.0
+        ],
+        "Max": [
+          -5.0751586,
+          -6.499332,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    },
+    {
+      "Id": "384504",
+      "Name": "FGStructure07",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "-192054",
+        "Position": [
+          -2.94001,
+          -8.927406,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          2.861084,
+          -0.0187301636,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          4.0,
+          4.0,
+          1.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": {
+        "Enabled": true,
+        "Min": [
+          -3.498054,
+          -9.90564,
+          0.0
+        ],
+        "Max": [
+          -2.923863,
+          -7.94500351,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    },
+    {
+      "Id": "384210",
+      "Name": "FGStructure09",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "-192054",
+        "Position": [
+          -8.280006,
+          -7.3174057,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          -2.47891235,
+          1.59127045,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          4.0,
+          4.0,
+          1.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": {
+        "Enabled": true,
+        "Min": [
+          -10.017662,
+          -7.56943941,
+          0.0
+        ],
+        "Max": [
+          -7.434818,
+          -6.96312475,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    },
+    {
+      "Id": "384720",
+      "Name": "FGStructure02",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "-192054",
+        "Position": [
+          3.130005,
+          -19.5812759,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          8.931099,
+          -10.6726,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          4.0,
+          4.0,
+          1.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": {
+        "Enabled": true,
+        "Min": [
+          -4.38602638,
+          -17.4617462,
+          0.0
+        ],
+        "Max": [
+          10.5415945,
+          -12.3861027,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    },
+    {
+      "Id": "383326",
+      "Name": "FGStructure04 (1)",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "-192054",
+        "Position": [
+          -11.0500031,
+          -5.26741028,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          -5.248909,
+          3.64126587,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          4.0,
+          4.0,
+          1.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": {
+        "Enabled": true,
+        "Min": [
+          -11.6325245,
+          -7.0303545,
+          0.0
+        ],
+        "Max": [
+          -10.8051739,
+          -3.52303958,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    },
+    {
+      "Id": "382994",
+      "Name": "FGStructure09 (1)",
+      "IsStatic": false,
+      "IsActive": true,
+      "Transform": {
+        "Parent": "-192054",
+        "Position": [
+          -7.140007,
+          -13.6074066,
+          0.0
+        ],
+        "Rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalPosition": [
+          -1.338913,
+          -4.69873047,
+          0.0
+        ],
+        "LocalRotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "LocalScale": [
+          4.0,
+          4.0,
+          1.0
+        ]
+      },
+      "Renderer": null,
+      "Collider": {
+        "Enabled": true,
+        "Min": [
+          -8.871737,
+          -13.9004784,
+          0.0
+        ],
+        "Max": [
+          -6.30724335,
+          -13.2527313,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      "Light": null,
+      "ReflectionProbe": null,
+      "Terrain": null
+    }
+  ]

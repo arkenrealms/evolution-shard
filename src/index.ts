@@ -68,6 +68,7 @@ db.leaderboardHistory = jetpack.read(path.resolve('./public/data/leaderboardHist
 db.banList = jetpack.read(path.resolve('./public/data/banList.json'), 'json')
 db.reportList = jetpack.read(path.resolve('./public/data/reports.json'), 'json')
 db.playerRewards = jetpack.read(path.resolve('./public/data/playerRewards.json'), 'json')
+db.map = jetpack.read(path.resolve('./public/data/map.json'), 'json')
 
 const savePlayerRewards = () => {
   jetpack.write(path.resolve('./public/data/playerRewards.json'), JSON.stringify(db.playerRewards, null, 2))
@@ -1049,6 +1050,7 @@ io.on('connection', function(socket) {
       
           for (const item of data.value) {
             sharedConfig[item.key] = item.value
+            config[item.key] = item.value
         
             if (item.publish) {
               publishEvent(item.publish.eventName, ...item.publish.eventArgs)
@@ -1423,7 +1425,7 @@ let lastFastGameloopTime = Date.now()
 let lastFastestGameloopTime = Date.now()
 
 function resetLeaderboard() {
-  const fiveSecondsAgo = Math.round(Date.now() / 1000) - 5
+  const fiveSecondsAgo = Math.round(Date.now() / 1000) - 7
 
   const leaders = recentPlayers.filter(p => p.lastUpdate >= fiveSecondsAgo).sort((a, b) => b.points - a.points)
 
@@ -1596,21 +1598,35 @@ function detectCollisions() {
     //   player.log.resetPosition += 1
     // } else {
       // if (player.lastReportedTime > )
-      player.position = moveTowards(player.position, player.target, player.speed * deltaTime)
+      const position = moveTowards(player.position, player.target, player.speed * deltaTime)
 
-      if (player.position.x > mapBoundary.x.max) {
-        player.position.x = mapBoundary.x.max
+      if (position.x > mapBoundary.x.max) {
+        position.x = mapBoundary.x.max
       }
-      if (player.position.x < mapBoundary.x.min) {
-        player.position.x = mapBoundary.x.min
+      if (position.x < mapBoundary.x.min) {
+        position.x = mapBoundary.x.min
       }
-      if (player.position.y > mapBoundary.y.max) {
-        player.position.y = mapBoundary.y.max
+      if (position.y > mapBoundary.y.max) {
+        position.y = mapBoundary.y.max
       }
-      if (player.position.y < mapBoundary.y.min) {
-        player.position.y = mapBoundary.y.min
+      if (position.y < mapBoundary.y.min) {
+        position.y = mapBoundary.y.min
       }
-    // }
+
+      for (const gameObject of db.map) {
+        if (!gameObject.Collider) continue
+        
+        if (
+          position.x > gameObject.Collider.Min[0] &&
+          position.x < gameObject.Collider.Max[0] &&
+          position.y > gameObject.Collider.Min[1] &&
+          position.y < gameObject.Collider.Max[1]
+        ) {
+           continue
+        }
+      }
+
+      player.position = position
   }
 
   // Check players
