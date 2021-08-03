@@ -1282,12 +1282,14 @@ io.on('connection', function(socket) {
       currentPlayer.lastUpdate = Date.now()
 
       if (config.level2allowed) {
-        if (!config.level2open && clients.filter(c => !c.isSpectating && !c.isDead).length >= config.playersRequiredForLevel2) {
-          baseConfig.level2open = true
-          config.level2open = true
-          sharedConfig.spritesStartCount = 150
-          config.spritesStartCount = 150
-          publishEvent('OnOpenLevel2')
+        if (clients.filter(c => !c.isSpectating && !c.isDead).length >= config.playersRequiredForLevel2) {
+          if (!config.level2open) {
+            baseConfig.level2open = true
+            config.level2open = true
+            sharedConfig.spritesStartCount = 200
+            config.spritesStartCount = 200
+            publishEvent('OnOpenLevel2')
+          }
         } else {
           if (config.level2open) {
             baseConfig.level2open = false
