@@ -142,7 +142,7 @@ const baseConfig = {
   rebootSeconds: 12 * 60 * 60,
   startAvatar: 0,
   spriteXpMultiplier: 1,
-  forcedLatency: 40,
+  forcedLatency: 0,
   level2allowed: true,
   level2open: false,
   level3open: false,
