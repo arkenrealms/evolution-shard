@@ -47,7 +47,7 @@ process
   })
   .on("uncaughtException", (err) => {
     console.warn(err, "Uncaught Exception thrown");
-    logError(err + ". Uncaught Exception thrown");
+    logError(err + ". Uncaught Exception thrown" + err.stack);
     //process.exit(1);
   })
 
@@ -443,12 +443,12 @@ const spawnBoundary1 = {
 }
 
 const spawnBoundary2 = {
-  x: {min: -30, max: 0},
-  y: {min: -13, max: -4}
+  x: {min: -37, max: 0},
+  y: {min: -13, max: -2}
 }
 
 const mapBoundary = {
-  x: {min: -37, max: 2},
+  x: {min: -38, max: 2},
   y: {min: -20, max: 2}
 }
 
@@ -861,6 +861,7 @@ function removeOrb(id) {
 }
 
 function removeReward() {
+  if (!currentReward) return
   publishEvent('OnUpdateReward', 'null', currentReward.id)
   currentReward = undefined
 }
@@ -1281,20 +1282,22 @@ io.on('connection', function(socket) {
       currentPlayer.lastUpdate = Date.now()
 
       if (config.level2allowed) {
-        if (clients.filter(c => !c.isSpectating && !c.isDead).length >= config.playersRequiredForLevel2) {
+        if (!config.level2open && clients.filter(c => !c.isSpectating && !c.isDead).length >= config.playersRequiredForLevel2) {
           baseConfig.level2open = true
           config.level2open = true
-          sharedConfig.spritesStartCount = 100
-          config.spritesStartCount = 100
+          sharedConfig.spritesStartCount = 150
+          config.spritesStartCount = 150
           publishEvent('OnOpenLevel2')
         } else {
-          baseConfig.level2open = false
-          config.level2open = false
-          sharedConfig.spritesStartCount = 50
-          config.spritesStartCount = 50
-          publishEvent('OnCloseLevel2')
-
-          spawnRandomReward()
+          if (config.level2open) {
+            baseConfig.level2open = false
+            config.level2open = false
+            sharedConfig.spritesStartCount = 50
+            config.spritesStartCount = 50
+            publishEvent('OnCloseLevel2')
+  
+            spawnRandomReward()
+          }
         }
       }
 
@@ -1746,15 +1749,17 @@ function detectCollisions() {
           // console.log('intersect')
           collided = true
 
-          if (player.position.x <= collider.minX)
-            position.x = collider.minX
-          else if (player.position.x >= collider.maxX)
-            position.x = collider.maxX
+          position = player.position
 
-          if (player.position.y <= collider.minY)
-            position.y = collider.minY
-          else if (player.position.y >= collider.maxY)
-            position.y = collider.maxY
+          // if (player.position.x <= collider.minX)
+          //   position.x = collider.minX
+          // else if (player.position.x >= collider.maxX)
+          //   position.x = collider.maxX
+
+          // if (player.position.y <= collider.minY)
+          //   position.y = collider.minY
+          // else if (player.position.y >= collider.maxY)
+          //   position.y = collider.maxY
 
           break
         }
