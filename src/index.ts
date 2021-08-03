@@ -150,7 +150,7 @@ const baseConfig = {
   dynamicDecayPower: false,
   decayPowerPerMaxEvolvedPlayers: 0.2,
   pickupCheckPositionDistance: 1,
-  playersRequiredForLevel2: 1,
+  playersRequiredForLevel2: 10,
   antifeed2: true,
   antifeed3: true,
   antifeed4: true,
