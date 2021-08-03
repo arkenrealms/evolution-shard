@@ -47,7 +47,7 @@ process
   })
   .on("uncaughtException", (err) => {
     console.warn(err, "Uncaught Exception thrown");
-    logError(err + ". Uncaught Exception thrown");
+    logError(err + ". Uncaught Exception thrown" + err.stack);
     //process.exit(1);
   })
 
@@ -68,6 +68,8 @@ db.leaderboardHistory = jetpack.read(path.resolve('./public/data/leaderboardHist
 db.banList = jetpack.read(path.resolve('./public/data/banList.json'), 'json')
 db.reportList = jetpack.read(path.resolve('./public/data/reports.json'), 'json')
 db.playerRewards = jetpack.read(path.resolve('./public/data/playerRewards.json'), 'json')
+db.map = jetpack.read(path.resolve('./public/data/map.json'), 'json')
+db.log = jetpack.read(path.resolve('./public/data/log.json'), 'json')
 
 const savePlayerRewards = () => {
   jetpack.write(path.resolve('./public/data/playerRewards.json'), JSON.stringify(db.playerRewards, null, 2))
@@ -91,6 +93,10 @@ const saveBanList = () => {
 
 const saveReportList = () => {
   jetpack.write(path.resolve('./public/data/reports.json'), JSON.stringify(db.reportList, null, 2))
+}
+
+const saveLog = () => {
+  jetpack.write(path.resolve('./public/data/log.json'), JSON.stringify(db.log, null, 2))
 }
 
 function reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer) {
@@ -136,17 +142,23 @@ const baseConfig = {
   rebootSeconds: 12 * 60 * 60,
   startAvatar: 0,
   spriteXpMultiplier: 1,
+  forcedLatency: 40,
+  level2allowed: true,
+  level2open: false,
+  level3open: false,
+  hideMap: false,
   dynamicDecayPower: false,
   decayPowerPerMaxEvolvedPlayers: 0.2,
   pickupCheckPositionDistance: 1,
+  playersRequiredForLevel2: 1,
   antifeed2: true,
   antifeed3: true,
   antifeed4: true,
   avatarDirection: 1,
   calcRoundRewards: true,
-  rewardItemAmountPerLegitPlayer: 0.01,
+  rewardItemAmountPerLegitPlayer: 0.05 / 20,
   rewardItemAmountMax: 0.05,
-  rewardWinnerAmountPerLegitPlayer: 0.03,
+  rewardWinnerAmountPerLegitPlayer: 0.3 / 20,
   rewardWinnerAmountMax: 0.3,
   anticheat: {
     enabled: false,
@@ -172,14 +184,14 @@ const sharedConfig = {
   baseSpeed: 3,
   cameraSize: 3,
   checkConnectionLoopSeconds: 2,
-  checkInterval: 0.1,
-  checkPositionDistance: 0.2,
+  checkInterval: 1,
+  checkPositionDistance: 1,
   claimingRewards: false,
   decayPower: 1.4,
   disconnectPlayerSeconds: testMode ? 999 : 2 * 60,
   disconnectPositionJumps: true, // TODO: remove
   fastestLoopSeconds: 0.010,
-  fastLoopSeconds: 0.020,
+  fastLoopSeconds: 0.040,
   gameMode: 'Standard',
   immunitySeconds: 5,
   isMaintenance: false,
@@ -200,12 +212,12 @@ const sharedConfig = {
   powerupXp1: 4,
   powerupXp2: 8,
   powerupXp3: 16,
-  resetInterval: 1,
+  resetInterval: 5,
   rewardItemAmount: 0.01,
   rewardItemName: '?',
   rewardItemType: 0,
   rewardSpawnLoopSeconds: testMode ? 1 : 3 * 60 / 20,
-  rewardWinnerAmount: 0.03,
+  rewardWinnerAmount: 0.02,
   rewardWinnerName: 'ZOD',
   roundLoopSeconds: testMode ? 2 * 60 : 5 * 60,
   sendUpdateLoopSeconds: 2,
@@ -374,11 +386,12 @@ const presets = [
   {
     gameMode: 'Marco Polo',
     cameraSize: 2,
-    baseSpeed: 2,
+    baseSpeed: 3,
     decayPower: 1.4,
     avatarSpeedMultiplier0: 1,
     avatarSpeedMultiplier1: 1,
     avatarSpeedMultiplier2: 1,
+    hideMap: true
   },
   {
     gameMode: 'Dynamic Decay',
@@ -424,13 +437,18 @@ let round = {
   startedAt: Math.round(Date.now() / 1000)
 }
 
-const spawnBoundary = {
-  x: {min: -15, max: 0},
+const spawnBoundary1 = {
+  x: {min: -17, max: 0},
   y: {min: -13, max: -4}
 }
 
+const spawnBoundary2 = {
+  x: {min: -37, max: 0},
+  y: {min: -13, max: -2}
+}
+
 const mapBoundary = {
-  x: {min: -20, max: 2},
+  x: {min: -38, max: 2},
   y: {min: -20, max: 2}
 }
 
@@ -440,11 +458,35 @@ const rewardSpawnPoints = [
   {x: -3.130003, y: -7.537404},
   {x: -7.290003, y: -12.9074},
   {x: -16.09, y: -2.867404},
-  {x: -6.920003, y: -1.527404},
+  {x: -5.39, y: -3.76},
   {x: -7.28, y: -15.36},
   {x: -13.46, y: -13.92},
-  {x: -12.81, y: -7.99},
   {x: -12.66, y: -1.527404},
+]
+
+const rewardSpawnPoints2 = [
+  {x: -16.32, y: -15.7774},
+  {x: -9.420004, y: -6.517404},
+  {x: -3.130003, y: -7.537404},
+  {x: -7.290003, y: -12.9074},
+  {x: -16.09, y: -2.867404},
+  {x: -5.39, y: -3.76},
+  {x: -12.66, y: -1.527404},
+
+  {x: -24.21, y: -7.58},
+  {x: -30.62, y: -7.58},
+  {x: -30.8, y: -14.52},
+  {x: -20.04, y: -15.11},
+  {x: -29.21, y: -3.76},
+  {x: -18.16, y: 0.06},
+  {x: -22.98, y: -3.35},
+  {x: -25.92, y: -7.64},
+  {x: -20.1, y: -6.93},
+  {x: -26.74, y: 0},
+  {x: -32.74, y: -5.17},
+  {x: -25.74, y: -15.28},
+  {x: -22.62, y: -11.69},
+  {x: -26.44, y: -4.05},
 ]
 
 const playerSpawnPoints = [
@@ -540,7 +582,10 @@ const verifySignature = (signature, address) => {
 }
 
 const spawnRandomReward = () => {
-  if (currentReward) return
+  if (currentReward) {
+    removeReward()
+  }
+  // if (currentReward) return
 
   const odds = [
     'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
@@ -566,7 +611,7 @@ const spawnRandomReward = () => {
 
   currentReward = JSON.parse(JSON.stringify(reward))
   currentReward.id = shortId.generate()
-  currentReward.position = rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)]
+  currentReward.position = config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)]
   
   if (currentReward.type === 'rune') {
     sharedConfig.rewardItemType = 0
@@ -584,7 +629,7 @@ const spawnRandomReward = () => {
   publishEvent('OnSpawnReward', currentReward.id, config.rewardItemType, config.rewardItemName, config.rewardItemAmount, currentReward.position.x, currentReward.position.y)
 }
 
-function moveTowards(current, target, maxDistanceDelta)
+function moveVectorTowards(current, target, maxDistanceDelta)
  {
      const a = {
        x: target.x - current.x,
@@ -647,7 +692,7 @@ const claimReward = (currentPlayer) => {
 
   lastReward = currentReward
 
-  removeReward(currentReward.id)
+  currentReward = null
 }
 
 const random = (min, max) => {
@@ -815,12 +860,15 @@ function removeOrb(id) {
   }
 }
 
-function removeReward(id) {
+function removeReward() {
+  if (!currentReward) return
+  publishEvent('OnUpdateReward', 'null', currentReward.id)
   currentReward = undefined
 }
 
 function spawnSprites(amount) {
   for (let i = 0; i < amount; i++) {
+    const spawnBoundary = config.level2open ? spawnBoundary2 : spawnBoundary1
     const spawnX = randomPosition(spawnBoundary.x.min, spawnBoundary.x.max)
     const spawnY = randomPosition(spawnBoundary.y.min, spawnBoundary.y.max)
 
@@ -953,6 +1001,7 @@ io.on('connection', function(socket) {
       position: spawnPoint,
       target: spawnPoint,
       clientPosition: spawnPoint,
+      clientTarget: spawnPoint,
       rotation: null,
       xp: 50,
       latency: 0,
@@ -967,6 +1016,7 @@ io.on('connection', function(socket) {
       isDisconnected: false,
       isDead: true,
       isSpectating: false,
+      isStuck: false,
       overrideSpeed: null,
       overrideCameraSize: null,
       cameraSize: config.cameraSize,
@@ -1006,6 +1056,10 @@ io.on('connection', function(socket) {
     socket.on('Passthrough', function(msg) {
       const pack = decodePayload(msg)
       const data = JSON.parse(unescape(pack.data))
+
+      db.log.push(data)
+      saveLog()
+
       try {
         if (data.event === 'Ban') {
           if (!playerWhitelist.includes(currentPlayer?.name)) return
@@ -1046,9 +1100,11 @@ io.on('connection', function(socket) {
           if (!playerWhitelist.includes(currentPlayer?.name)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
           if (!verifySignature(data.signature, currentPlayer?.address)) return
-      
+
           for (const item of data.value) {
+            baseConfig[item.key] = item.value
             sharedConfig[item.key] = item.value
+            config[item.key] = item.value
         
             if (item.publish) {
               publishEvent(item.publish.eventName, ...item.publish.eventArgs)
@@ -1196,6 +1252,10 @@ io.on('connection', function(socket) {
 
       syncSprites()
 
+      if (config.hideMap) {
+        emitDirect(socket, 'OnHideMinimap')
+      }
+
       // spawn all connected clients for currentUser client 
       for (const client of clients) {
         if (client.id === currentPlayer.id) continue
@@ -1220,12 +1280,47 @@ io.on('connection', function(socket) {
       publishEvent('OnSpawnPlayer', currentPlayer.id, currentPlayer.name, currentPlayer.speed, currentPlayer.avatar, currentPlayer.position.x, currentPlayer.position.y, currentPlayer.position.x, currentPlayer.position.y)
 
       currentPlayer.lastUpdate = Date.now()
+
+      if (config.level2allowed) {
+        if (!config.level2open && clients.filter(c => !c.isSpectating && !c.isDead).length >= config.playersRequiredForLevel2) {
+          baseConfig.level2open = true
+          config.level2open = true
+          sharedConfig.spritesStartCount = 150
+          config.spritesStartCount = 150
+          publishEvent('OnOpenLevel2')
+        } else {
+          if (config.level2open) {
+            baseConfig.level2open = false
+            config.level2open = false
+            sharedConfig.spritesStartCount = 50
+            config.spritesStartCount = 50
+            publishEvent('OnCloseLevel2')
+  
+            spawnRandomReward()
+          }
+        }
+      }
+
+      // setTimeout(() => {
+      //   baseConfig.level2open = true
+      //   config.level2open = true
+      //   sharedConfig.spritesStartCount = 100
+      //   config.spritesStartCount = 100
+      //   publishEvent('OnOpenLevel2')
+      // }, 5 * 1000)
+      // setTimeout(() => {
+      //   publishEvent('OnCloseLevel2')
+      // }, 10 * 1000)
     })
 
     socket.on('UpdateMyself', function(msg) {
       if (currentPlayer.isDead) return
       if (currentPlayer.isSpectating) return
       if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) return
+
+      const now = Date.now()
+
+      if (now - currentPlayer.lastUpdate < config.forcedLatency) return
 
       const pack = decodePayload(msg)
 
@@ -1248,13 +1343,13 @@ io.on('connection', function(socket) {
       }
 
       currentPlayer.clientPosition = { x: positionX, y: positionY }
-      currentPlayer.target = { x: targetX, y: targetY }
+      currentPlayer.clientTarget = { x: targetX, y: targetY }
       currentPlayer.lastReportedTime = pack.time
 
       const cacheKey = Math.floor(pack.target.split(':')[0])
 
       if (eventCache['OnUpdateMyself'][socket.id] !== cacheKey) {
-        currentPlayer.lastUpdate = Math.round(Date.now() / 1000)
+        currentPlayer.lastUpdate = now
 
         // publishEvent('OnUpdateMyself', data.id, data.position, data.target)
         eventCache['OnUpdateMyself'][socket.id] = cacheKey
@@ -1423,7 +1518,7 @@ let lastFastGameloopTime = Date.now()
 let lastFastestGameloopTime = Date.now()
 
 function resetLeaderboard() {
-  const fiveSecondsAgo = Math.round(Date.now() / 1000) - 5
+  const fiveSecondsAgo = Math.round(Date.now() / 1000) - 7
 
   const leaders = recentPlayers.filter(p => p.lastUpdate >= fiveSecondsAgo).sort((a, b) => b.points - a.points)
 
@@ -1488,6 +1583,12 @@ function resetLeaderboard() {
   round.index++
 
   publishEvent('OnSetRoundInfo', config.roundLoopSeconds + ':' + getRoundInfo().join(':'))
+
+  if (config.hideMap) {
+    publishEvent('OnHideMinimap')
+  } else {
+    publishEvent('OnShowMinimap')
+  }
 
   if (config.periodicReboots && rebootAfterRound) {
     publishEvent('OnMaintenance', true)
@@ -1567,6 +1668,15 @@ function slowGameloop() {
   setTimeout(slowGameloop, config.slowLoopSeconds * 1000)
 }
 
+function castVectorTowards(position, target, scalar) {
+  const magnitude = Math.sqrt(position.x * position.x + position.y * position.y)
+
+  return {
+    x: position.x + (target.x - position.x) / magnitude * scalar,
+    y: position.y + (target.y - position.y) / magnitude * scalar
+  }
+}
+
 function detectCollisions() {
   const now = Date.now()
   const currentTime = Math.round(now / 1000)
@@ -1592,25 +1702,81 @@ function detectCollisions() {
 
     // if (distanceBetweenPoints(player.position, player.clientPosition) > config.checkPositionDistance) {
     //   // Do nothing for now
-    //   player.position = moveTowards(player.position, player.clientPosition, player.speed * deltaTime)
+    //   player.position = moveVectorTowards(player.position, player.clientPosition, player.speed * deltaTime)
     //   player.log.resetPosition += 1
     // } else {
       // if (player.lastReportedTime > )
-      player.position = moveTowards(player.position, player.target, player.speed * deltaTime)
+    let position = moveVectorTowards(player.position, player.clientTarget, player.speed * deltaTime)
+    // let target = castVectorTowards(position, player.clientTarget, 100)
 
-      if (player.position.x > mapBoundary.x.max) {
-        player.position.x = mapBoundary.x.max
+    if (position.x > mapBoundary.x.max) {
+      position.x = mapBoundary.x.max
+    }
+    if (position.x < mapBoundary.x.min) {
+      position.x = mapBoundary.x.min
+    }
+    if (position.y > mapBoundary.y.max) {
+      position.y = mapBoundary.y.max
+    }
+    if (position.y < mapBoundary.y.min) {
+      position.y = mapBoundary.y.min
+    }
+
+    let collided = false
+    for (const gameObject of db.map) {
+      if (!gameObject.Colliders || !gameObject.Colliders.length) continue
+
+      for (const gameCollider of gameObject.Colliders) {
+        const collider = {
+          minX: gameCollider.Min[0],
+          maxX: gameCollider.Max[0],
+          minY: gameCollider.Min[1],
+          maxY: gameCollider.Max[1]
+        }
+
+        if (config.level2open && gameObject.Name === 'Level2Divider') {
+          const diff = gameObject.Transform.LocalPosition[1] - -6
+          collider.minY -= diff
+          collider.maxY -= diff
+        }
+        
+        if (
+          position.x >= collider.minX &&
+          position.x <= collider.maxX &&
+          position.y >= collider.minY &&
+          position.y <= collider.maxY
+        ) {
+          // console.log('intersect')
+          collided = true
+
+          position = player.position
+
+          // if (player.position.x <= collider.minX)
+          //   position.x = collider.minX
+          // else if (player.position.x >= collider.maxX)
+          //   position.x = collider.maxX
+
+          // if (player.position.y <= collider.minY)
+          //   position.y = collider.minY
+          // else if (player.position.y >= collider.maxY)
+          //   position.y = collider.maxY
+
+          break
+        }
       }
-      if (player.position.x < mapBoundary.x.min) {
-        player.position.x = mapBoundary.x.min
-      }
-      if (player.position.y > mapBoundary.y.max) {
-        player.position.y = mapBoundary.y.max
-      }
-      if (player.position.y < mapBoundary.y.min) {
-        player.position.y = mapBoundary.y.min
-      }
-    // }
+
+      if (collided) break
+    }
+
+    if (collided) {
+      player.position = position
+      player.target = position
+      player.isStuck = true
+    } else {
+      player.position = position
+      player.target = castVectorTowards(position, player.clientTarget, 9999)
+      player.isStuck = false
+    }
   }
 
   // Check players
@@ -1637,7 +1803,7 @@ function detectCollisions() {
       if (distanceBetweenPoints(player1.position, player2.position) > distance) continue
 
       if (player2.avatar > player1.avatar) {
-        if (distanceBetweenPoints(player2.position, player2.clientPosition) > config.pickupCheckPositionDistance) continue
+        // if (distanceBetweenPoints(player2.position, player2.clientPosition) > config.pickupCheckPositionDistance) continue
         // playerDamageGiven[currentPlayer.id + pack.id] = now
         // // console.log('Player Damage Given', currentPlayer.id + pack.id)
         // if (playerDamageTaken[currentPlayer.id + pack.id] > now - 500) {
@@ -1645,7 +1811,7 @@ function detectCollisions() {
           break
         // }
       } else if (player1.avatar > player2.avatar) {
-        if (distanceBetweenPoints(player1.position, player1.clientPosition) > config.pickupCheckPositionDistance) continue
+        // if (distanceBetweenPoints(player1.position, player1.clientPosition) > config.pickupCheckPositionDistance) continue
         // playerDamageGiven[pack.id + currentPlayer.id] = now
         // // console.log('Player Damage Given', pack.id + currentPlayer.id)
         // if (playerDamageTaken[pack.id + currentPlayer.id] > now - 500) {
@@ -1664,7 +1830,7 @@ function detectCollisions() {
     if (player.isSpectating) continue
     // console.log(player.position, player.clientPosition, distanceBetweenPoints(player.position, player.clientPosition))
     // console.log(currentReward)
-    if (distanceBetweenPoints(player.position, player.clientPosition) > config.pickupCheckPositionDistance) continue
+    // if (distanceBetweenPoints(player.position, player.clientPosition) > config.pickupCheckPositionDistance) continue
 
     const touchDistance = config.pickupDistance + config['avatarTouchDistance' + player.avatar]
 
@@ -1708,6 +1874,7 @@ function detectCollisions() {
 
       for (const reward of rewards) {
         if (!reward) continue
+        // console.log(distanceBetweenPoints(player.position, reward.position), player.position, reward.position, touchDistance)
         if (distanceBetweenPoints(player.position, reward.position) > touchDistance) continue
   
         // player.rewards += 1
@@ -1838,7 +2005,7 @@ function fastGameloop() {
         client.latency = 0
       }
   
-      publishEvent('OnUpdatePlayer', client.id, client.speed, client.cameraSize, client.position.x, client.position.y, client.target.x, client.target.y, Math.floor(client.xp), now, Math.round(client.latency), isInvincible ? '1': '0')
+      publishEvent('OnUpdatePlayer', client.id, client.speed, client.cameraSize, client.position.x, client.position.y, client.target.x, client.target.y, Math.floor(client.xp), now, Math.round(client.latency), isInvincible ? '1': '0', client.isStuck ? '1' : '0')
 
       eventCache['OnUpdatePlayer'][client.id] = cacheKey
     }
