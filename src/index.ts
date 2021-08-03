@@ -27,7 +27,7 @@ const https = require('https').createServer({
   key: fs.readFileSync(path.resolve('./privkey.pem')),
   cert: fs.readFileSync(path.resolve('./fullchain.pem'))
 }, server)
-const io = require('socket.io')(process.env.OS_FLAVOUR === 'debian-10' ? https : http, { secure: process.env.OS_FLAVOUR === 'debian-10' ? true : false })
+const io = require('socket.io')(process.env.SUDO_USER === 'dev' ? https : http, { secure: process.env.SUDO_USER === 'dev' ? true : false })
 const shortId = require('shortid')
 
 function logError(err) {
@@ -142,7 +142,7 @@ const baseConfig = {
   rebootSeconds: 12 * 60 * 60,
   startAvatar: 0,
   spriteXpMultiplier: 1,
-  forcedLatency: 40,
+  forcedLatency: 0,
   level2allowed: true,
   level2open: false,
   level3open: false,
@@ -1288,14 +1288,20 @@ io.on('connection', function(socket) {
             config.level2open = true
             sharedConfig.spritesStartCount = 200
             config.spritesStartCount = 200
+            clearSprites()
+            spawnSprites(config.spritesStartCount)
             publishEvent('OnOpenLevel2')
           }
-        } else {
+        }
+
+        if (clients.filter(c => !c.isSpectating && !c.isDead).length <= config.playersRequiredForLevel2 / 2) {
           if (config.level2open) {
             baseConfig.level2open = false
             config.level2open = false
             sharedConfig.spritesStartCount = 50
             config.spritesStartCount = 50
+            clearSprites()
+            spawnSprites(config.spritesStartCount)
             publishEvent('OnCloseLevel2')
   
             spawnRandomReward()
@@ -2199,7 +2205,7 @@ const initRoutes = async () => {
     server.get('/readiness_check', (req, res) => res.sendStatus(200))
     server.get('/liveness_check', (req, res) => res.sendStatus(200))
 
-    server.get('/.well-known/acme-challenge/IpE7Wudo8zcwhUQAVTTQI5Q2PZnNpDxHqrbHv6YpViU', (req, res) => res.end('IpE7Wudo8zcwhUQAVTTQI5Q2PZnNpDxHqrbHv6YpViU.fcYU-mWE8wVQg6Ph1RWDiR6YLNjWHUyAYqRzVfXa118'))
+    server.get('/.well-known/acme-challenge/L2DCvQWqz3ZgHwgAG_u1CjJs8YVsdTExWi08JtCsj0I', (req, res) => res.end('L2DCvQWqz3ZgHwgAG_u1CjJs8YVsdTExWi08JtCsj0I.rf1Z-ViQiJBjN-_x-EzQlmFjnB7obDoQD_BId0Z24Oc'))
   } catch(e) {
     logError(e)
   }
@@ -2257,7 +2263,7 @@ const init = async () => {
       log(`:: Backend ready and listening on *: ${port}`)
     })
 
-    const port = process.env.PORT || 80
+    const port = process.env.PORT || 3001
 
     http.listen(port, function() {
       log(`:: Backend ready and listening on *: ${port}`)
