@@ -2218,7 +2218,7 @@ const initRoutes = async () => {
     server.get('/readiness_check', (req, res) => res.sendStatus(200))
     server.get('/liveness_check', (req, res) => res.sendStatus(200))
 
-    server.get('/.well-known/acme-challenge/L2DCvQWqz3ZgHwgAG_u1CjJs8YVsdTExWi08JtCsj0I', (req, res) => res.end('L2DCvQWqz3ZgHwgAG_u1CjJs8YVsdTExWi08JtCsj0I.rf1Z-ViQiJBjN-_x-EzQlmFjnB7obDoQD_BId0Z24Oc'))
+    server.get('/.well-known/acme-challenge/AgmZ-rPj1MqntMats3dgWiVJprL3QREFKI9zUX2_Qfw', (req, res) => res.end('AgmZ-rPj1MqntMats3dgWiVJprL3QREFKI9zUX2_Qfw.vuboczA32qq2liEOxQ8-eyB18eE2jCWY64W5dIEm4S8'))
   } catch(e) {
     logError(e)
   }
