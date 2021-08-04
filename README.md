@@ -12,9 +12,7 @@ cat ~/.ssh/id_ed25519.pub
 sudo apt update
 curl -sL https://deb.nodesource.com/setup_14.x | sudo bash -
 sudo apt -y install nodejs
-npm install forever -g
 sudo npm install forever -g
-sudo apt-get git
 sudo apt-get install git
 git clone git@github.com:RuneFarm/rune-evolution-game-server.git
 cd rune-evolution-game-server/

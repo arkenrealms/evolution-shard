@@ -27,7 +27,7 @@ const https = require('https').createServer({
   key: fs.readFileSync(path.resolve('./privkey.pem')),
   cert: fs.readFileSync(path.resolve('./fullchain.pem'))
 }, server)
-const io = require('socket.io')(process.env.OS_FLAVOUR === 'debian-10' ? https : http, { secure: process.env.OS_FLAVOUR === 'debian-10' ? true : false })
+const io = require('socket.io')(process.env.SUDO_USER === 'dev' ? https : http, { secure: process.env.SUDO_USER === 'dev' ? true : false })
 const shortId = require('shortid')
 
 function logError(err) {
@@ -142,7 +142,7 @@ const baseConfig = {
   rebootSeconds: 12 * 60 * 60,
   startAvatar: 0,
   spriteXpMultiplier: 1,
-  forcedLatency: 40,
+  forcedLatency: 0,
   level2allowed: true,
   level2open: false,
   level3open: false,
@@ -583,7 +583,7 @@ const verifySignature = (signature, address) => {
 
 const spawnRandomReward = () => {
   if (currentReward) {
-    removeReward()
+    return
   }
   // if (currentReward) return
 
@@ -627,25 +627,33 @@ const spawnRandomReward = () => {
   }
 
   publishEvent('OnSpawnReward', currentReward.id, config.rewardItemType, config.rewardItemName, config.rewardItemAmount, currentReward.position.x, currentReward.position.y)
+
+  const tempReward = JSON.parse(JSON.stringify(currentReward))
+
+  setTimeout(() => {
+    if (currentReward.id === tempReward.id) {
+      removeReward()
+    }
+  }, 30 * 1000)
 }
 
 function moveVectorTowards(current, target, maxDistanceDelta)
- {
-     const a = {
-       x: target.x - current.x,
-       y: target.y - current.y
-     }
+{
+  const a = {
+    x: target.x - current.x,
+    y: target.y - current.y
+  }
 
-     const magnitude = Math.sqrt(a.x * a.x + a.y * a.y)
+  const magnitude = Math.sqrt(a.x * a.x + a.y * a.y)
 
-     if (magnitude <= maxDistanceDelta || magnitude == 0)
-         return target
+  if (magnitude <= maxDistanceDelta || magnitude == 0)
+      return target
 
-     return {
-       x: current.x + a.x / magnitude * maxDistanceDelta,
-       y: current.y + a.y / magnitude * maxDistanceDelta
-     }
- }
+  return {
+    x: current.x + a.x / magnitude * maxDistanceDelta,
+    y: current.y + a.y / magnitude * maxDistanceDelta
+  }
+}
 
 const claimReward = (currentPlayer) => {
   if (!currentReward) return
@@ -1057,7 +1065,12 @@ io.on('connection', function(socket) {
       const pack = decodePayload(msg)
       const data = JSON.parse(unescape(pack.data))
 
-      db.log.push(data)
+      db.log.push({
+        event: data.event,
+        value: data.value,
+        caller: currentPlayer?.address
+      })
+
       saveLog()
 
       try {
@@ -1102,8 +1115,12 @@ io.on('connection', function(socket) {
           if (!verifySignature(data.signature, currentPlayer?.address)) return
 
           for (const item of data.value) {
-            baseConfig[item.key] = item.value
-            sharedConfig[item.key] = item.value
+            if (item.key in baseConfig)
+              baseConfig[item.key] = item.value
+
+            if (item.key in sharedConfig)
+              sharedConfig[item.key] = item.value
+            
             config[item.key] = item.value
         
             if (item.publish) {
@@ -1256,6 +1273,10 @@ io.on('connection', function(socket) {
         emitDirect(socket, 'OnHideMinimap')
       }
 
+      if (config.level2open) {
+        emitDirect(socket, 'OnOpenLevel2')
+      }
+
       // spawn all connected clients for currentUser client 
       for (const client of clients) {
         if (client.id === currentPlayer.id) continue
@@ -1288,14 +1309,20 @@ io.on('connection', function(socket) {
             config.level2open = true
             sharedConfig.spritesStartCount = 200
             config.spritesStartCount = 200
+            clearSprites()
+            spawnSprites(config.spritesStartCount)
             publishEvent('OnOpenLevel2')
           }
-        } else {
+        }
+
+        if (clients.filter(c => !c.isSpectating && !c.isDead).length <= config.playersRequiredForLevel2 / 2) {
           if (config.level2open) {
             baseConfig.level2open = false
             config.level2open = false
             sharedConfig.spritesStartCount = 50
             config.spritesStartCount = 50
+            clearSprites()
+            spawnSprites(config.spritesStartCount)
             publishEvent('OnCloseLevel2')
   
             spawnRandomReward()
@@ -2199,7 +2226,7 @@ const initRoutes = async () => {
     server.get('/readiness_check', (req, res) => res.sendStatus(200))
     server.get('/liveness_check', (req, res) => res.sendStatus(200))
 
-    server.get('/.well-known/acme-challenge/L2DCvQWqz3ZgHwgAG_u1CjJs8YVsdTExWi08JtCsj0I', (req, res) => res.end('L2DCvQWqz3ZgHwgAG_u1CjJs8YVsdTExWi08JtCsj0I.rf1Z-ViQiJBjN-_x-EzQlmFjnB7obDoQD_BId0Z24Oc'))
+    server.get('/.well-known/acme-challenge/NW4Ovw51TdWy1JRTrh_svmnhzXG4hXEgmrfSE3uj9jc', (req, res) => res.end('NW4Ovw51TdWy1JRTrh_svmnhzXG4hXEgmrfSE3uj9jc.Dmhxne0Qg5j2fNLdYILIjaj_IUpLo7IZxj_AMUtU4k8'))
   } catch(e) {
     logError(e)
   }
@@ -2257,7 +2284,7 @@ const init = async () => {
       log(`:: Backend ready and listening on *: ${port}`)
     })
 
-    const port = process.env.PORT || 80
+    const port = process.env.PORT || 3001
 
     http.listen(port, function() {
       log(`:: Backend ready and listening on *: ${port}`)
