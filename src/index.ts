@@ -631,7 +631,7 @@ const spawnRandomReward = () => {
   const tempReward = JSON.parse(JSON.stringify(currentReward))
 
   setTimeout(() => {
-    if (currentReward.id === tempReward.id) {
+    if (currentReward?.id === tempReward?.id) {
       removeReward()
     }
   }, 30 * 1000)
@@ -1778,17 +1778,17 @@ function detectCollisions() {
           // console.log('intersect')
           collided = true
 
-          position = player.position
+          // position = player.position
 
-          // if (player.position.x <= collider.minX)
-          //   position.x = collider.minX
-          // else if (player.position.x >= collider.maxX)
-          //   position.x = collider.maxX
+          if (player.position.x <= collider.minX)
+            position.x = collider.minX
+          else if (player.position.x >= collider.maxX)
+            position.x = collider.maxX
 
-          // if (player.position.y <= collider.minY)
-          //   position.y = collider.minY
-          // else if (player.position.y >= collider.maxY)
-          //   position.y = collider.maxY
+          if (player.position.y <= collider.minY)
+            position.y = collider.minY
+          else if (player.position.y >= collider.maxY)
+            position.y = collider.maxY
 
           break
         }
@@ -1800,7 +1800,7 @@ function detectCollisions() {
     if (collided) {
       player.position = position
       player.target = position
-      player.isStuck = true
+      player.isStuck = false
     } else {
       player.position = position
       player.target = castVectorTowards(position, player.clientTarget, 9999)
