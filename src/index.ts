@@ -71,6 +71,8 @@ db.playerRewards = jetpack.read(path.resolve('./public/data/playerRewards.json')
 db.map = jetpack.read(path.resolve('./public/data/map.json'), 'json')
 db.log = jetpack.read(path.resolve('./public/data/log.json'), 'json')
 
+
+
 const savePlayerRewards = () => {
   jetpack.write(path.resolve('./public/data/playerRewards.json'), JSON.stringify(db.playerRewards, null, 2))
 }
@@ -631,7 +633,8 @@ const spawnRandomReward = () => {
   const tempReward = JSON.parse(JSON.stringify(currentReward))
 
   setTimeout(() => {
-    if (currentReward?.id === tempReward?.id) {
+    if (!currentReward) return
+    if (currentReward.id === tempReward.id) {
       removeReward()
     }
   }, 30 * 1000)
@@ -676,17 +679,14 @@ const claimReward = (currentPlayer) => {
         // }
 
         db.rewards.items = db.rewards.items.filter(i => i.tokenId !== currentReward.tokenId)
-        saveRewards()
       } else if (currentReward.type === 'rune') {
         if (!db.playerRewards[currentPlayer.address]) db.playerRewards[currentPlayer.address] = {}
         if (!db.playerRewards[currentPlayer.address].pending) db.playerRewards[currentPlayer.address].pending = {}
         if (!db.playerRewards[currentPlayer.address].pending[currentReward.symbol]) db.playerRewards[currentPlayer.address].pending[currentReward.symbol] = 0
 
         db.playerRewards[currentPlayer.address].pending[currentReward.symbol] = Math.round((db.playerRewards[currentPlayer.address].pending[currentReward.symbol] + config.rewardItemAmount) * 100) / 100
-        savePlayerRewards()
         
         db.rewards.runes.find(r => r.symbol === currentReward.symbol).quantity -= config.rewardItemAmount
-        saveRewards()
       }
     }
   } catch(e) {
@@ -1558,6 +1558,8 @@ function resetLeaderboard() {
   db.leaderboardHistory.push(JSON.parse(JSON.stringify(recentPlayers)))
 
   saveLeaderboardHistory()
+  savePlayerRewards()
+  saveRewards()
 
   if (config.calcRoundRewards) {
     calcRoundRewards()
@@ -1757,10 +1759,10 @@ function detectCollisions() {
 
       for (const gameCollider of gameObject.Colliders) {
         const collider = {
-          minX: gameCollider.Min[0],
-          maxX: gameCollider.Max[0],
-          minY: gameCollider.Min[1],
-          maxY: gameCollider.Max[1]
+          minX: gameCollider.Min[0] + (gameCollider.Max[0] - gameCollider.Min[0]) * 0.1,
+          maxX: gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * 0.9,
+          minY: gameCollider.Min[1] + (gameCollider.Max[1] - gameCollider.Min[1]) * 0.1,
+          maxY: gameCollider.Max[1] - (gameCollider.Max[1] - gameCollider.Min[1]) * 0.9
         }
 
         if (config.level2open && gameObject.Name === 'Level2Divider') {
@@ -1778,17 +1780,17 @@ function detectCollisions() {
           // console.log('intersect')
           collided = true
 
-          // position = player.position
+          position = player.position
 
-          if (player.position.x <= collider.minX)
-            position.x = collider.minX
-          else if (player.position.x >= collider.maxX)
-            position.x = collider.maxX
+          // if (player.position.x <= collider.minX)
+          //   position.x = collider.minX
+          // else if (player.position.x >= collider.maxX)
+          //   position.x = collider.maxX
 
-          if (player.position.y <= collider.minY)
-            position.y = collider.minY
-          else if (player.position.y >= collider.maxY)
-            position.y = collider.maxY
+          // if (player.position.y <= collider.minY)
+          //   position.y = collider.minY
+          // else if (player.position.y >= collider.maxY)
+          //   position.y = collider.maxY
 
           break
         }
@@ -1800,10 +1802,10 @@ function detectCollisions() {
     if (collided) {
       player.position = position
       player.target = position
-      player.isStuck = false
+      player.isStuck = true
     } else {
       player.position = position
-      player.target = castVectorTowards(position, player.clientTarget, 9999)
+      player.target = player.clientTarget //castVectorTowards(position, player.clientTarget, 9999)
       player.isStuck = false
     }
   }
