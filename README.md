@@ -25,3 +25,5 @@ sudo cat /etc/letsencrypt/live/na1.runeevolution.com/privkey.pem
 git pull
 yarn build
 nohup forever start forever-config.json &
+
+sudo nohup node --max_semi_space_size=30000 --max-old-space-size=30000 --initial-old-space-size=8000 --optimize-for-size --experimental-modules --experimental-json-modules  build/index.js &
