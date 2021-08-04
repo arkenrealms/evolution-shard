@@ -190,8 +190,8 @@ const sharedConfig = {
   decayPower: 1.4,
   disconnectPlayerSeconds: testMode ? 999 : 2 * 60,
   disconnectPositionJumps: true, // TODO: remove
-  fastestLoopSeconds: 0.010,
-  fastLoopSeconds: 0.040,
+  fastestLoopSeconds: 0.002,
+  fastLoopSeconds: 0.010,
   gameMode: 'Standard',
   immunitySeconds: 5,
   isMaintenance: false,
@@ -1764,7 +1764,7 @@ function detectCollisions() {
         }
 
         if (config.level2open && gameObject.Name === 'Level2Divider') {
-          const diff = gameObject.Transform.LocalPosition[1] - -6
+          const diff = gameObject.Transform.LocalPosition[1] - -16
           collider.minY -= diff
           collider.maxY -= diff
         }
