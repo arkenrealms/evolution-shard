@@ -13,5 +13,5 @@
     "logFile": "./forever-script-log.log",
     "outFile": "./forever-script-out.log",
     "errFile": "./forever-script-err.log",
-    "args": []
+    "args": ["USE_SSL=true", "PORT=80"]
   }
