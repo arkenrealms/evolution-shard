@@ -1737,7 +1737,7 @@ function detectCollisions() {
     //   player.log.resetPosition += 1
     // } else {
       // if (player.lastReportedTime > )
-    let position = moveVectorTowards(player.position, castVectorTowards(player.position, player.clientTarget, 9999), player.speed * deltaTime)
+    let position = moveVectorTowards(player.position, player.clientTarget, player.speed * deltaTime) // castVectorTowards(player.position, player.clientTarget, 9999)
     // let target = castVectorTowards(position, player.clientTarget, 100)
 
     if (position.x > mapBoundary.x.max) {
