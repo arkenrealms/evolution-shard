@@ -1057,7 +1057,12 @@ io.on('connection', function(socket) {
       const pack = decodePayload(msg)
       const data = JSON.parse(unescape(pack.data))
 
-      db.log.push(data)
+      db.log.push({
+        event: data.event,
+        value: data.value,
+        caller: currentPlayer?.address
+      })
+
       saveLog()
 
       try {
@@ -1102,8 +1107,12 @@ io.on('connection', function(socket) {
           if (!verifySignature(data.signature, currentPlayer?.address)) return
 
           for (const item of data.value) {
-            baseConfig[item.key] = item.value
-            sharedConfig[item.key] = item.value
+            if (item.key in baseConfig)
+              baseConfig[item.key] = item.value
+
+            if (item.key in sharedConfig)
+              sharedConfig[item.key] = item.value
+            
             config[item.key] = item.value
         
             if (item.publish) {
@@ -1254,6 +1263,10 @@ io.on('connection', function(socket) {
 
       if (config.hideMap) {
         emitDirect(socket, 'OnHideMinimap')
+      }
+
+      if (config.level2open) {
+        emitDirect(socket, 'OnOpenLevel2')
       }
 
       // spawn all connected clients for currentUser client 
