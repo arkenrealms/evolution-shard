@@ -27,7 +27,7 @@ const https = require('https').createServer({
   key: fs.readFileSync(path.resolve('./privkey.pem')),
   cert: fs.readFileSync(path.resolve('./fullchain.pem'))
 }, server)
-const io = require('socket.io')(process.env.OS_FLAVOUR === 'debian-10' ? https : http, { secure: process.env.OS_FLAVOUR === 'debian-10' ? true : false })
+const io = require('socket.io')(process.env.SUDO_USER === 'dev' ? https : http, { secure: process.env.SUDO_USER === 'dev' ? true : false })
 const shortId = require('shortid')
 
 function logError(err) {
@@ -1057,7 +1057,12 @@ io.on('connection', function(socket) {
       const pack = decodePayload(msg)
       const data = JSON.parse(unescape(pack.data))
 
-      db.log.push(data)
+      db.log.push({
+        event: data.event,
+        value: data.value,
+        caller: currentPlayer?.address
+      })
+
       saveLog()
 
       try {
@@ -1102,8 +1107,12 @@ io.on('connection', function(socket) {
           if (!verifySignature(data.signature, currentPlayer?.address)) return
 
           for (const item of data.value) {
-            baseConfig[item.key] = item.value
-            sharedConfig[item.key] = item.value
+            if (item.key in baseConfig)
+              baseConfig[item.key] = item.value
+
+            if (item.key in sharedConfig)
+              sharedConfig[item.key] = item.value
+            
             config[item.key] = item.value
         
             if (item.publish) {
@@ -1256,6 +1265,10 @@ io.on('connection', function(socket) {
         emitDirect(socket, 'OnHideMinimap')
       }
 
+      if (config.level2open) {
+        emitDirect(socket, 'OnOpenLevel2')
+      }
+
       // spawn all connected clients for currentUser client 
       for (const client of clients) {
         if (client.id === currentPlayer.id) continue
@@ -1288,14 +1301,20 @@ io.on('connection', function(socket) {
             config.level2open = true
             sharedConfig.spritesStartCount = 200
             config.spritesStartCount = 200
+            clearSprites()
+            spawnSprites(config.spritesStartCount)
             publishEvent('OnOpenLevel2')
           }
-        } else {
+        }
+
+        if (clients.filter(c => !c.isSpectating && !c.isDead).length <= config.playersRequiredForLevel2 / 2) {
           if (config.level2open) {
             baseConfig.level2open = false
             config.level2open = false
             sharedConfig.spritesStartCount = 50
             config.spritesStartCount = 50
+            clearSprites()
+            spawnSprites(config.spritesStartCount)
             publishEvent('OnCloseLevel2')
   
             spawnRandomReward()
@@ -2257,7 +2276,7 @@ const init = async () => {
       log(`:: Backend ready and listening on *: ${port}`)
     })
 
-    const port = process.env.PORT || 80
+    const port = process.env.PORT || 3001
 
     http.listen(port, function() {
       log(`:: Backend ready and listening on *: ${port}`)
