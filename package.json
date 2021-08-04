@@ -64,7 +64,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "NODE_ENV=development yarn run nodemon",
-    "prod": "NODE_ENV=production yarn run nodemon",
+    "prod": "NODE_ENV=production yarn run nodemon --config nodemon.production.json",
     "build": "NODE_ENV=production tsc",
     "start": "NODE_ENV=production node build/index.js",
     "forever": "NODE_ENV=production yarn build && sudo nohup forever start forever-config.json &",
