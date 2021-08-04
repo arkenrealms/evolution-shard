@@ -27,7 +27,7 @@ const https = require('https').createServer({
   key: fs.readFileSync(path.resolve('./privkey.pem')),
   cert: fs.readFileSync(path.resolve('./fullchain.pem'))
 }, server)
-const io = require('socket.io')(process.env.SUDO_USER === 'dev' ? https : http, { secure: process.env.SUDO_USER === 'dev' ? true : false })
+const io = require('socket.io')(process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10' ? https : http, { secure: process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10' ? true : false })
 const shortId = require('shortid')
 
 function logError(err) {
@@ -583,7 +583,7 @@ const verifySignature = (signature, address) => {
 
 const spawnRandomReward = () => {
   if (currentReward) {
-    removeReward()
+    return
   }
   // if (currentReward) return
 
@@ -627,25 +627,33 @@ const spawnRandomReward = () => {
   }
 
   publishEvent('OnSpawnReward', currentReward.id, config.rewardItemType, config.rewardItemName, config.rewardItemAmount, currentReward.position.x, currentReward.position.y)
+
+  const tempReward = JSON.parse(JSON.stringify(currentReward))
+
+  setTimeout(() => {
+    if (currentReward.id === tempReward.id) {
+      removeReward()
+    }
+  }, 30 * 1000)
 }
 
 function moveVectorTowards(current, target, maxDistanceDelta)
- {
-     const a = {
-       x: target.x - current.x,
-       y: target.y - current.y
-     }
+{
+  const a = {
+    x: target.x - current.x,
+    y: target.y - current.y
+  }
 
-     const magnitude = Math.sqrt(a.x * a.x + a.y * a.y)
+  const magnitude = Math.sqrt(a.x * a.x + a.y * a.y)
 
-     if (magnitude <= maxDistanceDelta || magnitude == 0)
-         return target
+  if (magnitude <= maxDistanceDelta || magnitude == 0)
+      return target
 
-     return {
-       x: current.x + a.x / magnitude * maxDistanceDelta,
-       y: current.y + a.y / magnitude * maxDistanceDelta
-     }
- }
+  return {
+    x: current.x + a.x / magnitude * maxDistanceDelta,
+    y: current.y + a.y / magnitude * maxDistanceDelta
+  }
+}
 
 const claimReward = (currentPlayer) => {
   if (!currentReward) return
@@ -2218,7 +2226,7 @@ const initRoutes = async () => {
     server.get('/readiness_check', (req, res) => res.sendStatus(200))
     server.get('/liveness_check', (req, res) => res.sendStatus(200))
 
-    server.get('/.well-known/acme-challenge/L2DCvQWqz3ZgHwgAG_u1CjJs8YVsdTExWi08JtCsj0I', (req, res) => res.end('L2DCvQWqz3ZgHwgAG_u1CjJs8YVsdTExWi08JtCsj0I.rf1Z-ViQiJBjN-_x-EzQlmFjnB7obDoQD_BId0Z24Oc'))
+    server.get('/.well-known/acme-challenge/ritqU7wcC0hNTYshm8UTl1WG4AF9-TgG539zU6j_q44', (req, res) => res.end('ritqU7wcC0hNTYshm8UTl1WG4AF9-TgG539zU6j_q44.Dmhxne0Qg5j2fNLdYILIjaj_IUpLo7IZxj_AMUtU4k8'))
   } catch(e) {
     logError(e)
   }
@@ -2276,7 +2284,7 @@ const init = async () => {
       log(`:: Backend ready and listening on *: ${port}`)
     })
 
-    const port = process.env.PORT || 3001
+    const port = process.env.PORT || 80
 
     http.listen(port, function() {
       log(`:: Backend ready and listening on *: ${port}`)
