@@ -27,7 +27,7 @@ const https = require('https').createServer({
   key: fs.readFileSync(path.resolve('./privkey.pem')),
   cert: fs.readFileSync(path.resolve('./fullchain.pem'))
 }, server)
-const io = require('socket.io')(process.env.SUDO_USER === 'dev' ? https : http, { secure: process.env.SUDO_USER === 'dev' ? true : false })
+const io = require('socket.io')(process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10' ? https : http, { secure: process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10' ? true : false })
 const shortId = require('shortid')
 
 function logError(err) {
@@ -190,8 +190,8 @@ const sharedConfig = {
   decayPower: 1.4,
   disconnectPlayerSeconds: testMode ? 999 : 2 * 60,
   disconnectPositionJumps: true, // TODO: remove
-  fastestLoopSeconds: 0.010,
-  fastLoopSeconds: 0.040,
+  fastestLoopSeconds: 0.002,
+  fastLoopSeconds: 0.010,
   gameMode: 'Standard',
   immunitySeconds: 5,
   isMaintenance: false,
@@ -583,7 +583,7 @@ const verifySignature = (signature, address) => {
 
 const spawnRandomReward = () => {
   if (currentReward) {
-    removeReward()
+    return
   }
   // if (currentReward) return
 
@@ -627,25 +627,33 @@ const spawnRandomReward = () => {
   }
 
   publishEvent('OnSpawnReward', currentReward.id, config.rewardItemType, config.rewardItemName, config.rewardItemAmount, currentReward.position.x, currentReward.position.y)
+
+  const tempReward = JSON.parse(JSON.stringify(currentReward))
+
+  setTimeout(() => {
+    if (currentReward.id === tempReward.id) {
+      removeReward()
+    }
+  }, 30 * 1000)
 }
 
 function moveVectorTowards(current, target, maxDistanceDelta)
- {
-     const a = {
-       x: target.x - current.x,
-       y: target.y - current.y
-     }
+{
+  const a = {
+    x: target.x - current.x,
+    y: target.y - current.y
+  }
 
-     const magnitude = Math.sqrt(a.x * a.x + a.y * a.y)
+  const magnitude = Math.sqrt(a.x * a.x + a.y * a.y)
 
-     if (magnitude <= maxDistanceDelta || magnitude == 0)
-         return target
+  if (magnitude <= maxDistanceDelta || magnitude == 0)
+      return target
 
-     return {
-       x: current.x + a.x / magnitude * maxDistanceDelta,
-       y: current.y + a.y / magnitude * maxDistanceDelta
-     }
- }
+  return {
+    x: current.x + a.x / magnitude * maxDistanceDelta,
+    y: current.y + a.y / magnitude * maxDistanceDelta
+  }
+}
 
 const claimReward = (currentPlayer) => {
   if (!currentReward) return
@@ -1756,7 +1764,7 @@ function detectCollisions() {
         }
 
         if (config.level2open && gameObject.Name === 'Level2Divider') {
-          const diff = gameObject.Transform.LocalPosition[1] - -6
+          const diff = gameObject.Transform.LocalPosition[1] - -16
           collider.minY -= diff
           collider.maxY -= diff
         }
@@ -2218,7 +2226,7 @@ const initRoutes = async () => {
     server.get('/readiness_check', (req, res) => res.sendStatus(200))
     server.get('/liveness_check', (req, res) => res.sendStatus(200))
 
-    server.get('/.well-known/acme-challenge/p3fbcqweIMsYRVd9qE5uKHwWzrdlAN0ki986f5bKLHU', (req, res) => res.end('p3fbcqweIMsYRVd9qE5uKHwWzrdlAN0ki986f5bKLHU.vuboczA32qq2liEOxQ8-eyB18eE2jCWY64W5dIEm4S8'))
+    server.get('/.well-known/acme-challenge/xNd2ZGua1_JY3b_3GpNRxZK3ncvdEq6a_o_mjeHz5Ko', (req, res) => res.end('xNd2ZGua1_JY3b_3GpNRxZK3ncvdEq6a_o_mjeHz5Ko.goBuBv9Fq4boldGSrXrq0v1RkeNtYf9dxZgFLyzpNd'))
   } catch(e) {
     logError(e)
   }
@@ -2276,7 +2284,7 @@ const init = async () => {
       log(`:: Backend ready and listening on *: ${port}`)
     })
 
-    const port = process.env.PORT || 3001
+    const port = process.env.PORT || 80
 
     http.listen(port, function() {
       log(`:: Backend ready and listening on *: ${port}`)
