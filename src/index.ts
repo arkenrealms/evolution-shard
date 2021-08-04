@@ -186,7 +186,7 @@ const sharedConfig = {
   baseSpeed: 3,
   cameraSize: 3,
   checkConnectionLoopSeconds: 2,
-  checkInterval: 1,
+  checkInterval: 0,
   checkPositionDistance: 1,
   claimingRewards: false,
   decayPower: 1.4,
@@ -214,7 +214,7 @@ const sharedConfig = {
   powerupXp1: 4,
   powerupXp2: 8,
   powerupXp3: 16,
-  resetInterval: 5,
+  resetInterval: 0,
   rewardItemAmount: 0.01,
   rewardItemName: '?',
   rewardItemType: 0,
@@ -1737,7 +1737,7 @@ function detectCollisions() {
     //   player.log.resetPosition += 1
     // } else {
       // if (player.lastReportedTime > )
-    let position = moveVectorTowards(player.position, player.clientTarget, player.speed * deltaTime)
+    let position = moveVectorTowards(player.position, castVectorTowards(player.position, player.clientTarget, 9999), player.speed * deltaTime)
     // let target = castVectorTowards(position, player.clientTarget, 100)
 
     if (position.x > mapBoundary.x.max) {
@@ -1759,10 +1759,10 @@ function detectCollisions() {
 
       for (const gameCollider of gameObject.Colliders) {
         const collider = {
-          minX: gameCollider.Min[0] + (gameCollider.Max[0] - gameCollider.Min[0]) * 0.1,
-          maxX: gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * 0.9,
-          minY: gameCollider.Min[1] + (gameCollider.Max[1] - gameCollider.Min[1]) * 0.1,
-          maxY: gameCollider.Max[1] - (gameCollider.Max[1] - gameCollider.Min[1]) * 0.9
+          minX: gameCollider.Min[0] + (gameCollider.Max[0] - gameCollider.Min[0]) * 0.2,
+          maxX: gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * 0.2,
+          minY: gameCollider.Min[1] + (gameCollider.Max[1] - gameCollider.Min[1]) * 0.2,
+          maxY: gameCollider.Max[1] - (gameCollider.Max[1] - gameCollider.Min[1]) * 0.2
         }
 
         if (config.level2open && gameObject.Name === 'Level2Divider') {
@@ -1770,6 +1770,10 @@ function detectCollisions() {
           collider.minY -= diff
           collider.maxY -= diff
         }
+
+        // if (gameObject.Name === "FGStructure02 (11)") {
+        //   console.log(position, collider, gameCollider, (gameCollider.Max[0] - gameCollider.Min[0]), (gameCollider.Max[0] - gameCollider.Min[0]) * 0.9, gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * 0.9)
+        // }
         
         if (
           position.x >= collider.minX &&
@@ -1778,6 +1782,8 @@ function detectCollisions() {
           position.y <= collider.maxY
         ) {
           // console.log('intersect')
+          // console.log(position, gameObject.Name, collider, gameCollider, (gameCollider.Max[0] - gameCollider.Min[0]), (gameCollider.Max[0] - gameCollider.Min[0]) * 0.9, gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * 0.9)
+
           collided = true
 
           position = player.position
@@ -1801,8 +1807,8 @@ function detectCollisions() {
 
     if (collided) {
       player.position = position
-      player.target = position
-      player.isStuck = true
+      player.target = player.clientTarget
+      player.isStuck = false
     } else {
       player.position = position
       player.target = player.clientTarget //castVectorTowards(position, player.clientTarget, 9999)
