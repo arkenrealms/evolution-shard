@@ -631,7 +631,7 @@ const spawnRandomReward = () => {
   const tempReward = JSON.parse(JSON.stringify(currentReward))
 
   setTimeout(() => {
-    if (currentReward.id === tempReward.id) {
+    if (currentReward?.id === tempReward?.id) {
       removeReward()
     }
   }, 30 * 1000)
