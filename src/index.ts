@@ -1435,6 +1435,8 @@ io.on('connection', function(socket) {
       log("User has disconnected")
 
       disconnectPlayer(currentPlayer)
+
+      flushEventQueue()
     })
   } catch(e) {
     logError(e)
@@ -1657,7 +1659,7 @@ function checkConnectionLoop() {
       const client = clients[i]
 
       if (client.isSpectating) continue
-      if (client.isInvincible) continue
+      // if (client.isInvincible) continue
       // if (client.isDead) continue
 
       if (client.lastUpdate <= oneMinuteAgo) {
@@ -2092,12 +2094,7 @@ function fastGameloop() {
     // }
   }
 
-  if (eventQueue.length) {
-    log('Sending queue', eventQueue)
-    emitAll('Events', getPayload(eventQueue.map(e => `["${e[0]}","${e.slice(1).join(':')}"]`)))
-  
-    eventQueue = []
-  }
+  flushEventQueue()
 
   lastFastGameloopTime = now
 
@@ -2105,8 +2102,12 @@ function fastGameloop() {
 }
 
 function flushEventQueue() {
-
-  setTimeout(flushEventQueue, config.flushEventQueueSeconds * 1000)
+  if (eventQueue.length) {
+    log('Sending queue', eventQueue)
+    emitAll('Events', getPayload(eventQueue.map(e => `["${e[0]}","${e.slice(1).join(':')}"]`)))
+  
+    eventQueue = []
+  }
 }
 
 const initWebServer = async () => {
@@ -2312,7 +2313,7 @@ const initGameServer = async () => {
   setTimeout(checkConnectionLoop, config.checkConnectionLoopSeconds * 1000)
   setTimeout(resetLeaderboard, config.roundLoopSeconds * 1000)
   setTimeout(periodicReboot, config.rebootSeconds * 1000)
-  setTimeout(flushEventQueue, config.flushEventQueueSeconds * 1000)
+  // setTimeout(flushEventQueue, config.flushEventQueueSeconds * 1000)
 }
 
 const initServices = async () => {
