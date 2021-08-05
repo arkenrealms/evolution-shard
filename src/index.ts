@@ -255,15 +255,15 @@ let config = {
 
 const presets = [
   // Lazy Mode
-  {
-    gameMode: 'Lazy Mode',
-    avatarDecayPower0: 2,
-    avatarDecayPower1: 2.5,
-    avatarDecayPower2: 5,
-    avatarSpeedMultiplier0: 1,
-    avatarSpeedMultiplier1: 0.85,
-    avatarSpeedMultiplier2: 0.85,
-  },
+  // {
+  //   gameMode: 'Lazy Mode',
+  //   avatarDecayPower0: 2,
+  //   avatarDecayPower1: 2.5,
+  //   avatarDecayPower2: 5,
+  //   avatarSpeedMultiplier0: 1,
+  //   avatarSpeedMultiplier1: 0.85,
+  //   avatarSpeedMultiplier2: 0.85,
+  // },
   // Standard
   {
     gameMode: 'Standard',
@@ -340,10 +340,10 @@ const presets = [
     orbOnDeathPercent: 0,
   },
   // Lazy cap game
-  {
-    gameMode: 'Lazycap',
-    lazycap: true
-  },
+  // {
+  //   gameMode: 'Lazycap',
+  //   lazycap: true
+  // },
   // Fast Drake
   {
     gameMode: 'Fast Drake',
@@ -398,15 +398,15 @@ const presets = [
     avatarSpeedMultiplier2: 1,
     hideMap: true
   },
-  {
-    gameMode: 'Dynamic Decay',
-    pointsPerEvolve: 1,
-    pointsPerPowerup: 1,
-    pointsPerKill: 20,
-    pointsPerReward: 5,
-    dynamicDecayPower: true,
-    decayPowerPerMaxEvolvedPlayers: 1,
-  },
+  // {
+  //   gameMode: 'Dynamic Decay',
+  //   pointsPerEvolve: 1,
+  //   pointsPerPowerup: 1,
+  //   pointsPerKill: 20,
+  //   pointsPerReward: 5,
+  //   dynamicDecayPower: true,
+  //   decayPowerPerMaxEvolvedPlayers: 1,
+  // },
   // {
   //   gameMode: 'Collapse',
   //   fortnight: true
@@ -423,7 +423,7 @@ let roundConfig = {
 let announceReboot = false
 let rebootAfterRound = false
 let totalLegitPlayers = 0
-const debug = testMode
+const debug = !(process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10')
 const killSameNetworkClients = false
 const sockets = {} // to storage sockets
 const clientLookup = {}
@@ -923,9 +923,11 @@ function sha256(str) {
 }
 
 const registerKill = (winner, loser) => {
+  const now = Date.now()
+
   if (winner.isInvincible) return
   if (loser.isInvincible) return
-  if (winner.isPhased) return
+  if (winner.isPhased || now < winner.phasedUntil) return
 
   const currentRound = round.index
 
@@ -936,11 +938,7 @@ const registerKill = (winner, loser) => {
   const allowKill = !notReallyTrying && !tooManyKills && !killingThemselves
 
   if (!allowKill) {
-    loser.isPhased = true
-
-    setTimeout(() => {
-      loser.isPhased = false
-    }, 2 * 1000)
+    loser.phasedUntil = Date.now() + 2000
 
     return
   }
@@ -1039,7 +1037,7 @@ io.on('connection', function(socket) {
       lastReportedTime: Date.now(),
       lastUpdate: Date.now(),
       gameMode: config.gameMode,
-      invincibleUntil: Date.now(),
+      phasedUntil: Date.now(),
       log: {
         kills: [],
         deaths: [],
@@ -1742,7 +1740,7 @@ function detectCollisions() {
     }
 
     if (distanceBetweenPoints(player.position, player.clientPosition) > 2) {
-      player.invincibleUntil = Date.now() + 500
+      player.phasedUntil = Date.now() + 500
     }
 
     // if (distanceBetweenPoints(player.position, player.clientPosition) > config.checkPositionDistance) {
@@ -1845,15 +1843,14 @@ function detectCollisions() {
     if (collided) {
       player.position = position
       player.target = player.clientTarget
-      player.isPhased = true
+      player.phasedUntil = Date.now() + 500
       player.overrideSpeed = 0.5
     } else if (stuck) {
       player.target = player.clientTarget
-      player.isPhased = false
+      player.phasedUntil = Date.now() + 500
     } else {
       player.position = position
       player.target = player.clientTarget //castVectorTowards(position, player.clientTarget, 9999)
-      player.isPhased = false
       player.overrideSpeed = null
     }
   }
@@ -1861,14 +1858,14 @@ function detectCollisions() {
   // Check players
   for (let i = 0; i < clients.length; i++) {
     const player1 = clients[i]
-    const isPlayer1Invincible = player1.isInvincible ? true : ((player1.joinedAt >= currentTime - config.immunitySeconds) || now < player1.invincibleUntil)
+    const isPlayer1Invincible = player1.isInvincible ? true : ((player1.joinedAt >= currentTime - config.immunitySeconds))
     if (player1.isSpectating) continue
     if (player1.isDead) continue
     if (isPlayer1Invincible) continue
 
     for (let j = 0; j < clients.length; j++) {
       const player2 = clients[j]
-      const isPlayer2Invincible = player2.isInvincible ? true : ((player2.joinedAt >= currentTime - config.immunitySeconds) || now < player2.invincibleUntil)
+      const isPlayer2Invincible = player2.isInvincible ? true : ((player2.joinedAt >= currentTime - config.immunitySeconds))
 
       if (player1.id === player2.id) continue
       if (player2.isDead) continue
@@ -1908,6 +1905,7 @@ function detectCollisions() {
 
     if (player.isDead) continue
     if (player.isSpectating) continue
+    if (player.isPhased || now < player.phasedUntil) continue
     // console.log(player.position, player.clientPosition, distanceBetweenPoints(player.position, player.clientPosition))
     // console.log(currentReward)
     // if (distanceBetweenPoints(player.position, player.clientPosition) > config.pickupCheckPositionDistance) continue
@@ -1991,7 +1989,8 @@ function fastGameloop() {
     if (client.isSpectating) continue
 
     const currentTime = Math.round(now / 1000)
-    const isInvincible = client.isInvincible ? true : ((client.joinedAt >= currentTime - config.immunitySeconds) || now < client.invincibleUntil)
+    const isInvincible = client.isInvincible ? true : ((client.joinedAt >= currentTime - config.immunitySeconds))
+    const isPhased = client.isPhased ? true : now <= client.phasedUntil
 
     let decay = config.noDecay ? 0 : (client.avatar + 1) / (1 / config.fastLoopSeconds) * ((config['avatarDecayPower' + client.avatar] || 1) * config.decayPower)
 
@@ -2087,14 +2086,14 @@ function fastGameloop() {
         client.latency = 0
       }
   
-      publishEvent('OnUpdatePlayer', client.id, client.overrideSpeed || client.speed, client.cameraSize, client.position.x, client.position.y, client.target.x, client.target.y, Math.floor(client.xp), now, Math.round(client.latency), isInvincible ? '1': '0', client.isStuck ? '1' : '0', client.isPhased ? '1' : '0')
+      publishEvent('OnUpdatePlayer', client.id, client.overrideSpeed || client.speed, client.cameraSize, client.position.x, client.position.y, client.target.x, client.target.y, Math.floor(client.xp), now, Math.round(client.latency), isInvincible ? '1': '0', client.isStuck ? '1' : '0', isPhased && !isInvincible ? '1' : '0')
 
       // eventCache['OnUpdatePlayer'][client.id] = cacheKey
     // }
   }
 
   if (eventQueue.length) {
-    // log('Sending queue', eventQueue)
+    log('Sending queue', eventQueue)
     emitAll('Events', getPayload(eventQueue.map(e => `["${e[0]}","${e.slice(1).join(':')}"]`)))
   
     eventQueue = []
