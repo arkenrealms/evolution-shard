@@ -182,8 +182,8 @@ const sharedConfig = {
   avatarTouchDistance1: 0.3,
   avatarTouchDistance2: 0.35,
   avatarSpeedMultiplier0: 1,
-  avatarSpeedMultiplier1: 0.85,
-  avatarSpeedMultiplier2: 0.65,
+  avatarSpeedMultiplier1: 1,
+  avatarSpeedMultiplier2: 0.85,
   baseSpeed: 3,
   cameraSize: 3,
   checkConnectionLoopSeconds: 2,
@@ -925,21 +925,22 @@ function sha256(str) {
 const registerKill = (winner, loser) => {
   if (winner.isInvincible) return
   if (loser.isInvincible) return
+  if (winner.isPhased) return
 
   const currentRound = round.index
 
   const totalKills = winner.log.kills.filter(h => h === loser.hash).length
   const notReallyTrying = config.antifeed1 ? (totalKills >= 2 && loser.kills < 2 && loser.rewards <= 1) || (totalKills >= 2 && loser.kills < 2 && loser.powerups <= 100) : false
-  const tooManyKills = config.antifeed2 ? totalKills >= 2 && totalKills > winner.log.kills.length / clients.filter(c => !c.isDead).length : false
+  const tooManyKills = config.antifeed2 ? clients.length > 2 && totalKills >= 5 && totalKills > winner.log.kills.length / clients.filter(c => !c.isDead).length : false
   const killingThemselves = config.antifeed3 ? winner.hash === loser.hash : false
   const allowKill = !notReallyTrying && !tooManyKills && !killingThemselves
 
   if (!allowKill) {
-    loser.isInvincible = true
+    loser.isPhased = true
 
     setTimeout(() => {
-      loser.isInvincible = false
-    }, 10 * 1000)
+      loser.isPhased = false
+    }, 2 * 1000)
 
     return
   }
@@ -1028,6 +1029,7 @@ io.on('connection', function(socket) {
       isDead: true,
       isSpectating: false,
       isStuck: false,
+      isPhased: false,
       overrideSpeed: null,
       overrideCameraSize: null,
       cameraSize: config.cameraSize,
@@ -1771,11 +1773,22 @@ function detectCollisions() {
       if (!gameObject.Colliders || !gameObject.Colliders.length) continue
 
       for (const gameCollider of gameObject.Colliders) {
-        const collider = {
-          minX: gameCollider.Min[0] + (gameCollider.Max[0] - gameCollider.Min[0]) * 0.2,
-          maxX: gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * 0.2,
-          minY: gameCollider.Min[1] + (gameCollider.Max[1] - gameCollider.Min[1]) * 0.2,
-          maxY: gameCollider.Max[1] - (gameCollider.Max[1] - gameCollider.Min[1]) * 0.2
+        let collider
+        
+        if (gameObject.Name.indexOf('Island') !== -1) {
+          collider = {
+            minX: gameCollider.Min[0] + (gameCollider.Max[0] - gameCollider.Min[0]) * 0.2,
+            maxX: gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * 0.2,
+            minY: gameCollider.Min[1] + (gameCollider.Max[1] - gameCollider.Min[1]) * 0.2,
+            maxY: gameCollider.Max[1] - (gameCollider.Max[1] - gameCollider.Min[1]) * 0.2
+          }
+        } else {
+          collider = {
+            minX: gameCollider.Min[0],
+            maxX: gameCollider.Max[0],
+            minY: gameCollider.Min[1],
+            maxY: gameCollider.Max[1]
+          }
         }
 
         if (config.level2open && gameObject.Name === 'Level2Divider') {
@@ -1832,15 +1845,15 @@ function detectCollisions() {
     if (collided) {
       player.position = position
       player.target = player.clientTarget
-      player.isStuck = false
+      player.isPhased = true
       player.overrideSpeed = 0.5
     } else if (stuck) {
       player.target = player.clientTarget
-      player.isStuck = false
+      player.isPhased = false
     } else {
       player.position = position
       player.target = player.clientTarget //castVectorTowards(position, player.clientTarget, 9999)
-      player.isStuck = false
+      player.isPhased = false
       player.overrideSpeed = null
     }
   }
@@ -2074,7 +2087,7 @@ function fastGameloop() {
         client.latency = 0
       }
   
-      publishEvent('OnUpdatePlayer', client.id, client.overrideSpeed || client.speed, client.cameraSize, client.position.x, client.position.y, client.target.x, client.target.y, Math.floor(client.xp), now, Math.round(client.latency), isInvincible ? '1': '0', client.isStuck ? '1' : '0')
+      publishEvent('OnUpdatePlayer', client.id, client.overrideSpeed || client.speed, client.cameraSize, client.position.x, client.position.y, client.target.x, client.target.y, Math.floor(client.xp), now, Math.round(client.latency), isInvincible ? '1': '0', client.isStuck ? '1' : '0', client.isPhased ? '1' : '0')
 
       // eventCache['OnUpdatePlayer'][client.id] = cacheKey
     // }
