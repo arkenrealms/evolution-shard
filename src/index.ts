@@ -1229,7 +1229,7 @@ io.on('connection', function(socket) {
         disconnectPlayer(currentPlayer)
         return
       }
-
+console.log(currentPlayer, pack)
       if (currentPlayer.name !== pack.name || currentPlayer.address !== pack.address) {
         currentPlayer.name = pack.name
         currentPlayer.address = pack.address
