@@ -1255,7 +1255,7 @@ io.on('connection', function(socket) {
       // const pack = decodePayload(msg)
       const now = Date.now()
       const recentPlayer = recentPlayers.find(r => r.address === currentPlayer.address)
-
+      console.log(recentPlayer, now, recentPlayer.lastUpdate, now - recentPlayer.lastUpdate)
       if (recentPlayer !== undefined && now - recentPlayer.lastUpdate > 5000) {
         disconnectPlayer(currentPlayer)
         return
