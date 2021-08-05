@@ -112,7 +112,7 @@ function reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer) {
   
   saveReportList()
 
-  if (db.reportList[reportedPlayer.address].length >= 10) {
+  if (db.reportList[reportedPlayer.address].length >= 5) {
     db.banList.push(reportedPlayer.address)
 
     saveBanList()
@@ -121,7 +121,7 @@ function reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer) {
     return
   }
 
-  if (currentGamePlayers.length >= 4) {
+  if (currentGamePlayers.length >= 5) {
     const reportsFromCurrentGamePlayers = db.reportList[reportedPlayer.address].filter(function(n) {
       return currentGamePlayers.indexOf(n) !== -1;
     })
@@ -149,7 +149,7 @@ const baseConfig = {
   level2open: false,
   level3open: false,
   hideMap: false,
-  dynamicDecayPower: false,
+  dynamicDecayPower: true,
   decayPowerPerMaxEvolvedPlayers: 0.2,
   pickupCheckPositionDistance: 1,
   playersRequiredForLevel2: 15,
@@ -178,23 +178,23 @@ const sharedConfig = {
   avatarDecayPower0: 2,
   avatarDecayPower1: 2.5,
   avatarDecayPower2: 3,
-  avatarTouchDistance0: 0.2,
-  avatarTouchDistance1: 0.25,
-  avatarTouchDistance2: 0.3,
+  avatarTouchDistance0: 0.25,
+  avatarTouchDistance1: 0.3,
+  avatarTouchDistance2: 0.35,
   avatarSpeedMultiplier0: 1,
-  avatarSpeedMultiplier1: 0.85,
-  avatarSpeedMultiplier2: 0.65,
+  avatarSpeedMultiplier1: 1,
+  avatarSpeedMultiplier2: 0.85,
   baseSpeed: 3,
   cameraSize: 3,
   checkConnectionLoopSeconds: 2,
-  checkInterval: 0,
-  checkPositionDistance: 1,
+  checkInterval: 1,
+  checkPositionDistance: 2,
   claimingRewards: false,
   decayPower: 1.4,
   disconnectPlayerSeconds: testMode ? 999 : 2 * 60,
   disconnectPositionJumps: true, // TODO: remove
-  fastestLoopSeconds: 0.002,
-  fastLoopSeconds: 0.05,
+  fastestLoopSeconds: 0.02,
+  fastLoopSeconds: 0.02,
   gameMode: 'Standard',
   immunitySeconds: 5,
   isMaintenance: false,
@@ -215,7 +215,7 @@ const sharedConfig = {
   powerupXp1: 4,
   powerupXp2: 8,
   powerupXp3: 16,
-  resetInterval: 0,
+  resetInterval: 3.1,
   rewardItemAmount: 0.01,
   rewardItemName: '?',
   rewardItemType: 0,
@@ -255,15 +255,15 @@ let config = {
 
 const presets = [
   // Lazy Mode
-  {
-    gameMode: 'Lazy Mode',
-    avatarDecayPower0: 2,
-    avatarDecayPower1: 2.5,
-    avatarDecayPower2: 5,
-    avatarSpeedMultiplier0: 1,
-    avatarSpeedMultiplier1: 0.85,
-    avatarSpeedMultiplier2: 0.85,
-  },
+  // {
+  //   gameMode: 'Lazy Mode',
+  //   avatarDecayPower0: 2,
+  //   avatarDecayPower1: 2.5,
+  //   avatarDecayPower2: 5,
+  //   avatarSpeedMultiplier0: 1,
+  //   avatarSpeedMultiplier1: 0.85,
+  //   avatarSpeedMultiplier2: 0.85,
+  // },
   // Standard
   {
     gameMode: 'Standard',
@@ -340,10 +340,10 @@ const presets = [
     orbOnDeathPercent: 0,
   },
   // Lazy cap game
-  {
-    gameMode: 'Lazycap',
-    lazycap: true
-  },
+  // {
+  //   gameMode: 'Lazycap',
+  //   lazycap: true
+  // },
   // Fast Drake
   {
     gameMode: 'Fast Drake',
@@ -369,6 +369,7 @@ const presets = [
     antifeed2: false,
     pointsPerEvolve: 25,
     decayPower: -3,
+    dynamicDecayPower: false,
     avatarDecayPower0: 4,
     avatarDecayPower1: 3,
     avatarDecayPower2: 2,
@@ -380,6 +381,7 @@ const presets = [
     decayPower: -1,
     antifeed1: false,
     antifeed2: false,
+    dynamicDecayPower: false,
     avatarDecayPower0: 4,
     avatarDecayPower1: 3,
     avatarDecayPower2: 2,
@@ -396,15 +398,15 @@ const presets = [
     avatarSpeedMultiplier2: 1,
     hideMap: true
   },
-  {
-    gameMode: 'Dynamic Decay',
-    pointsPerEvolve: 1,
-    pointsPerPowerup: 1,
-    pointsPerKill: 20,
-    pointsPerReward: 5,
-    dynamicDecayPower: true,
-    decayPowerPerMaxEvolvedPlayers: 1,
-  },
+  // {
+  //   gameMode: 'Dynamic Decay',
+  //   pointsPerEvolve: 1,
+  //   pointsPerPowerup: 1,
+  //   pointsPerKill: 20,
+  //   pointsPerReward: 5,
+  //   dynamicDecayPower: true,
+  //   decayPowerPerMaxEvolvedPlayers: 1,
+  // },
   // {
   //   gameMode: 'Collapse',
   //   fortnight: true
@@ -421,7 +423,7 @@ let roundConfig = {
 let announceReboot = false
 let rebootAfterRound = false
 let totalLegitPlayers = 0
-const debug = testMode
+const debug = !(process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10')
 const killSameNetworkClients = false
 const sockets = {} // to storage sockets
 const clientLookup = {}
@@ -921,23 +923,22 @@ function sha256(str) {
 }
 
 const registerKill = (winner, loser) => {
+  const now = Date.now()
+
   if (winner.isInvincible) return
   if (loser.isInvincible) return
+  if (winner.isPhased || now < winner.phasedUntil) return
 
   const currentRound = round.index
 
   const totalKills = winner.log.kills.filter(h => h === loser.hash).length
   const notReallyTrying = config.antifeed1 ? (totalKills >= 2 && loser.kills < 2 && loser.rewards <= 1) || (totalKills >= 2 && loser.kills < 2 && loser.powerups <= 100) : false
-  const tooManyKills = config.antifeed2 ? totalKills >= 2 && totalKills > winner.log.kills.length / clients.filter(c => !c.isDead).length : false
+  const tooManyKills = config.antifeed2 ? clients.length > 2 && totalKills >= 5 && totalKills > winner.log.kills.length / clients.filter(c => !c.isDead).length : false
   const killingThemselves = config.antifeed3 ? winner.hash === loser.hash : false
   const allowKill = !notReallyTrying && !tooManyKills && !killingThemselves
 
   if (!allowKill) {
-    loser.isInvincible = true
-
-    setTimeout(() => {
-      loser.isInvincible = false
-    }, 10 * 1000)
+    loser.phasedUntil = Date.now() + 2000
 
     return
   }
@@ -1026,6 +1027,7 @@ io.on('connection', function(socket) {
       isDead: true,
       isSpectating: false,
       isStuck: false,
+      isPhased: false,
       overrideSpeed: null,
       overrideCameraSize: null,
       cameraSize: config.cameraSize,
@@ -1035,6 +1037,7 @@ io.on('connection', function(socket) {
       lastReportedTime: Date.now(),
       lastUpdate: Date.now(),
       gameMode: config.gameMode,
+      phasedUntil: Date.now(),
       log: {
         kills: [],
         deaths: [],
@@ -1083,6 +1086,10 @@ io.on('connection', function(socket) {
           const offender = data.value
       
           db.banList.push(offender)
+
+          if (clients.find(c => c.address === offender)) {
+            disconnectPlayer(clients.find(c => c.address === offender))
+          }
       
           saveBanList()
         } else if (data.event === 'Unban') {
@@ -1257,7 +1264,7 @@ io.on('connection', function(socket) {
       currentPlayer.isDead = false
       currentPlayer.avatar = config.startAvatar
       currentPlayer.joinedAt = Math.round(Date.now() / 1000)
-      currentPlayer.speed = currentPlayer.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + currentPlayer.avatar])
+      currentPlayer.speed = (config.baseSpeed * config['avatarSpeedMultiplier' + currentPlayer.avatar])
 
       log("[INFO] player " + currentPlayer.id + ": logged!")
 
@@ -1378,17 +1385,21 @@ io.on('connection', function(socket) {
 
       const cacheKey = Math.floor(pack.target.split(':')[0])
 
-      if (eventCache['OnUpdateMyself'][socket.id] !== cacheKey) {
+      // if (eventCache['OnUpdateMyself'][socket.id] !== cacheKey) {
         currentPlayer.lastUpdate = now
 
         // publishEvent('OnUpdateMyself', data.id, data.position, data.target)
-        eventCache['OnUpdateMyself'][socket.id] = cacheKey
-      }
+      //   eventCache['OnUpdateMyself'][socket.id] = cacheKey
+      // }
     })
 
     socket.on('Pickup', async function (msg) {
+      const now = Date.now()
+      const isPhased = currentPlayer.isPhased ? true : now <= currentPlayer.phasedUntil
+
       if (currentPlayer.isDead) return
       if (currentPlayer.isSpectating) return
+      if (isPhased) return
       if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) return
 
       const pack = decodePayload(msg)
@@ -1428,6 +1439,8 @@ io.on('connection', function(socket) {
       log("User has disconnected")
 
       disconnectPlayer(currentPlayer)
+
+      flushEventQueue()
     })
   } catch(e) {
     logError(e)
@@ -1536,8 +1549,8 @@ function calcRoundRewards() {
     }
   }
 
-  sharedConfig.rewardItemAmount = Math.min(totalLegitPlayers * config.rewardItemAmountPerLegitPlayer, config.rewardItemAmountMax)
-  sharedConfig.rewardWinnerAmount = Math.min(totalLegitPlayers * config.rewardWinnerAmountPerLegitPlayer, config.rewardWinnerAmountMax)
+  sharedConfig.rewardItemAmount = Math.round(Math.min(totalLegitPlayers * config.rewardItemAmountPerLegitPlayer, config.rewardItemAmountMax) * 1000) / 1000
+  sharedConfig.rewardWinnerAmount = Math.round(Math.min(totalLegitPlayers * config.rewardWinnerAmountPerLegitPlayer, config.rewardWinnerAmountMax) * 1000) / 1000
 
   config.rewardItemAmount = sharedConfig.rewardItemAmount
   config.rewardWinnerAmount = sharedConfig.rewardWinnerAmount
@@ -1580,7 +1593,7 @@ function resetLeaderboard() {
     client.avatar = config.startAvatar
     client.orbs = 0
     client.xp = 50
-    client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
+    client.speed = (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
     client.cameraSize = client.overrideCameraSize || config.cameraSize
     client.log = {
       kills: [],
@@ -1650,7 +1663,7 @@ function checkConnectionLoop() {
       const client = clients[i]
 
       if (client.isSpectating) continue
-      if (client.isInvincible) continue
+      // if (client.isInvincible) continue
       // if (client.isDead) continue
 
       if (client.lastUpdate <= oneMinuteAgo) {
@@ -1732,13 +1745,17 @@ function detectCollisions() {
       continue
     }
 
+    if (distanceBetweenPoints(player.position, player.clientPosition) > 2) {
+      player.phasedUntil = Date.now() + 500
+    }
+
     // if (distanceBetweenPoints(player.position, player.clientPosition) > config.checkPositionDistance) {
     //   // Do nothing for now
     //   player.position = moveVectorTowards(player.position, player.clientPosition, player.speed * deltaTime)
     //   player.log.resetPosition += 1
     // } else {
       // if (player.lastReportedTime > )
-    let position = moveVectorTowards(player.position, player.clientTarget, player.speed * deltaTime) // castVectorTowards(player.position, player.clientTarget, 9999)
+    let position = moveVectorTowards(player.position, player.clientTarget, (player.overrideSpeed || player.speed) * deltaTime) // castVectorTowards(player.position, player.clientTarget, 9999)
     // let target = castVectorTowards(position, player.clientTarget, 100)
 
     if (position.x > mapBoundary.x.max) {
@@ -1755,15 +1772,27 @@ function detectCollisions() {
     }
 
     let collided = false
+    let stuck = false
     for (const gameObject of db.map) {
       if (!gameObject.Colliders || !gameObject.Colliders.length) continue
 
       for (const gameCollider of gameObject.Colliders) {
-        const collider = {
-          minX: gameCollider.Min[0] + (gameCollider.Max[0] - gameCollider.Min[0]) * 0.2,
-          maxX: gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * 0.2,
-          minY: gameCollider.Min[1] + (gameCollider.Max[1] - gameCollider.Min[1]) * 0.2,
-          maxY: gameCollider.Max[1] - (gameCollider.Max[1] - gameCollider.Min[1]) * 0.2
+        let collider
+        
+        if (gameObject.Name.indexOf('Island') !== -1) {
+          collider = {
+            minX: gameCollider.Min[0] + (gameCollider.Max[0] - gameCollider.Min[0]) * 0.2,
+            maxX: gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * 0.2,
+            minY: gameCollider.Min[1] + (gameCollider.Max[1] - gameCollider.Min[1]) * 0.2,
+            maxY: gameCollider.Max[1] - (gameCollider.Max[1] - gameCollider.Min[1]) * 0.2
+          }
+        } else {
+          collider = {
+            minX: gameCollider.Min[0],
+            maxX: gameCollider.Max[0],
+            minY: gameCollider.Min[1],
+            maxY: gameCollider.Max[1]
+          }
         }
 
         if (config.level2open && gameObject.Name === 'Level2Divider') {
@@ -1785,9 +1814,20 @@ function detectCollisions() {
           // console.log('intersect')
           // console.log(position, gameObject.Name, collider, gameCollider, (gameCollider.Max[0] - gameCollider.Min[0]), (gameCollider.Max[0] - gameCollider.Min[0]) * 0.9, gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * 0.9)
 
-          collided = true
+          if (gameObject.Name.indexOf('Land') !== -1) {
+            stuck = true
+          }
+          else if (gameObject.Name.indexOf('Island') !== -1) {
+            collided = true
+          }
+          else if (gameObject.Name.indexOf('Collider') !== -1) {
+            stuck = true
+          }
+          else if (gameObject.Name.indexOf('Divider') !== -1) {
+            stuck = true
+          }
 
-          position = player.position
+          // position = player.position
 
           // if (player.position.x <= collider.minX)
           //   position.x = collider.minX
@@ -1809,29 +1849,34 @@ function detectCollisions() {
     if (collided) {
       player.position = position
       player.target = player.clientTarget
-      player.isStuck = false
+      player.phasedUntil = Date.now() + 500
+      player.overrideSpeed = 0.5
+    } else if (stuck) {
+      player.target = player.clientTarget
+      player.phasedUntil = Date.now() + 500
     } else {
       player.position = position
       player.target = player.clientTarget //castVectorTowards(position, player.clientTarget, 9999)
-      player.isStuck = false
+      player.overrideSpeed = null
     }
   }
 
   // Check players
   for (let i = 0; i < clients.length; i++) {
     const player1 = clients[i]
+    const isPlayer1Invincible = player1.isInvincible ? true : ((player1.joinedAt >= currentTime - config.immunitySeconds))
     if (player1.isSpectating) continue
     if (player1.isDead) continue
-    if (player1.joinedAt >= currentTime - config.immunitySeconds) continue
+    if (isPlayer1Invincible) continue
 
     for (let j = 0; j < clients.length; j++) {
       const player2 = clients[j]
+      const isPlayer2Invincible = player2.isInvincible ? true : ((player2.joinedAt >= currentTime - config.immunitySeconds))
 
       if (player1.id === player2.id) continue
       if (player2.isDead) continue
       if (player2.isSpectating) continue
-      if (player2.joinedAt >= currentTime - config.immunitySeconds) continue
-      
+      if (isPlayer2Invincible) continue
       if (player2.avatar === player1.avatar) continue
 
       // console.log(player1.position, player2.position, distanceBetweenPoints(player1.position.x, player1.position.y, player2.position.x, player2.position.y))
@@ -1866,6 +1911,7 @@ function detectCollisions() {
 
     if (player.isDead) continue
     if (player.isSpectating) continue
+    if (player.isPhased || now < player.phasedUntil) continue
     // console.log(player.position, player.clientPosition, distanceBetweenPoints(player.position, player.clientPosition))
     // console.log(currentReward)
     // if (distanceBetweenPoints(player.position, player.clientPosition) > config.pickupCheckPositionDistance) continue
@@ -1931,13 +1977,15 @@ function detectCollisions() {
 }
 
 function fastestGameloop() {
-  detectCollisions()
+  // detectCollisions()
 
   setTimeout(fastestGameloop, config.fastestLoopSeconds * 1000)
 }
 
 function fastGameloop() {
   const now = Date.now()
+
+  detectCollisions()
 
   for (let i = 0; i < clients.length; i++) {
     const client = clients[i]
@@ -1947,7 +1995,8 @@ function fastGameloop() {
     if (client.isSpectating) continue
 
     const currentTime = Math.round(now / 1000)
-    const isInvincible = client.isInvincible ? true : (client.joinedAt >= currentTime - config.immunitySeconds)
+    const isInvincible = client.isInvincible ? true : ((client.joinedAt >= currentTime - config.immunitySeconds))
+    const isPhased = client.isPhased ? true : now <= client.phasedUntil
 
     let decay = config.noDecay ? 0 : (client.avatar + 1) / (1 / config.fastLoopSeconds) * ((config['avatarDecayPower' + client.avatar] || 1) * config.decayPower)
 
@@ -2008,7 +2057,7 @@ function fastGameloop() {
           } else {
             client.xp = 100
             client.avatar = Math.max(Math.min(client.avatar - (1 * config.avatarDirection), config.maxEvolves - 1), 0)
-            client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
+            client.speed = (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
 
             if (config.lazycap && client.name === 'Lazy') {
               client.speed = client.speed * 0.9
@@ -2022,7 +2071,7 @@ function fastGameloop() {
           } else {
             client.xp = 100
             client.avatar = Math.max(Math.min(client.avatar - (1 * config.avatarDirection), config.maxEvolves - 1), 0)
-            client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
+            client.speed = (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
 
             if (config.lazycap && client.name === 'Lazy') {
               client.speed = client.speed * 0.9
@@ -2034,27 +2083,22 @@ function fastGameloop() {
       }
     }
 
-    const cacheKey = client.position.x + client.position.y + isInvincible
+    // const cacheKey = client.position.x + client.position.y + isInvincible
   
-    if (config.optimization.sendPlayerUpdateWithNoChanges || eventCache['OnUpdatePlayer'][client.id] !== cacheKey) {
+    // if (config.optimization.sendPlayerUpdateWithNoChanges || eventCache['OnUpdatePlayer'][client.id] !== cacheKey) {
       client.latency = ((now - client.lastReportedTime) / 2)// - (now - lastFastGameloopTime)
 
       if (Number.isNaN(client.latency)) {
         client.latency = 0
       }
   
-      publishEvent('OnUpdatePlayer', client.id, client.speed, client.cameraSize, client.position.x, client.position.y, client.target.x, client.target.y, Math.floor(client.xp), now, Math.round(client.latency), isInvincible ? '1': '0', client.isStuck ? '1' : '0')
+      publishEvent('OnUpdatePlayer', client.id, client.overrideSpeed || client.speed, client.cameraSize, client.position.x, client.position.y, client.target.x, client.target.y, Math.floor(client.xp), now, Math.round(client.latency), isInvincible ? '1': '0', client.isStuck ? '1' : '0', isPhased && !isInvincible ? '1' : '0')
 
-      eventCache['OnUpdatePlayer'][client.id] = cacheKey
-    }
+      // eventCache['OnUpdatePlayer'][client.id] = cacheKey
+    // }
   }
 
-  if (eventQueue.length) {
-    // log('Sending queue', eventQueue)
-    emitAll('Events', getPayload(eventQueue.map(e => `["${e[0]}","${e.slice(1).join(':')}"]`)))
-  
-    eventQueue = []
-  }
+  flushEventQueue()
 
   lastFastGameloopTime = now
 
@@ -2062,8 +2106,12 @@ function fastGameloop() {
 }
 
 function flushEventQueue() {
-
-  setTimeout(flushEventQueue, config.flushEventQueueSeconds * 1000)
+  if (eventQueue.length) {
+    log('Sending queue', eventQueue)
+    emitAll('Events', getPayload(eventQueue.map(e => `["${e[0]}","${e.slice(1).join(':')}"]`)))
+  
+    eventQueue = []
+  }
 }
 
 const initWebServer = async () => {
@@ -2269,7 +2317,7 @@ const initGameServer = async () => {
   setTimeout(checkConnectionLoop, config.checkConnectionLoopSeconds * 1000)
   setTimeout(resetLeaderboard, config.roundLoopSeconds * 1000)
   setTimeout(periodicReboot, config.rebootSeconds * 1000)
-  setTimeout(flushEventQueue, config.flushEventQueueSeconds * 1000)
+  // setTimeout(flushEventQueue, config.flushEventQueueSeconds * 1000)
 }
 
 const initServices = async () => {
