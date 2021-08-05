@@ -2049,18 +2049,21 @@ function fastGameloop() {
     }
   }
 
-  lastFastGameloopTime = now
-
-  setTimeout(fastGameloop, config.fastLoopSeconds * 1000)
-}
-
-function flushEventQueue() {
   if (eventQueue.length) {
     // log('Sending queue', eventQueue)
     emitAll('Events', getPayload(eventQueue.map(e => `["${e[0]}","${e.slice(1).join(':')}"]`)))
   
     eventQueue = []
   }
+
+  lastFastGameloopTime = now
+
+  setTimeout(fastGameloop, config.fastLoopSeconds * 1000)
+}
+
+function flushEventQueue() {
+
+  setTimeout(flushEventQueue, config.flushEventQueueSeconds * 1000)
 }
 
 const initWebServer = async () => {
