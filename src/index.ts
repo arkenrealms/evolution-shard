@@ -1236,13 +1236,14 @@ io.on('connection', function(socket) {
         currentPlayer.network = pack.network
         currentPlayer.device = pack.device
 
-        currentPlayer.kills = recentPlayers.find(r => r.name === pack.name)?.kills || currentPlayer.kills
-        currentPlayer.deaths = recentPlayers.find(r => r.name === pack.name)?.deaths || currentPlayer.deaths
-        currentPlayer.points = recentPlayers.find(r => r.name === pack.name)?.points || currentPlayer.points
-        currentPlayer.evolves = recentPlayers.find(r => r.name === pack.name)?.evolves || currentPlayer.evolves
-        currentPlayer.powerups = recentPlayers.find(r => r.name === pack.name)?.powerups || currentPlayer.powerups
-        currentPlayer.rewards = recentPlayers.find(r => r.name === pack.name)?.rewards || currentPlayer.rewards
-        currentPlayer.log = recentPlayers.find(r => r.name === pack.name)?.log || currentPlayer.log
+        currentPlayer.kills = recentPlayers.find(r => r.address === pack.address)?.kills || currentPlayer.kills
+        currentPlayer.deaths = recentPlayers.find(r => r.address === pack.address)?.deaths || currentPlayer.deaths
+        currentPlayer.points = recentPlayers.find(r => r.address === pack.address)?.points || currentPlayer.points
+        currentPlayer.evolves = recentPlayers.find(r => r.address === pack.address)?.evolves || currentPlayer.evolves
+        currentPlayer.powerups = recentPlayers.find(r => r.address === pack.address)?.powerups || currentPlayer.powerups
+        currentPlayer.rewards = recentPlayers.find(r => r.address === pack.address)?.rewards || currentPlayer.rewards
+        currentPlayer.log = recentPlayers.find(r => r.address === pack.address)?.log || currentPlayer.log
+        currentPlayer.lastUpdate = recentPlayers.find(r => r.address === pack.address)?.lastUpdate || currentPlayer.lastUpdate
 
         addToRecentPlayers(currentPlayer)
     
@@ -1251,13 +1252,21 @@ io.on('connection', function(socket) {
     })
 
     socket.on('JoinRoom', function(msg) {
-      const pack = decodePayload(msg)
+      // const pack = decodePayload(msg)
+      const now = Date.now()
+
+      if (now - recentPlayers.find(r => r.address === currentPlayer.address).lastUpdate < 5000) {
+        disconnectPlayer(currentPlayer)
+        return
+      }
 
       if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) {
         emitDirect(socket, 'OnMaintenance', true)
         disconnectPlayer(currentPlayer)
         return
       }
+
+      if (currentPlayer.lastUpdate)
 
       log('JoinRoom')
 
@@ -1383,7 +1392,7 @@ io.on('connection', function(socket) {
       currentPlayer.clientTarget = { x: targetX, y: targetY }
       currentPlayer.lastReportedTime = pack.time
 
-      const cacheKey = Math.floor(pack.target.split(':')[0])
+      // const cacheKey = Math.floor(pack.target.split(':')[0])
 
       // if (eventCache['OnUpdateMyself'][socket.id] !== cacheKey) {
         currentPlayer.lastUpdate = now
@@ -1561,7 +1570,7 @@ let lastFastGameloopTime = Date.now()
 let lastFastestGameloopTime = Date.now()
 
 function resetLeaderboard() {
-  const fiveSecondsAgo = Math.round(Date.now() / 1000) - 7
+  const fiveSecondsAgo = Date.now() - 5000
 
   const leaders = recentPlayers.filter(p => p.lastUpdate >= fiveSecondsAgo).sort((a, b) => b.points - a.points)
 
