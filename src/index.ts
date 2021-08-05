@@ -112,7 +112,7 @@ function reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer) {
   
   saveReportList()
 
-  if (db.reportList[reportedPlayer.address].length >= 10) {
+  if (db.reportList[reportedPlayer.address].length >= 6) {
     db.banList.push(reportedPlayer.address)
 
     saveBanList()
@@ -126,7 +126,7 @@ function reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer) {
       return currentGamePlayers.indexOf(n) !== -1;
     })
 
-    if (reportsFromCurrentGamePlayers.length >= currentGamePlayers.length / 2) {
+    if (reportsFromCurrentGamePlayers.length >= currentGamePlayers.length / 3) {
       db.banList.push(reportedPlayer.address)
 
       saveBanList()
@@ -149,7 +149,7 @@ const baseConfig = {
   level2open: false,
   level3open: false,
   hideMap: false,
-  dynamicDecayPower: false,
+  dynamicDecayPower: true,
   decayPowerPerMaxEvolvedPlayers: 0.2,
   pickupCheckPositionDistance: 1,
   playersRequiredForLevel2: 15,
@@ -178,23 +178,23 @@ const sharedConfig = {
   avatarDecayPower0: 2,
   avatarDecayPower1: 2.5,
   avatarDecayPower2: 3,
-  avatarTouchDistance0: 0.2,
-  avatarTouchDistance1: 0.25,
-  avatarTouchDistance2: 0.3,
+  avatarTouchDistance0: 0.25,
+  avatarTouchDistance1: 0.3,
+  avatarTouchDistance2: 0.35,
   avatarSpeedMultiplier0: 1,
   avatarSpeedMultiplier1: 0.85,
   avatarSpeedMultiplier2: 0.65,
   baseSpeed: 3,
   cameraSize: 3,
   checkConnectionLoopSeconds: 2,
-  checkInterval: 0,
-  checkPositionDistance: 1,
+  checkInterval: 2,
+  checkPositionDistance: 3,
   claimingRewards: false,
   decayPower: 1.4,
   disconnectPlayerSeconds: testMode ? 999 : 2 * 60,
   disconnectPositionJumps: true, // TODO: remove
-  fastestLoopSeconds: 0.002,
-  fastLoopSeconds: 0.05,
+  fastestLoopSeconds: 0.02,
+  fastLoopSeconds: 0.02,
   gameMode: 'Standard',
   immunitySeconds: 5,
   isMaintenance: false,
@@ -215,7 +215,7 @@ const sharedConfig = {
   powerupXp1: 4,
   powerupXp2: 8,
   powerupXp3: 16,
-  resetInterval: 0,
+  resetInterval: 6.2,
   rewardItemAmount: 0.01,
   rewardItemName: '?',
   rewardItemType: 0,
@@ -1035,6 +1035,7 @@ io.on('connection', function(socket) {
       lastReportedTime: Date.now(),
       lastUpdate: Date.now(),
       gameMode: config.gameMode,
+      invincibleUntil: Date.now(),
       log: {
         kills: [],
         deaths: [],
@@ -1083,6 +1084,10 @@ io.on('connection', function(socket) {
           const offender = data.value
       
           db.banList.push(offender)
+
+          if (clients.find(c => c.address === offender)) {
+            disconnectPlayer(clients.find(c => c.address === offender))
+          }
       
           saveBanList()
         } else if (data.event === 'Unban') {
@@ -1378,12 +1383,12 @@ io.on('connection', function(socket) {
 
       const cacheKey = Math.floor(pack.target.split(':')[0])
 
-      if (eventCache['OnUpdateMyself'][socket.id] !== cacheKey) {
+      // if (eventCache['OnUpdateMyself'][socket.id] !== cacheKey) {
         currentPlayer.lastUpdate = now
 
         // publishEvent('OnUpdateMyself', data.id, data.position, data.target)
-        eventCache['OnUpdateMyself'][socket.id] = cacheKey
-      }
+      //   eventCache['OnUpdateMyself'][socket.id] = cacheKey
+      // }
     })
 
     socket.on('Pickup', async function (msg) {
@@ -1536,8 +1541,8 @@ function calcRoundRewards() {
     }
   }
 
-  sharedConfig.rewardItemAmount = Math.min(totalLegitPlayers * config.rewardItemAmountPerLegitPlayer, config.rewardItemAmountMax)
-  sharedConfig.rewardWinnerAmount = Math.min(totalLegitPlayers * config.rewardWinnerAmountPerLegitPlayer, config.rewardWinnerAmountMax)
+  sharedConfig.rewardItemAmount = Math.round(Math.min(totalLegitPlayers * config.rewardItemAmountPerLegitPlayer, config.rewardItemAmountMax) * 1000) / 1000
+  sharedConfig.rewardWinnerAmount = Math.round(Math.min(totalLegitPlayers * config.rewardWinnerAmountPerLegitPlayer, config.rewardWinnerAmountMax) * 1000) / 1000
 
   config.rewardItemAmount = sharedConfig.rewardItemAmount
   config.rewardWinnerAmount = sharedConfig.rewardWinnerAmount
@@ -1732,6 +1737,10 @@ function detectCollisions() {
       continue
     }
 
+    if (distanceBetweenPoints(player.position, player.clientPosition) > 2) {
+      player.invincibleUntil = Date.now() + 500
+    }
+
     // if (distanceBetweenPoints(player.position, player.clientPosition) > config.checkPositionDistance) {
     //   // Do nothing for now
     //   player.position = moveVectorTowards(player.position, player.clientPosition, player.speed * deltaTime)
@@ -1787,7 +1796,7 @@ function detectCollisions() {
 
           collided = true
 
-          position = player.position
+          // position = player.position
 
           // if (player.position.x <= collider.minX)
           //   position.x = collider.minX
@@ -1810,28 +1819,31 @@ function detectCollisions() {
       player.position = position
       player.target = player.clientTarget
       player.isStuck = false
+      player.overrideSpeed = 0.5
     } else {
       player.position = position
       player.target = player.clientTarget //castVectorTowards(position, player.clientTarget, 9999)
       player.isStuck = false
+      player.overrideSpeed = undefined
     }
   }
 
   // Check players
   for (let i = 0; i < clients.length; i++) {
     const player1 = clients[i]
+    const isPlayer1Invincible = player1.isInvincible ? true : ((player1.joinedAt >= currentTime - config.immunitySeconds) || now < player1.invincibleUntil)
     if (player1.isSpectating) continue
     if (player1.isDead) continue
-    if (player1.joinedAt >= currentTime - config.immunitySeconds) continue
+    if (isPlayer1Invincible) continue
 
     for (let j = 0; j < clients.length; j++) {
       const player2 = clients[j]
+      const isPlayer2Invincible = player2.isInvincible ? true : ((player2.joinedAt >= currentTime - config.immunitySeconds) || now < player2.invincibleUntil)
 
       if (player1.id === player2.id) continue
       if (player2.isDead) continue
       if (player2.isSpectating) continue
-      if (player2.joinedAt >= currentTime - config.immunitySeconds) continue
-      
+      if (isPlayer2Invincible) continue
       if (player2.avatar === player1.avatar) continue
 
       // console.log(player1.position, player2.position, distanceBetweenPoints(player1.position.x, player1.position.y, player2.position.x, player2.position.y))
@@ -1931,13 +1943,15 @@ function detectCollisions() {
 }
 
 function fastestGameloop() {
-  detectCollisions()
+  // detectCollisions()
 
   setTimeout(fastestGameloop, config.fastestLoopSeconds * 1000)
 }
 
 function fastGameloop() {
   const now = Date.now()
+
+  detectCollisions()
 
   for (let i = 0; i < clients.length; i++) {
     const client = clients[i]
@@ -1947,7 +1961,7 @@ function fastGameloop() {
     if (client.isSpectating) continue
 
     const currentTime = Math.round(now / 1000)
-    const isInvincible = client.isInvincible ? true : (client.joinedAt >= currentTime - config.immunitySeconds)
+    const isInvincible = client.isInvincible ? true : ((client.joinedAt >= currentTime - config.immunitySeconds) || now < client.invincibleUntil)
 
     let decay = config.noDecay ? 0 : (client.avatar + 1) / (1 / config.fastLoopSeconds) * ((config['avatarDecayPower' + client.avatar] || 1) * config.decayPower)
 
@@ -2034,9 +2048,9 @@ function fastGameloop() {
       }
     }
 
-    const cacheKey = client.position.x + client.position.y + isInvincible
+    // const cacheKey = client.position.x + client.position.y + isInvincible
   
-    if (config.optimization.sendPlayerUpdateWithNoChanges || eventCache['OnUpdatePlayer'][client.id] !== cacheKey) {
+    // if (config.optimization.sendPlayerUpdateWithNoChanges || eventCache['OnUpdatePlayer'][client.id] !== cacheKey) {
       client.latency = ((now - client.lastReportedTime) / 2)// - (now - lastFastGameloopTime)
 
       if (Number.isNaN(client.latency)) {
@@ -2045,8 +2059,15 @@ function fastGameloop() {
   
       publishEvent('OnUpdatePlayer', client.id, client.speed, client.cameraSize, client.position.x, client.position.y, client.target.x, client.target.y, Math.floor(client.xp), now, Math.round(client.latency), isInvincible ? '1': '0', client.isStuck ? '1' : '0')
 
-      eventCache['OnUpdatePlayer'][client.id] = cacheKey
-    }
+      // eventCache['OnUpdatePlayer'][client.id] = cacheKey
+    // }
+  }
+
+  if (eventQueue.length) {
+    // log('Sending queue', eventQueue)
+    emitAll('Events', getPayload(eventQueue.map(e => `["${e[0]}","${e.slice(1).join(':')}"]`)))
+  
+    eventQueue = []
   }
 
   lastFastGameloopTime = now
@@ -2055,12 +2076,8 @@ function fastGameloop() {
 }
 
 function flushEventQueue() {
-  if (eventQueue.length) {
-    // log('Sending queue', eventQueue)
-    emitAll('Events', getPayload(eventQueue.map(e => `["${e[0]}","${e.slice(1).join(':')}"]`)))
-  
-    eventQueue = []
-  }
+
+  setTimeout(flushEventQueue, config.flushEventQueueSeconds * 1000)
 }
 
 const initWebServer = async () => {
