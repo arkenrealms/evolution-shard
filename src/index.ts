@@ -152,7 +152,7 @@ const baseConfig = {
   dynamicDecayPower: false,
   decayPowerPerMaxEvolvedPlayers: 0.2,
   pickupCheckPositionDistance: 1,
-  playersRequiredForLevel2: 10,
+  playersRequiredForLevel2: 15,
   antifeed2: true,
   antifeed3: true,
   antifeed4: true,
@@ -162,6 +162,7 @@ const baseConfig = {
   rewardItemAmountMax: 0.05,
   rewardWinnerAmountPerLegitPlayer: 0.3 / 20,
   rewardWinnerAmountMax: 0.3,
+  flushEventQueueSeconds: 0.02,
   anticheat: {
     enabled: false,
     samePlayerCantClaimRewardTwiceInRow: false,
@@ -193,7 +194,7 @@ const sharedConfig = {
   disconnectPlayerSeconds: testMode ? 999 : 2 * 60,
   disconnectPositionJumps: true, // TODO: remove
   fastestLoopSeconds: 0.002,
-  fastLoopSeconds: 0.010,
+  fastLoopSeconds: 0.05,
   gameMode: 'Standard',
   immunitySeconds: 5,
   isMaintenance: false,
@@ -1315,7 +1316,7 @@ io.on('connection', function(socket) {
           }
         }
 
-        if (clients.filter(c => !c.isSpectating && !c.isDead).length <= config.playersRequiredForLevel2 / 2) {
+        if (clients.filter(c => !c.isSpectating && !c.isDead).length < config.playersRequiredForLevel2 - 5) {
           if (config.level2open) {
             baseConfig.level2open = false
             config.level2open = false
@@ -2048,16 +2049,18 @@ function fastGameloop() {
     }
   }
 
+  lastFastGameloopTime = now
+
+  setTimeout(fastGameloop, config.fastLoopSeconds * 1000)
+}
+
+function flushEventQueue() {
   if (eventQueue.length) {
     // log('Sending queue', eventQueue)
     emitAll('Events', getPayload(eventQueue.map(e => `["${e[0]}","${e.slice(1).join(':')}"]`)))
   
     eventQueue = []
   }
-
-  lastFastGameloopTime = now
-
-  setTimeout(fastGameloop, config.fastLoopSeconds * 1000)
 }
 
 const initWebServer = async () => {
@@ -2263,6 +2266,7 @@ const initGameServer = async () => {
   setTimeout(checkConnectionLoop, config.checkConnectionLoopSeconds * 1000)
   setTimeout(resetLeaderboard, config.roundLoopSeconds * 1000)
   setTimeout(periodicReboot, config.rebootSeconds * 1000)
+  setTimeout(flushEventQueue, config.flushEventQueueSeconds * 1000)
 }
 
 const initServices = async () => {
