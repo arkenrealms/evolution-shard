@@ -1229,21 +1229,31 @@ io.on('connection', function(socket) {
         disconnectPlayer(currentPlayer)
         return
       }
-console.log(currentPlayer, pack)
+
+      const now = Date.now()
       if (currentPlayer.name !== pack.name || currentPlayer.address !== pack.address) {
         currentPlayer.name = pack.name
         currentPlayer.address = pack.address
         currentPlayer.network = pack.network
         currentPlayer.device = pack.device
 
-        currentPlayer.kills = recentPlayers.find(r => r.address === pack.address)?.kills || currentPlayer.kills
-        currentPlayer.deaths = recentPlayers.find(r => r.address === pack.address)?.deaths || currentPlayer.deaths
-        currentPlayer.points = recentPlayers.find(r => r.address === pack.address)?.points || currentPlayer.points
-        currentPlayer.evolves = recentPlayers.find(r => r.address === pack.address)?.evolves || currentPlayer.evolves
-        currentPlayer.powerups = recentPlayers.find(r => r.address === pack.address)?.powerups || currentPlayer.powerups
-        currentPlayer.rewards = recentPlayers.find(r => r.address === pack.address)?.rewards || currentPlayer.rewards
-        currentPlayer.log = recentPlayers.find(r => r.address === pack.address)?.log || currentPlayer.log
-        currentPlayer.lastUpdate = recentPlayers.find(r => r.address === pack.address)?.lastUpdate || currentPlayer.lastUpdate
+        const recentPlayer = recentPlayers.find(r => r.address === pack.address)
+
+        if (recentPlayer) {
+          if (now - recentPlayer.lastUpdate > 5000) {
+            disconnectPlayer(currentPlayer)
+            return
+          }
+
+          currentPlayer.kills = recentPlayer.kills
+          currentPlayer.deaths = recentPlayer.deaths
+          currentPlayer.points = recentPlayer.points
+          currentPlayer.evolves = recentPlayer.evolves
+          currentPlayer.powerups = recentPlayer.powerups
+          currentPlayer.rewards = recentPlayer.rewards
+          currentPlayer.log = recentPlayer.log
+          currentPlayer.lastUpdate = recentPlayer.lastUpdate
+        }
 
         addToRecentPlayers(currentPlayer)
     
@@ -1255,8 +1265,8 @@ console.log(currentPlayer, pack)
       // const pack = decodePayload(msg)
       const now = Date.now()
       const recentPlayer = recentPlayers.find(r => r.address === currentPlayer.address)
-      console.log(recentPlayer, now, recentPlayer?.lastUpdate, now - recentPlayer?.lastUpdate)
-      if (recentPlayer !== undefined && now - recentPlayer.lastUpdate > 5000) {
+
+      if (recentPlayer && now - recentPlayer.lastUpdate > 5000) {
         disconnectPlayer(currentPlayer)
         return
       }
