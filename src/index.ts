@@ -1394,8 +1394,12 @@ io.on('connection', function(socket) {
     })
 
     socket.on('Pickup', async function (msg) {
+      const now = Date.now()
+      const isPhased = currentPlayer.isPhased ? true : now <= currentPlayer.phasedUntil
+
       if (currentPlayer.isDead) return
       if (currentPlayer.isSpectating) return
+      if (isPhased) return
       if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) return
 
       const pack = decodePayload(msg)
