@@ -71,5 +71,121 @@
   [],
   [],
   [],
-  []
+  [],
+  [
+    {
+      "name": "Botter",
+      "id": "E1n0Kxs2zBAyhIWUAAAB",
+      "avatar": 0,
+      "network": "bsc",
+      "address": "0xa987f487639920A3c2eFe58C8FBDedB96253ed9B",
+      "device": "desktop",
+      "position": {
+        "x": -0.08011578306054545,
+        "y": 0.08351034143147318
+      },
+      "target": {
+        "x": 6.24,
+        "y": 5.94
+      },
+      "clientPosition": {
+        "x": 0.07,
+        "y": 0.07
+      },
+      "clientTarget": {
+        "x": 6.24,
+        "y": 5.94
+      },
+      "rotation": null,
+      "xp": 0,
+      "latency": 21,
+      "kills": 0,
+      "deaths": 0,
+      "points": 1,
+      "evolves": 0,
+      "powerups": 1,
+      "rewards": 0,
+      "orbs": 0,
+      "isMasterClient": true,
+      "isDisconnected": false,
+      "isDead": false,
+      "isSpectating": true,
+      "isStuck": false,
+      "isPhased": false,
+      "overrideSpeed": 5,
+      "overrideCameraSize": 6,
+      "cameraSize": 6,
+      "speed": 5,
+      "joinedAt": 1628188486,
+      "hash": "",
+      "lastReportedTime": "1628188497761",
+      "lastUpdate": 1628188497766,
+      "gameMode": "Evolution",
+      "invincibleUntil": 1628188491202,
+      "log": {
+        "kills": [],
+        "deaths": [],
+        "revenge": 0,
+        "resetPosition": 0
+      }
+    }
+  ],
+  [
+    {
+      "name": "Botter",
+      "id": "pC7M7Hsk1j8PRts8AAAN",
+      "avatar": 2,
+      "network": "bsc",
+      "address": "0xa987f487639920A3c2eFe58C8FBDedB96253ed9B",
+      "device": "desktop",
+      "position": {
+        "x": -2.52,
+        "y": -9.07
+      },
+      "target": {
+        "x": -2.52,
+        "y": -9.07
+      },
+      "clientPosition": {
+        "x": -2.52,
+        "y": -9.07
+      },
+      "clientTarget": {
+        "x": -2.52,
+        "y": -9.07
+      },
+      "rotation": null,
+      "xp": 100.36,
+      "latency": 39.5,
+      "kills": 0,
+      "deaths": 0,
+      "points": 253,
+      "evolves": 9,
+      "powerups": 28,
+      "rewards": 0,
+      "orbs": 0,
+      "isMasterClient": false,
+      "isDisconnected": false,
+      "isDead": false,
+      "isSpectating": false,
+      "isStuck": false,
+      "isPhased": false,
+      "overrideSpeed": null,
+      "overrideCameraSize": null,
+      "cameraSize": 3,
+      "speed": 2.55,
+      "joinedAt": 1628188989,
+      "hash": "",
+      "lastReportedTime": "1628189063435",
+      "lastUpdate": 1628189063467,
+      "gameMode": "Friendly Reverse",
+      "invincibleUntil": 1628189052164,
+      "log": {
+        "kills": [],
+        "deaths": [],
+        "revenge": 0,
+        "resetPosition": 0
+      }
+    }
+  ]
 ]
