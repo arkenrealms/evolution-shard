@@ -1035,7 +1035,7 @@ io.on('connection', function(socket) {
       joinedAt: null,
       hash: hash.slice(hash.length - 10, hash.length - 1),
       lastReportedTime: Date.now(),
-      lastUpdate: Date.now(),
+      lastUpdate: 0,
       gameMode: config.gameMode,
       phasedUntil: Date.now(),
       log: {
