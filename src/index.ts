@@ -27,7 +27,7 @@ const https = require('https').createServer({
   key: fs.readFileSync(path.resolve('./privkey.pem')),
   cert: fs.readFileSync(path.resolve('./fullchain.pem'))
 }, server)
-const io = require('socket.io')(process.env.SUDO_USER === 'dev' ? https : http, { secure: process.env.SUDO_USER === 'dev' ? true : false })
+const io = require('socket.io')(process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10' ? https : http, { secure: process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10' ? true : false })
 const shortId = require('shortid')
 
 function logError(err) {
@@ -70,6 +70,8 @@ db.reportList = jetpack.read(path.resolve('./public/data/reports.json'), 'json')
 db.playerRewards = jetpack.read(path.resolve('./public/data/playerRewards.json'), 'json')
 db.map = jetpack.read(path.resolve('./public/data/map.json'), 'json')
 db.log = jetpack.read(path.resolve('./public/data/log.json'), 'json')
+
+
 
 const savePlayerRewards = () => {
   jetpack.write(path.resolve('./public/data/playerRewards.json'), JSON.stringify(db.playerRewards, null, 2))
@@ -150,7 +152,7 @@ const baseConfig = {
   dynamicDecayPower: false,
   decayPowerPerMaxEvolvedPlayers: 0.2,
   pickupCheckPositionDistance: 1,
-  playersRequiredForLevel2: 10,
+  playersRequiredForLevel2: 15,
   antifeed2: true,
   antifeed3: true,
   antifeed4: true,
@@ -160,6 +162,7 @@ const baseConfig = {
   rewardItemAmountMax: 0.05,
   rewardWinnerAmountPerLegitPlayer: 0.3 / 20,
   rewardWinnerAmountMax: 0.3,
+  flushEventQueueSeconds: 0.02,
   anticheat: {
     enabled: false,
     samePlayerCantClaimRewardTwiceInRow: false,
@@ -184,14 +187,14 @@ const sharedConfig = {
   baseSpeed: 3,
   cameraSize: 3,
   checkConnectionLoopSeconds: 2,
-  checkInterval: 1,
+  checkInterval: 0,
   checkPositionDistance: 1,
   claimingRewards: false,
   decayPower: 1.4,
   disconnectPlayerSeconds: testMode ? 999 : 2 * 60,
   disconnectPositionJumps: true, // TODO: remove
-  fastestLoopSeconds: 0.010,
-  fastLoopSeconds: 0.040,
+  fastestLoopSeconds: 0.002,
+  fastLoopSeconds: 0.05,
   gameMode: 'Standard',
   immunitySeconds: 5,
   isMaintenance: false,
@@ -212,7 +215,7 @@ const sharedConfig = {
   powerupXp1: 4,
   powerupXp2: 8,
   powerupXp3: 16,
-  resetInterval: 5,
+  resetInterval: 0,
   rewardItemAmount: 0.01,
   rewardItemName: '?',
   rewardItemType: 0,
@@ -583,7 +586,7 @@ const verifySignature = (signature, address) => {
 
 const spawnRandomReward = () => {
   if (currentReward) {
-    removeReward()
+    return
   }
   // if (currentReward) return
 
@@ -627,25 +630,34 @@ const spawnRandomReward = () => {
   }
 
   publishEvent('OnSpawnReward', currentReward.id, config.rewardItemType, config.rewardItemName, config.rewardItemAmount, currentReward.position.x, currentReward.position.y)
+
+  const tempReward = JSON.parse(JSON.stringify(currentReward))
+
+  setTimeout(() => {
+    if (!currentReward) return
+    if (currentReward.id === tempReward.id) {
+      removeReward()
+    }
+  }, 30 * 1000)
 }
 
 function moveVectorTowards(current, target, maxDistanceDelta)
- {
-     const a = {
-       x: target.x - current.x,
-       y: target.y - current.y
-     }
+{
+  const a = {
+    x: target.x - current.x,
+    y: target.y - current.y
+  }
 
-     const magnitude = Math.sqrt(a.x * a.x + a.y * a.y)
+  const magnitude = Math.sqrt(a.x * a.x + a.y * a.y)
 
-     if (magnitude <= maxDistanceDelta || magnitude == 0)
-         return target
+  if (magnitude <= maxDistanceDelta || magnitude == 0)
+      return target
 
-     return {
-       x: current.x + a.x / magnitude * maxDistanceDelta,
-       y: current.y + a.y / magnitude * maxDistanceDelta
-     }
- }
+  return {
+    x: current.x + a.x / magnitude * maxDistanceDelta,
+    y: current.y + a.y / magnitude * maxDistanceDelta
+  }
+}
 
 const claimReward = (currentPlayer) => {
   if (!currentReward) return
@@ -668,17 +680,14 @@ const claimReward = (currentPlayer) => {
         // }
 
         db.rewards.items = db.rewards.items.filter(i => i.tokenId !== currentReward.tokenId)
-        saveRewards()
       } else if (currentReward.type === 'rune') {
         if (!db.playerRewards[currentPlayer.address]) db.playerRewards[currentPlayer.address] = {}
         if (!db.playerRewards[currentPlayer.address].pending) db.playerRewards[currentPlayer.address].pending = {}
         if (!db.playerRewards[currentPlayer.address].pending[currentReward.symbol]) db.playerRewards[currentPlayer.address].pending[currentReward.symbol] = 0
 
         db.playerRewards[currentPlayer.address].pending[currentReward.symbol] = Math.round((db.playerRewards[currentPlayer.address].pending[currentReward.symbol] + config.rewardItemAmount) * 100) / 100
-        savePlayerRewards()
         
         db.rewards.runes.find(r => r.symbol === currentReward.symbol).quantity -= config.rewardItemAmount
-        saveRewards()
       }
     }
   } catch(e) {
@@ -1307,7 +1316,7 @@ io.on('connection', function(socket) {
           }
         }
 
-        if (clients.filter(c => !c.isSpectating && !c.isDead).length <= config.playersRequiredForLevel2 / 2) {
+        if (clients.filter(c => !c.isSpectating && !c.isDead).length < config.playersRequiredForLevel2 - 5) {
           if (config.level2open) {
             baseConfig.level2open = false
             config.level2open = false
@@ -1550,6 +1559,8 @@ function resetLeaderboard() {
   db.leaderboardHistory.push(JSON.parse(JSON.stringify(recentPlayers)))
 
   saveLeaderboardHistory()
+  savePlayerRewards()
+  saveRewards()
 
   if (config.calcRoundRewards) {
     calcRoundRewards()
@@ -1727,7 +1738,7 @@ function detectCollisions() {
     //   player.log.resetPosition += 1
     // } else {
       // if (player.lastReportedTime > )
-    let position = moveVectorTowards(player.position, player.clientTarget, player.speed * deltaTime)
+    let position = moveVectorTowards(player.position, player.clientTarget, player.speed * deltaTime) // castVectorTowards(player.position, player.clientTarget, 9999)
     // let target = castVectorTowards(position, player.clientTarget, 100)
 
     if (position.x > mapBoundary.x.max) {
@@ -1749,17 +1760,21 @@ function detectCollisions() {
 
       for (const gameCollider of gameObject.Colliders) {
         const collider = {
-          minX: gameCollider.Min[0],
-          maxX: gameCollider.Max[0],
-          minY: gameCollider.Min[1],
-          maxY: gameCollider.Max[1]
+          minX: gameCollider.Min[0] + (gameCollider.Max[0] - gameCollider.Min[0]) * 0.2,
+          maxX: gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * 0.2,
+          minY: gameCollider.Min[1] + (gameCollider.Max[1] - gameCollider.Min[1]) * 0.2,
+          maxY: gameCollider.Max[1] - (gameCollider.Max[1] - gameCollider.Min[1]) * 0.2
         }
 
         if (config.level2open && gameObject.Name === 'Level2Divider') {
-          const diff = gameObject.Transform.LocalPosition[1] - -6
+          const diff = gameObject.Transform.LocalPosition[1] - -16
           collider.minY -= diff
           collider.maxY -= diff
         }
+
+        // if (gameObject.Name === "FGStructure02 (11)") {
+        //   console.log(position, collider, gameCollider, (gameCollider.Max[0] - gameCollider.Min[0]), (gameCollider.Max[0] - gameCollider.Min[0]) * 0.9, gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * 0.9)
+        // }
         
         if (
           position.x >= collider.minX &&
@@ -1768,6 +1783,8 @@ function detectCollisions() {
           position.y <= collider.maxY
         ) {
           // console.log('intersect')
+          // console.log(position, gameObject.Name, collider, gameCollider, (gameCollider.Max[0] - gameCollider.Min[0]), (gameCollider.Max[0] - gameCollider.Min[0]) * 0.9, gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * 0.9)
+
           collided = true
 
           position = player.position
@@ -1791,11 +1808,11 @@ function detectCollisions() {
 
     if (collided) {
       player.position = position
-      player.target = position
-      player.isStuck = true
+      player.target = player.clientTarget
+      player.isStuck = false
     } else {
       player.position = position
-      player.target = castVectorTowards(position, player.clientTarget, 9999)
+      player.target = player.clientTarget //castVectorTowards(position, player.clientTarget, 9999)
       player.isStuck = false
     }
   }
@@ -2032,16 +2049,18 @@ function fastGameloop() {
     }
   }
 
+  lastFastGameloopTime = now
+
+  setTimeout(fastGameloop, config.fastLoopSeconds * 1000)
+}
+
+function flushEventQueue() {
   if (eventQueue.length) {
     // log('Sending queue', eventQueue)
     emitAll('Events', getPayload(eventQueue.map(e => `["${e[0]}","${e.slice(1).join(':')}"]`)))
   
     eventQueue = []
   }
-
-  lastFastGameloopTime = now
-
-  setTimeout(fastGameloop, config.fastLoopSeconds * 1000)
 }
 
 const initWebServer = async () => {
@@ -2218,7 +2237,7 @@ const initRoutes = async () => {
     server.get('/readiness_check', (req, res) => res.sendStatus(200))
     server.get('/liveness_check', (req, res) => res.sendStatus(200))
 
-    server.get('/.well-known/acme-challenge/L2DCvQWqz3ZgHwgAG_u1CjJs8YVsdTExWi08JtCsj0I', (req, res) => res.end('L2DCvQWqz3ZgHwgAG_u1CjJs8YVsdTExWi08JtCsj0I.rf1Z-ViQiJBjN-_x-EzQlmFjnB7obDoQD_BId0Z24Oc'))
+    server.get('/.well-known/acme-challenge/VtR7_TzQdGK-dXWCUYDKV_OJb1vXf5kPf0ijCAl-BbQ', (req, res) => res.end('VtR7_TzQdGK-dXWCUYDKV_OJb1vXf5kPf0ijCAl-BbQ.vuboczA32qq2liEOxQ8-eyB18eE2jCWY64W5dIEm4S8'))
   } catch(e) {
     logError(e)
   }
@@ -2247,6 +2266,7 @@ const initGameServer = async () => {
   setTimeout(checkConnectionLoop, config.checkConnectionLoopSeconds * 1000)
   setTimeout(resetLeaderboard, config.roundLoopSeconds * 1000)
   setTimeout(periodicReboot, config.rebootSeconds * 1000)
+  setTimeout(flushEventQueue, config.flushEventQueueSeconds * 1000)
 }
 
 const initServices = async () => {
@@ -2276,7 +2296,7 @@ const init = async () => {
       log(`:: Backend ready and listening on *: ${port}`)
     })
 
-    const port = process.env.PORT || 3001
+    const port = process.env.PORT || 80
 
     http.listen(port, function() {
       log(`:: Backend ready and listening on *: ${port}`)
