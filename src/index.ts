@@ -904,9 +904,9 @@ function spawnSprites(amount) {
 }
 
 function addToRecentPlayers(player) {
-  if (!player.name) return
+  if (!player.address || !player.name) return
 
-  recentPlayers = recentPlayers.filter(r => r.name !== player.name)
+  recentPlayers = recentPlayers.filter(r => r.address !== player.address)
 
   recentPlayers.push(player)
 
@@ -1255,7 +1255,7 @@ io.on('connection', function(socket) {
       // const pack = decodePayload(msg)
       const now = Date.now()
       const recentPlayer = recentPlayers.find(r => r.address === currentPlayer.address)
-
+console.log(recentPlayer, now, recentPlayer.lastUpdate, now - recentPlayer.lastUpdate)
       if (recentPlayer && now - recentPlayer.lastUpdate > 5000) {
         disconnectPlayer(currentPlayer)
         return
@@ -1664,7 +1664,7 @@ function resetLeaderboard() {
 
 function checkConnectionLoop() {
   if (!config.noBoot) {
-    const oneMinuteAgo = Math.round(Date.now() / 1000) - config.disconnectPlayerSeconds
+    const oneMinuteAgo = Date.now() - (config.disconnectPlayerSeconds * 1000)
     // const oneMinuteAgo = Math.round(Date.now() / 1000) - config.disconnectPlayerSeconds
 
     for (let i = 0; i < clients.length; i++) {
