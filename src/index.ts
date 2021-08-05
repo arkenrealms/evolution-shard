@@ -1262,7 +1262,7 @@ io.on('connection', function(socket) {
       currentPlayer.isDead = false
       currentPlayer.avatar = config.startAvatar
       currentPlayer.joinedAt = Math.round(Date.now() / 1000)
-      currentPlayer.speed = currentPlayer.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + currentPlayer.avatar])
+      currentPlayer.speed = (config.baseSpeed * config['avatarSpeedMultiplier' + currentPlayer.avatar])
 
       log("[INFO] player " + currentPlayer.id + ": logged!")
 
@@ -1585,7 +1585,7 @@ function resetLeaderboard() {
     client.avatar = config.startAvatar
     client.orbs = 0
     client.xp = 50
-    client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
+    client.speed = (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
     client.cameraSize = client.overrideCameraSize || config.cameraSize
     client.log = {
       kills: [],
@@ -1824,7 +1824,7 @@ function detectCollisions() {
       player.position = position
       player.target = player.clientTarget //castVectorTowards(position, player.clientTarget, 9999)
       player.isStuck = false
-      player.overrideSpeed = undefined
+      player.overrideSpeed = null
     }
   }
 
@@ -2022,7 +2022,7 @@ function fastGameloop() {
           } else {
             client.xp = 100
             client.avatar = Math.max(Math.min(client.avatar - (1 * config.avatarDirection), config.maxEvolves - 1), 0)
-            client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
+            client.speed = (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
 
             if (config.lazycap && client.name === 'Lazy') {
               client.speed = client.speed * 0.9
@@ -2036,7 +2036,7 @@ function fastGameloop() {
           } else {
             client.xp = 100
             client.avatar = Math.max(Math.min(client.avatar - (1 * config.avatarDirection), config.maxEvolves - 1), 0)
-            client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
+            client.speed = (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
 
             if (config.lazycap && client.name === 'Lazy') {
               client.speed = client.speed * 0.9
@@ -2057,7 +2057,7 @@ function fastGameloop() {
         client.latency = 0
       }
   
-      publishEvent('OnUpdatePlayer', client.id, client.speed, client.cameraSize, client.position.x, client.position.y, client.target.x, client.target.y, Math.floor(client.xp), now, Math.round(client.latency), isInvincible ? '1': '0', client.isStuck ? '1' : '0')
+      publishEvent('OnUpdatePlayer', client.id, client.overrideSpeed || client.speed, client.cameraSize, client.position.x, client.position.y, client.target.x, client.target.y, Math.floor(client.xp), now, Math.round(client.latency), isInvincible ? '1': '0', client.isStuck ? '1' : '0')
 
       // eventCache['OnUpdatePlayer'][client.id] = cacheKey
     // }
