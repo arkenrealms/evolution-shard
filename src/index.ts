@@ -1254,8 +1254,9 @@ io.on('connection', function(socket) {
     socket.on('JoinRoom', function(msg) {
       // const pack = decodePayload(msg)
       const now = Date.now()
+      const recentPlayer = recentPlayers.find(r => r.address === currentPlayer.address)
 
-      if (now - recentPlayers.find(r => r.address === currentPlayer.address).lastUpdate < 5000) {
+      if (recentPlayer && now - recentPlayer.lastUpdate < 10000) {
         disconnectPlayer(currentPlayer)
         return
       }
@@ -1265,8 +1266,6 @@ io.on('connection', function(socket) {
         disconnectPlayer(currentPlayer)
         return
       }
-
-      if (currentPlayer.lastUpdate)
 
       log('JoinRoom')
 
