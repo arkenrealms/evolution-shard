@@ -369,6 +369,7 @@ const presets = [
     antifeed2: false,
     pointsPerEvolve: 25,
     decayPower: -3,
+    dynamicDecayPower: false,
     avatarDecayPower0: 4,
     avatarDecayPower1: 3,
     avatarDecayPower2: 2,
@@ -380,6 +381,7 @@ const presets = [
     decayPower: -1,
     antifeed1: false,
     antifeed2: false,
+    dynamicDecayPower: false,
     avatarDecayPower0: 4,
     avatarDecayPower1: 3,
     avatarDecayPower2: 2,
@@ -1764,6 +1766,7 @@ function detectCollisions() {
     }
 
     let collided = false
+    let stuck = false
     for (const gameObject of db.map) {
       if (!gameObject.Colliders || !gameObject.Colliders.length) continue
 
@@ -1794,7 +1797,18 @@ function detectCollisions() {
           // console.log('intersect')
           // console.log(position, gameObject.Name, collider, gameCollider, (gameCollider.Max[0] - gameCollider.Min[0]), (gameCollider.Max[0] - gameCollider.Min[0]) * 0.9, gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * 0.9)
 
-          collided = true
+          if (gameObject.Name.indexOf('Land') !== -1) {
+            stuck = true
+          }
+          else if (gameObject.Name.indexOf('Island') !== -1) {
+            collided = true
+          }
+          else if (gameObject.Name.indexOf('Collider') !== -1) {
+            stuck = true
+          }
+          else if (gameObject.Name.indexOf('Divider') !== -1) {
+            stuck = true
+          }
 
           // position = player.position
 
@@ -1820,6 +1834,9 @@ function detectCollisions() {
       player.target = player.clientTarget
       player.isStuck = false
       player.overrideSpeed = 0.5
+    } else if (stuck) {
+      player.target = player.clientTarget
+      player.isStuck = false
     } else {
       player.position = position
       player.target = player.clientTarget //castVectorTowards(position, player.clientTarget, 9999)
