@@ -71,7 +71,9 @@ db.playerRewards = jetpack.read(path.resolve('./public/data/playerRewards.json')
 db.map = jetpack.read(path.resolve('./public/data/map.json'), 'json')
 db.log = jetpack.read(path.resolve('./public/data/log.json'), 'json')
 
-
+function getTime() {
+  return new Date().getTime()
+}
 
 const savePlayerRewards = () => {
   jetpack.write(path.resolve('./public/data/playerRewards.json'), JSON.stringify(db.playerRewards, null, 2))
@@ -449,7 +451,7 @@ let leaderboard = []
 let lastReward
 let round = {
   index: 0,
-  startedAt: Math.round(Date.now() / 1000)
+  startedAt: Math.round(getTime() / 1000)
 }
 
 const spawnBoundary1 = {
@@ -924,7 +926,7 @@ function addToRecentPlayers(player) {
 }
 
 function roundEndingSoon(sec) {
-  const roundTimer = (round.startedAt + config.roundLoopSeconds) - Math.round(Date.now() / 1000)
+  const roundTimer = (round.startedAt + config.roundLoopSeconds) - Math.round(getTime() / 1000)
   return roundTimer < sec
 }
 
@@ -933,7 +935,7 @@ function sha256(str) {
 }
 
 const registerKill = (winner, loser) => {
-  const now = Date.now()
+  const now = getTime()
 
   if (winner.isInvincible) return
   if (loser.isInvincible) return
@@ -948,7 +950,7 @@ const registerKill = (winner, loser) => {
   const allowKill = !notReallyTrying && !tooManyKills && !killingThemselves
 
   if (config.preventBadKills && !allowKill) {
-    loser.phasedUntil = Date.now() + 2000
+    loser.phasedUntil = getTime() + 2000
 
     return
   }
@@ -1044,10 +1046,10 @@ io.on('connection', function(socket) {
       speed: config.baseSpeed * config.avatarSpeedMultiplier0,
       joinedAt: null,
       hash: hash.slice(hash.length - 10, hash.length - 1),
-      lastReportedTime: Date.now(),
+      lastReportedTime: getTime(),
       lastUpdate: 0,
       gameMode: config.gameMode,
-      phasedUntil: Date.now(),
+      phasedUntil: getTime(),
       log: {
         kills: [],
         deaths: [],
@@ -1217,13 +1219,9 @@ io.on('connection', function(socket) {
       reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer)
     })
 
-    // socket.on('Ping', function() {
-    //   if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) {
-    //     return
-    //   }
-
-    //   emitDirect(socket, 'Pong', "pong!!!")
-    // })
+    socket.on('ping', function() {
+      emitDirect(socket, 'pong')
+    })
 
     socket.on('SetInfo', function(msg) {
       const pack = decodePayload(msg)
@@ -1240,7 +1238,7 @@ io.on('connection', function(socket) {
         return
       }
 
-      const now = Date.now()
+      const now = getTime()
       if (currentPlayer.name !== pack.name || currentPlayer.address !== pack.address) {
         currentPlayer.name = pack.name
         currentPlayer.address = pack.address
@@ -1250,7 +1248,7 @@ io.on('connection', function(socket) {
         const recentPlayer = recentPlayers.find(r => r.address === pack.address)
 
         if (recentPlayer) {
-          if (now - recentPlayer.lastUpdate < 3000) {
+          if ((now - recentPlayer.lastUpdate) < 3000) {
             disconnectPlayer(currentPlayer)
             return
           }
@@ -1273,10 +1271,10 @@ io.on('connection', function(socket) {
 
     socket.on('JoinRoom', function(msg) {
       // const pack = decodePayload(msg)
-      const now = Date.now()
+      const now = getTime()
       const recentPlayer = recentPlayers.find(r => r.address === currentPlayer.address)
 
-      if (recentPlayer && now - recentPlayer.lastUpdate < 3000) {
+      if (recentPlayer && (now - recentPlayer.lastUpdate) < 3000) {
         disconnectPlayer(currentPlayer)
         return
       }
@@ -1291,13 +1289,13 @@ io.on('connection', function(socket) {
 
       currentPlayer.isDead = false
       currentPlayer.avatar = config.startAvatar
-      currentPlayer.joinedAt = Math.round(Date.now() / 1000)
+      currentPlayer.joinedAt = Math.round(getTime() / 1000)
       currentPlayer.speed = (config.baseSpeed * config['avatarSpeedMultiplier' + currentPlayer.avatar])
 
       log("[INFO] player " + currentPlayer.id + ": logged!")
 
       log("[INFO] Total players: " + Object.keys(clientLookup).length)
-      const roundTimer = (round.startedAt + config.roundLoopSeconds) - Math.round(Date.now() / 1000)
+      const roundTimer = (round.startedAt + config.roundLoopSeconds) - Math.round(getTime() / 1000)
       emitDirect(socket, 'OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
       emitDirect(socket, 'OnJoinGame', currentPlayer.id, currentPlayer.name, currentPlayer.avatar, currentPlayer.isMasterClient ? 'true' : 'false', roundTimer, spawnPoint.x, spawnPoint.y)
       emitDirect(socket, 'OnSetInfo', currentPlayer.id, currentPlayer.name, currentPlayer.address, currentPlayer.network, currentPlayer.device)
@@ -1336,7 +1334,7 @@ io.on('connection', function(socket) {
       // spawn currentPlayer client on clients in broadcast
       publishEvent('OnSpawnPlayer', currentPlayer.id, currentPlayer.name, currentPlayer.speed, currentPlayer.avatar, currentPlayer.position.x, currentPlayer.position.y, currentPlayer.position.x, currentPlayer.position.y)
 
-      currentPlayer.lastUpdate = Date.now()
+      currentPlayer.lastUpdate = getTime()
 
       if (config.level2allowed) {
         if (clients.filter(c => !c.isSpectating && !c.isDead).length >= config.playersRequiredForLevel2) {
@@ -1383,7 +1381,7 @@ io.on('connection', function(socket) {
       if (currentPlayer.isSpectating) return
       if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) return
 
-      const now = Date.now()
+      const now = getTime()
 
       if (now - currentPlayer.lastUpdate < config.forcedLatency) return
 
@@ -1409,7 +1407,7 @@ io.on('connection', function(socket) {
 
       currentPlayer.clientPosition = { x: positionX, y: positionY }
       currentPlayer.clientTarget = { x: targetX, y: targetY }
-      currentPlayer.lastReportedTime = pack.time
+      currentPlayer.lastReportedTime = parseFloat(pack.time)
 
       // const cacheKey = Math.floor(pack.target.split(':')[0])
 
@@ -1422,7 +1420,7 @@ io.on('connection', function(socket) {
     })
 
     socket.on('Pickup', async function (msg) {
-      const now = Date.now()
+      const now = getTime()
       const isPhased = currentPlayer.isPhased ? true : now <= currentPlayer.phasedUntil
 
       if (currentPlayer.isDead) return
@@ -1568,6 +1566,8 @@ function calcRoundRewards() {
   totalLegitPlayers = 1
 
   for (const client of clients) {
+    if (client.name.indexOf('Guest') !== -1 || client.name.indexOf('Unknown') !== -1) continue
+
     try {
       if ((client.points > 100 && client.kills > 1) || (client.points > 300 && client.evolves > 20 && client.powerups > 200) || (client.rewards > 3 && client.powerups > 200) || (client.evolves > 100) || (client.points > 1000)) {
         totalLegitPlayers += 1
@@ -1585,11 +1585,11 @@ function calcRoundRewards() {
 }
 
 
-let lastFastGameloopTime = Date.now()
-let lastFastestGameloopTime = Date.now()
+let lastFastGameloopTime = getTime()
+let lastFastestGameloopTime = getTime()
 
 function resetLeaderboard() {
-  const fiveSecondsAgo = Date.now() - 5000
+  const fiveSecondsAgo = getTime() - 7000
 
   const leaders = recentPlayers.filter(p => p.lastUpdate >= fiveSecondsAgo).sort((a, b) => b.points - a.points)
 
@@ -1635,7 +1635,7 @@ function resetLeaderboard() {
 
     if (client.isDead || client.isSpectating) continue
 
-    client.startedRoundAt = Math.round(Date.now() / 1000)
+    client.startedRoundAt = Math.round(getTime() / 1000)
 
     recentPlayers.push(client)
   }
@@ -1652,7 +1652,7 @@ function resetLeaderboard() {
 
   syncSprites()
 
-  round.startedAt = Math.round(Date.now() / 1000)
+  round.startedAt = Math.round(getTime() / 1000)
   round.index++
 
   publishEvent('OnSetRoundInfo', config.roundLoopSeconds + ':' + getRoundInfo().join(':'))
@@ -1684,8 +1684,8 @@ function resetLeaderboard() {
 
 function checkConnectionLoop() {
   if (!config.noBoot) {
-    const oneMinuteAgo = Date.now() - (config.disconnectPlayerSeconds * 1000)
-    // const oneMinuteAgo = Math.round(Date.now() / 1000) - config.disconnectPlayerSeconds
+    const oneMinuteAgo = getTime() - (config.disconnectPlayerSeconds * 1000)
+    // const oneMinuteAgo = Math.round(getTime() / 1000) - config.disconnectPlayerSeconds
 
     for (let i = 0; i < clients.length; i++) {
       const client = clients[i]
@@ -1694,7 +1694,7 @@ function checkConnectionLoop() {
       // if (client.isInvincible) continue
       // if (client.isDead) continue
 
-      if (client.lastReportedTime <= oneMinuteAgo) {
+      if (client.lastUpdate !== 0 && client.lastUpdate <= oneMinuteAgo) {
         disconnectPlayer(client)
       }
     }
@@ -1751,7 +1751,7 @@ function castVectorTowards(position, target, scalar) {
 }
 
 function detectCollisions() {
-  const now = Date.now()
+  const now = getTime()
   const currentTime = Math.round(now / 1000)
   const deltaTime = (now - lastFastestGameloopTime) / 1000
 
@@ -1774,7 +1774,7 @@ function detectCollisions() {
     }
 
     if (distanceBetweenPoints(player.position, player.clientPosition) > 2) {
-      player.phasedUntil = Date.now() + 500
+      player.phasedUntil = getTime() + 500
     }
 
     // if (distanceBetweenPoints(player.position, player.clientPosition) > config.checkPositionDistance) {
@@ -1882,11 +1882,11 @@ function detectCollisions() {
     if (collided) {
       player.position = position
       player.target = player.clientTarget
-      player.phasedUntil = Date.now() + 500
+      player.phasedUntil = getTime() + 500
       player.overrideSpeed = 0.5
     } else if (stuck) {
       player.target = player.clientTarget
-      player.phasedUntil = Date.now() + 500
+      player.phasedUntil = getTime() + 500
       player.overrideSpeed = 0.5
     } else {
       player.position = position
@@ -2017,7 +2017,7 @@ function fastestGameloop() {
 }
 
 function fastGameloop() {
-  const now = Date.now()
+  const now = getTime()
 
   detectCollisions()
 
