@@ -1698,7 +1698,7 @@ function checkConnectionLoop() {
       // if (client.isInvincible) continue
       // if (client.isDead) continue
 
-      if (client.lastReportedTime <= oneMinuteAgo) {
+      if (client.lastUpdate !== 0 && client.lastUpdate <= oneMinuteAgo) {
         disconnectPlayer(client)
       }
     }
