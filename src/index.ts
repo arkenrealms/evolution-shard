@@ -153,6 +153,9 @@ const baseConfig = {
   decayPowerPerMaxEvolvedPlayers: 0.2,
   pickupCheckPositionDistance: 1,
   playersRequiredForLevel2: 15,
+  preventBadKills: true,
+  colliderBuffer: 0.2,
+  stickyIslands: false,
   antifeed2: true,
   antifeed3: true,
   antifeed4: true,
@@ -280,7 +283,8 @@ const presets = [
     orbOnDeathPercent: 0,
     antifeed1: false,
     antifeed2: false,
-    calcRoundRewards: false
+    calcRoundRewards: false,
+    preventBadKills: false
   },
   // Mix 1
   {
@@ -373,7 +377,8 @@ const presets = [
     avatarDecayPower0: 4,
     avatarDecayPower1: 3,
     avatarDecayPower2: 2,
-    spriteXpMultiplier: -1
+    spriteXpMultiplier: -1,
+    preventBadKills: false
   },
   {
     gameMode: 'Reverse Evolve',
@@ -397,6 +402,11 @@ const presets = [
     avatarSpeedMultiplier1: 1,
     avatarSpeedMultiplier2: 1,
     hideMap: true
+  },
+  {
+    gameMode: 'Sticky Mode',
+    stickyIslands: true,
+    colliderBuffer: 0
   },
   // {
   //   gameMode: 'Dynamic Decay',
@@ -927,7 +937,7 @@ const registerKill = (winner, loser) => {
 
   if (winner.isInvincible) return
   if (loser.isInvincible) return
-  if (winner.isPhased || now < winner.phasedUntil) return
+  if (config.preventBadKills && winner.isPhased || now < winner.phasedUntil) return
 
   const currentRound = round.index
 
@@ -937,7 +947,7 @@ const registerKill = (winner, loser) => {
   const killingThemselves = config.antifeed3 ? winner.hash === loser.hash : false
   const allowKill = !notReallyTrying && !tooManyKills && !killingThemselves
 
-  if (!allowKill) {
+  if (config.preventBadKills && !allowKill) {
     loser.phasedUntil = Date.now() + 2000
 
     return
@@ -1240,7 +1250,7 @@ io.on('connection', function(socket) {
         const recentPlayer = recentPlayers.find(r => r.address === pack.address)
 
         if (recentPlayer) {
-          if (now - recentPlayer.lastUpdate < 5000) {
+          if (now - recentPlayer.lastUpdate < 3000) {
             disconnectPlayer(currentPlayer)
             return
           }
@@ -1266,7 +1276,7 @@ io.on('connection', function(socket) {
       const now = Date.now()
       const recentPlayer = recentPlayers.find(r => r.address === currentPlayer.address)
 
-      if (recentPlayer && now - recentPlayer.lastUpdate < 5000) {
+      if (recentPlayer && now - recentPlayer.lastUpdate < 3000) {
         disconnectPlayer(currentPlayer)
         return
       }
@@ -1791,6 +1801,7 @@ function detectCollisions() {
 
     let collided = false
     let stuck = false
+
     for (const gameObject of db.map) {
       if (!gameObject.Colliders || !gameObject.Colliders.length) continue
 
@@ -1799,10 +1810,10 @@ function detectCollisions() {
         
         if (gameObject.Name.indexOf('Island') !== -1) {
           collider = {
-            minX: gameCollider.Min[0] + (gameCollider.Max[0] - gameCollider.Min[0]) * 0.2,
-            maxX: gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * 0.2,
-            minY: gameCollider.Min[1] + (gameCollider.Max[1] - gameCollider.Min[1]) * 0.2,
-            maxY: gameCollider.Max[1] - (gameCollider.Max[1] - gameCollider.Min[1]) * 0.2
+            minX: gameCollider.Min[0] + (gameCollider.Max[0] - gameCollider.Min[0]) * config.colliderBuffer,
+            maxX: gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * config.colliderBuffer,
+            minY: gameCollider.Min[1] + (gameCollider.Max[1] - gameCollider.Min[1]) * config.colliderBuffer,
+            maxY: gameCollider.Max[1] - (gameCollider.Max[1] - gameCollider.Min[1]) * config.colliderBuffer
           }
         } else {
           collider = {
@@ -1836,7 +1847,11 @@ function detectCollisions() {
             stuck = true
           }
           else if (gameObject.Name.indexOf('Island') !== -1) {
-            collided = true
+            if (config.stickyIslands) {
+              stuck = true
+            } else {
+              collided = true
+            }
           }
           else if (gameObject.Name.indexOf('Collider') !== -1) {
             stuck = true
@@ -1872,6 +1887,7 @@ function detectCollisions() {
     } else if (stuck) {
       player.target = player.clientTarget
       player.phasedUntil = Date.now() + 500
+      player.overrideSpeed = 0.5
     } else {
       player.position = position
       player.target = player.clientTarget //castVectorTowards(position, player.clientTarget, 9999)
