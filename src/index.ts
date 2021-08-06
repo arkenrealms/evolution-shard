@@ -1252,7 +1252,7 @@ io.on('connection', function(socket) {
         const recentPlayer = recentPlayers.find(r => r.address === pack.address)
 
         if (recentPlayer) {
-          if (now - recentPlayer.lastUpdate < 3000) {
+          if ((now - recentPlayer.lastUpdate) < 3000) {
             disconnectPlayer(currentPlayer)
             return
           }
@@ -1278,7 +1278,7 @@ io.on('connection', function(socket) {
       const now = getTime()
       const recentPlayer = recentPlayers.find(r => r.address === currentPlayer.address)
 
-      if (recentPlayer && now - recentPlayer.lastUpdate < 3000) {
+      if (recentPlayer && (now - recentPlayer.lastUpdate) < 3000) {
         disconnectPlayer(currentPlayer)
         return
       }
