@@ -71,7 +71,9 @@ db.playerRewards = jetpack.read(path.resolve('./public/data/playerRewards.json')
 db.map = jetpack.read(path.resolve('./public/data/map.json'), 'json')
 db.log = jetpack.read(path.resolve('./public/data/log.json'), 'json')
 
-
+function getTime() {
+  return new Date().getTime()
+}
 
 const savePlayerRewards = () => {
   jetpack.write(path.resolve('./public/data/playerRewards.json'), JSON.stringify(db.playerRewards, null, 2))
@@ -112,7 +114,7 @@ function reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer) {
   
   saveReportList()
 
-  if (db.reportList[reportedPlayer.address].length >= 5) {
+  if (db.reportList[reportedPlayer.address].length >= 6) {
     db.banList.push(reportedPlayer.address)
 
     saveBanList()
@@ -121,12 +123,12 @@ function reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer) {
     return
   }
 
-  if (currentGamePlayers.length >= 5) {
+  if (currentGamePlayers.length >= 4) {
     const reportsFromCurrentGamePlayers = db.reportList[reportedPlayer.address].filter(function(n) {
       return currentGamePlayers.indexOf(n) !== -1;
     })
 
-    if (reportsFromCurrentGamePlayers.length >= currentGamePlayers.length / 2) {
+    if (reportsFromCurrentGamePlayers.length >= currentGamePlayers.length / 3) {
       db.banList.push(reportedPlayer.address)
 
       saveBanList()
@@ -153,6 +155,9 @@ const baseConfig = {
   decayPowerPerMaxEvolvedPlayers: 0.2,
   pickupCheckPositionDistance: 1,
   playersRequiredForLevel2: 15,
+  preventBadKills: true,
+  colliderBuffer: 0.2,
+  stickyIslands: false,
   antifeed2: true,
   antifeed3: true,
   antifeed4: true,
@@ -280,7 +285,8 @@ const presets = [
     orbOnDeathPercent: 0,
     antifeed1: false,
     antifeed2: false,
-    calcRoundRewards: false
+    calcRoundRewards: false,
+    preventBadKills: false
   },
   // Mix 1
   {
@@ -373,7 +379,8 @@ const presets = [
     avatarDecayPower0: 4,
     avatarDecayPower1: 3,
     avatarDecayPower2: 2,
-    spriteXpMultiplier: -1
+    spriteXpMultiplier: -1,
+    preventBadKills: false
   },
   {
     gameMode: 'Reverse Evolve',
@@ -397,6 +404,11 @@ const presets = [
     avatarSpeedMultiplier1: 1,
     avatarSpeedMultiplier2: 1,
     hideMap: true
+  },
+  {
+    gameMode: 'Sticky Mode',
+    stickyIslands: true,
+    colliderBuffer: 0
   },
   // {
   //   gameMode: 'Dynamic Decay',
@@ -439,7 +451,7 @@ let leaderboard = []
 let lastReward
 let round = {
   index: 0,
-  startedAt: Math.round(Date.now() / 1000)
+  startedAt: Math.round(getTime() / 1000)
 }
 
 const spawnBoundary1 = {
@@ -904,9 +916,9 @@ function spawnSprites(amount) {
 }
 
 function addToRecentPlayers(player) {
-  if (!player.name) return
+  if (!player.address || !player.name) return
 
-  recentPlayers = recentPlayers.filter(r => r.name !== player.name)
+  recentPlayers = recentPlayers.filter(r => r.address !== player.address)
 
   recentPlayers.push(player)
 
@@ -914,7 +926,7 @@ function addToRecentPlayers(player) {
 }
 
 function roundEndingSoon(sec) {
-  const roundTimer = (round.startedAt + config.roundLoopSeconds) - Math.round(Date.now() / 1000)
+  const roundTimer = (round.startedAt + config.roundLoopSeconds) - Math.round(getTime() / 1000)
   return roundTimer < sec
 }
 
@@ -923,11 +935,11 @@ function sha256(str) {
 }
 
 const registerKill = (winner, loser) => {
-  const now = Date.now()
+  const now = getTime()
 
   if (winner.isInvincible) return
   if (loser.isInvincible) return
-  if (winner.isPhased || now < winner.phasedUntil) return
+  if (config.preventBadKills && winner.isPhased || now < winner.phasedUntil) return
 
   const currentRound = round.index
 
@@ -937,8 +949,8 @@ const registerKill = (winner, loser) => {
   const killingThemselves = config.antifeed3 ? winner.hash === loser.hash : false
   const allowKill = !notReallyTrying && !tooManyKills && !killingThemselves
 
-  if (!allowKill) {
-    loser.phasedUntil = Date.now() + 2000
+  if (config.preventBadKills && !allowKill) {
+    loser.phasedUntil = getTime() + 2000
 
     return
   }
@@ -1034,10 +1046,10 @@ io.on('connection', function(socket) {
       speed: config.baseSpeed * config.avatarSpeedMultiplier0,
       joinedAt: null,
       hash: hash.slice(hash.length - 10, hash.length - 1),
-      lastReportedTime: Date.now(),
-      lastUpdate: Date.now(),
+      lastReportedTime: getTime(),
+      lastUpdate: 0,
       gameMode: config.gameMode,
-      phasedUntil: Date.now(),
+      phasedUntil: getTime(),
       log: {
         kills: [],
         deaths: [],
@@ -1230,19 +1242,30 @@ io.on('connection', function(socket) {
         return
       }
 
+      const now = getTime()
       if (currentPlayer.name !== pack.name || currentPlayer.address !== pack.address) {
         currentPlayer.name = pack.name
         currentPlayer.address = pack.address
         currentPlayer.network = pack.network
         currentPlayer.device = pack.device
 
-        currentPlayer.kills = recentPlayers.find(r => r.name === pack.name)?.kills || currentPlayer.kills
-        currentPlayer.deaths = recentPlayers.find(r => r.name === pack.name)?.deaths || currentPlayer.deaths
-        currentPlayer.points = recentPlayers.find(r => r.name === pack.name)?.points || currentPlayer.points
-        currentPlayer.evolves = recentPlayers.find(r => r.name === pack.name)?.evolves || currentPlayer.evolves
-        currentPlayer.powerups = recentPlayers.find(r => r.name === pack.name)?.powerups || currentPlayer.powerups
-        currentPlayer.rewards = recentPlayers.find(r => r.name === pack.name)?.rewards || currentPlayer.rewards
-        currentPlayer.log = recentPlayers.find(r => r.name === pack.name)?.log || currentPlayer.log
+        const recentPlayer = recentPlayers.find(r => r.address === pack.address)
+
+        if (recentPlayer) {
+          if (now - recentPlayer.lastUpdate < 3000) {
+            disconnectPlayer(currentPlayer)
+            return
+          }
+
+          currentPlayer.kills = recentPlayer.kills
+          currentPlayer.deaths = recentPlayer.deaths
+          currentPlayer.points = recentPlayer.points
+          currentPlayer.evolves = recentPlayer.evolves
+          currentPlayer.powerups = recentPlayer.powerups
+          currentPlayer.rewards = recentPlayer.rewards
+          currentPlayer.log = recentPlayer.log
+          currentPlayer.lastUpdate = recentPlayer.lastUpdate
+        }
 
         addToRecentPlayers(currentPlayer)
     
@@ -1251,7 +1274,14 @@ io.on('connection', function(socket) {
     })
 
     socket.on('JoinRoom', function(msg) {
-      const pack = decodePayload(msg)
+      // const pack = decodePayload(msg)
+      const now = getTime()
+      const recentPlayer = recentPlayers.find(r => r.address === currentPlayer.address)
+
+      if (recentPlayer && now - recentPlayer.lastUpdate < 3000) {
+        disconnectPlayer(currentPlayer)
+        return
+      }
 
       if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) {
         emitDirect(socket, 'OnMaintenance', true)
@@ -1263,13 +1293,13 @@ io.on('connection', function(socket) {
 
       currentPlayer.isDead = false
       currentPlayer.avatar = config.startAvatar
-      currentPlayer.joinedAt = Math.round(Date.now() / 1000)
+      currentPlayer.joinedAt = Math.round(getTime() / 1000)
       currentPlayer.speed = (config.baseSpeed * config['avatarSpeedMultiplier' + currentPlayer.avatar])
 
       log("[INFO] player " + currentPlayer.id + ": logged!")
 
       log("[INFO] Total players: " + Object.keys(clientLookup).length)
-      const roundTimer = (round.startedAt + config.roundLoopSeconds) - Math.round(Date.now() / 1000)
+      const roundTimer = (round.startedAt + config.roundLoopSeconds) - Math.round(getTime() / 1000)
       emitDirect(socket, 'OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
       emitDirect(socket, 'OnJoinGame', currentPlayer.id, currentPlayer.name, currentPlayer.avatar, currentPlayer.isMasterClient ? 'true' : 'false', roundTimer, spawnPoint.x, spawnPoint.y)
       emitDirect(socket, 'OnSetInfo', currentPlayer.id, currentPlayer.name, currentPlayer.address, currentPlayer.network, currentPlayer.device)
@@ -1308,7 +1338,7 @@ io.on('connection', function(socket) {
       // spawn currentPlayer client on clients in broadcast
       publishEvent('OnSpawnPlayer', currentPlayer.id, currentPlayer.name, currentPlayer.speed, currentPlayer.avatar, currentPlayer.position.x, currentPlayer.position.y, currentPlayer.position.x, currentPlayer.position.y)
 
-      currentPlayer.lastUpdate = Date.now()
+      currentPlayer.lastUpdate = getTime()
 
       if (config.level2allowed) {
         if (clients.filter(c => !c.isSpectating && !c.isDead).length >= config.playersRequiredForLevel2) {
@@ -1355,7 +1385,7 @@ io.on('connection', function(socket) {
       if (currentPlayer.isSpectating) return
       if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) return
 
-      const now = Date.now()
+      const now = getTime()
 
       if (now - currentPlayer.lastUpdate < config.forcedLatency) return
 
@@ -1383,7 +1413,7 @@ io.on('connection', function(socket) {
       currentPlayer.clientTarget = { x: targetX, y: targetY }
       currentPlayer.lastReportedTime = pack.time
 
-      const cacheKey = Math.floor(pack.target.split(':')[0])
+      // const cacheKey = Math.floor(pack.target.split(':')[0])
 
       // if (eventCache['OnUpdateMyself'][socket.id] !== cacheKey) {
         currentPlayer.lastUpdate = now
@@ -1394,7 +1424,7 @@ io.on('connection', function(socket) {
     })
 
     socket.on('Pickup', async function (msg) {
-      const now = Date.now()
+      const now = getTime()
       const isPhased = currentPlayer.isPhased ? true : now <= currentPlayer.phasedUntil
 
       if (currentPlayer.isDead) return
@@ -1540,6 +1570,8 @@ function calcRoundRewards() {
   totalLegitPlayers = 1
 
   for (const client of clients) {
+    if (client.name.indexOf('Guest') !== -1 || client.name.indexOf('Unknown') !== -1) continue
+
     try {
       if ((client.points > 100 && client.kills > 1) || (client.points > 300 && client.evolves > 20 && client.powerups > 200) || (client.rewards > 3 && client.powerups > 200) || (client.evolves > 100) || (client.points > 1000)) {
         totalLegitPlayers += 1
@@ -1557,11 +1589,11 @@ function calcRoundRewards() {
 }
 
 
-let lastFastGameloopTime = Date.now()
-let lastFastestGameloopTime = Date.now()
+let lastFastGameloopTime = getTime()
+let lastFastestGameloopTime = getTime()
 
 function resetLeaderboard() {
-  const fiveSecondsAgo = Math.round(Date.now() / 1000) - 7
+  const fiveSecondsAgo = getTime() - 5000
 
   const leaders = recentPlayers.filter(p => p.lastUpdate >= fiveSecondsAgo).sort((a, b) => b.points - a.points)
 
@@ -1607,7 +1639,7 @@ function resetLeaderboard() {
 
     if (client.isDead || client.isSpectating) continue
 
-    client.startedRoundAt = Math.round(Date.now() / 1000)
+    client.startedRoundAt = Math.round(getTime() / 1000)
 
     recentPlayers.push(client)
   }
@@ -1624,7 +1656,7 @@ function resetLeaderboard() {
 
   syncSprites()
 
-  round.startedAt = Math.round(Date.now() / 1000)
+  round.startedAt = Math.round(getTime() / 1000)
   round.index++
 
   publishEvent('OnSetRoundInfo', config.roundLoopSeconds + ':' + getRoundInfo().join(':'))
@@ -1656,8 +1688,8 @@ function resetLeaderboard() {
 
 function checkConnectionLoop() {
   if (!config.noBoot) {
-    const oneMinuteAgo = Math.round(Date.now() / 1000) - config.disconnectPlayerSeconds
-    // const oneMinuteAgo = Math.round(Date.now() / 1000) - config.disconnectPlayerSeconds
+    const oneMinuteAgo = getTime() - (config.disconnectPlayerSeconds * 1000)
+    // const oneMinuteAgo = Math.round(getTime() / 1000) - config.disconnectPlayerSeconds
 
     for (let i = 0; i < clients.length; i++) {
       const client = clients[i]
@@ -1666,7 +1698,7 @@ function checkConnectionLoop() {
       // if (client.isInvincible) continue
       // if (client.isDead) continue
 
-      if (client.lastUpdate <= oneMinuteAgo) {
+      if (client.lastReportedTime <= oneMinuteAgo) {
         disconnectPlayer(client)
       }
     }
@@ -1723,7 +1755,7 @@ function castVectorTowards(position, target, scalar) {
 }
 
 function detectCollisions() {
-  const now = Date.now()
+  const now = getTime()
   const currentTime = Math.round(now / 1000)
   const deltaTime = (now - lastFastestGameloopTime) / 1000
 
@@ -1746,7 +1778,7 @@ function detectCollisions() {
     }
 
     if (distanceBetweenPoints(player.position, player.clientPosition) > 2) {
-      player.phasedUntil = Date.now() + 500
+      player.phasedUntil = getTime() + 500
     }
 
     // if (distanceBetweenPoints(player.position, player.clientPosition) > config.checkPositionDistance) {
@@ -1773,6 +1805,7 @@ function detectCollisions() {
 
     let collided = false
     let stuck = false
+
     for (const gameObject of db.map) {
       if (!gameObject.Colliders || !gameObject.Colliders.length) continue
 
@@ -1781,10 +1814,10 @@ function detectCollisions() {
         
         if (gameObject.Name.indexOf('Island') !== -1) {
           collider = {
-            minX: gameCollider.Min[0] + (gameCollider.Max[0] - gameCollider.Min[0]) * 0.2,
-            maxX: gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * 0.2,
-            minY: gameCollider.Min[1] + (gameCollider.Max[1] - gameCollider.Min[1]) * 0.2,
-            maxY: gameCollider.Max[1] - (gameCollider.Max[1] - gameCollider.Min[1]) * 0.2
+            minX: gameCollider.Min[0] + (gameCollider.Max[0] - gameCollider.Min[0]) * config.colliderBuffer,
+            maxX: gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * config.colliderBuffer,
+            minY: gameCollider.Min[1] + (gameCollider.Max[1] - gameCollider.Min[1]) * config.colliderBuffer,
+            maxY: gameCollider.Max[1] - (gameCollider.Max[1] - gameCollider.Min[1]) * config.colliderBuffer
           }
         } else {
           collider = {
@@ -1818,7 +1851,11 @@ function detectCollisions() {
             stuck = true
           }
           else if (gameObject.Name.indexOf('Island') !== -1) {
-            collided = true
+            if (config.stickyIslands) {
+              stuck = true
+            } else {
+              collided = true
+            }
           }
           else if (gameObject.Name.indexOf('Collider') !== -1) {
             stuck = true
@@ -1849,11 +1886,12 @@ function detectCollisions() {
     if (collided) {
       player.position = position
       player.target = player.clientTarget
-      player.phasedUntil = Date.now() + 500
+      player.phasedUntil = getTime() + 500
       player.overrideSpeed = 0.5
     } else if (stuck) {
       player.target = player.clientTarget
-      player.phasedUntil = Date.now() + 500
+      player.phasedUntil = getTime() + 500
+      player.overrideSpeed = 0.5
     } else {
       player.position = position
       player.target = player.clientTarget //castVectorTowards(position, player.clientTarget, 9999)
@@ -1983,7 +2021,7 @@ function fastestGameloop() {
 }
 
 function fastGameloop() {
-  const now = Date.now()
+  const now = getTime()
 
   detectCollisions()
 
