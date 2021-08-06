@@ -1411,7 +1411,7 @@ io.on('connection', function(socket) {
 
       currentPlayer.clientPosition = { x: positionX, y: positionY }
       currentPlayer.clientTarget = { x: targetX, y: targetY }
-      currentPlayer.lastReportedTime = pack.time
+      currentPlayer.lastReportedTime = parseFloat(pack.time)
 
       // const cacheKey = Math.floor(pack.target.split(':')[0])
 
