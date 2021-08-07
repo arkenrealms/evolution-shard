@@ -203,7 +203,7 @@ const sharedConfig = {
   gameMode: 'Standard',
   immunitySeconds: 5,
   isMaintenance: false,
-  lazycap: false,
+  leadercap: false,
   maxEvolves: 3,
   noBoot: testMode,
   noDecay: testMode,
@@ -259,168 +259,138 @@ let config = {
   // },
 
 const presets = [
-  // Lazy Mode
   // {
-  //   gameMode: 'Lazy Mode',
-  //   avatarDecayPower0: 2,
-  //   avatarDecayPower1: 2.5,
-  //   avatarDecayPower2: 5,
+  //   gameMode: 'Standard',
+  //   pointsPerEvolve: 1,
+  //   pointsPerPowerup: 1,
+  //   pointsPerKill: 20,
+  //   pointsPerReward: 5,
+  // },
+  // {
+  //   gameMode: 'Lets Be Friends',
+  //   pointsPerKill: -200,
+  //   orbTimeoutSeconds: 9999,
+  //   orbOnDeathPercent: 0,
+  //   antifeed1: false,
+  //   antifeed2: false,
+  //   calcRoundRewards: false,
+  //   preventBadKills: false
+  // },
+  // {
+  //   gameMode: 'Mix Game 1',
+  //   pointsPerEvolve: 2,
+  //   pointsPerPowerup: 2,
+  //   pointsPerKill: 50,
+  //   pointsPerReward: 10,
+  // },
+  // {
+  //   gameMode: 'Mix Game 2',
+  //   pointsPerEvolve: 10,
+  //   pointsPerKill: 200,
+  //   pointsPerReward: 20,
+  // },
+  // {
+  //   gameMode: 'Deathmatch',
+  //   pointsPerKill: 300,
+  //   orbOnDeathPercent: 0,
+  //   orbTimeoutSeconds: 9999,
+  //   pointsPerEvolve: 0,
+  //   pointsPerPowerup: 1,
+  //   pointsPerReward: 0,
+  //   baseSpeed: 4,
+  //   antifeed1: false,
+  //   dynamicDecayPower: true,
+  //   decayPowerPerMaxEvolvedPlayers: 0.2,
+  // },
+  // {
+  //   gameMode: 'Evolution',
+  //   pointsPerEvolve: 10,
+  // },
+  // {
+  //   gameMode: 'Orb Master',
+  //   // orbOnDeathPercent: 25,
+  //   orbTimeoutSeconds: 3,
+  //   pointsPerOrb: 200,
+  //   pointsPerEvolve: 0,
+  //   pointsPerReward: 0,
+  //   pointsPerKill: 0,
+  //   orbCutoffSeconds: 0
+  // },
+  // {
+  //   gameMode: 'Sprite Leader',
+  //   spritesPerPlayerCount: 20,
+  //   decayPower: 7,
+  //   pointsPerEvolve: 0,
+  //   pointsPerPowerup: 1,
+  //   pointsPerReward: 0,
+  //   pointsPerKill: 0,
+  //   orbTimeoutSeconds: 9999,
+  //   orbOnDeathPercent: 0,
+  // },
+  // {
+  //   gameMode: 'Fast Drake',
+  //   avatarSpeedMultiplier2: 1.5,
+  //   decayPower: 4,
+  //   immunitySeconds: 20,
+  //   orbOnDeathPercent: 0,
+  //   orbTimeoutSeconds: 9999,
+  // },
+  // {
+  //   gameMode: 'Bird Eye',
+  //   cameraSize: 6,
+  //   baseSpeed: 4,
+  //   decayPower: 2.8,
+  // },
+  // {
+  //   gameMode: 'Friendly Reverse',
+  //   pointsPerKill: -200,
+  //   orbTimeoutSeconds: 9999,
+  //   orbOnDeathPercent: 0,
+  //   antifeed1: false,
+  //   antifeed2: false,
+  //   pointsPerEvolve: 25,
+  //   decayPower: -3,
+  //   dynamicDecayPower: false,
+  //   avatarDecayPower0: 4,
+  //   avatarDecayPower1: 3,
+  //   avatarDecayPower2: 2,
+  //   spriteXpMultiplier: -1,
+  //   preventBadKills: false
+  // },
+  // {
+  //   gameMode: 'Reverse Evolve',
+  //   startAvatar: 2,
+  //   decayPower: -1,
+  //   antifeed1: false,
+  //   antifeed2: false,
+  //   dynamicDecayPower: false,
+  //   avatarDecayPower0: 4,
+  //   avatarDecayPower1: 3,
+  //   avatarDecayPower2: 2,
+  //   spriteXpMultiplier: -1,
+  //   // avatarDirection: -1
+  // },
+  // {
+  //   gameMode: 'Marco Polo',
+  //   cameraSize: 2,
+  //   baseSpeed: 3,
+  //   decayPower: 1.4,
   //   avatarSpeedMultiplier0: 1,
-  //   avatarSpeedMultiplier1: 0.85,
-  //   avatarSpeedMultiplier2: 0.85,
+  //   avatarSpeedMultiplier1: 1,
+  //   avatarSpeedMultiplier2: 1,
+  //   hideMap: true
   // },
-  // Standard
-  {
-    gameMode: 'Standard',
-    pointsPerEvolve: 1,
-    pointsPerPowerup: 1,
-    pointsPerKill: 20,
-    pointsPerReward: 5,
-  },
-  // Pacifism
-  {
-    gameMode: 'Lets Be Friends',
-    pointsPerKill: -200,
-    orbTimeoutSeconds: 9999,
-    orbOnDeathPercent: 0,
-    antifeed1: false,
-    antifeed2: false,
-    calcRoundRewards: false,
-    preventBadKills: false
-  },
-  // Mix 1
-  {
-    gameMode: 'Mix Game 1',
-    pointsPerEvolve: 2,
-    pointsPerPowerup: 2,
-    pointsPerKill: 50,
-    pointsPerReward: 10,
-  },
-  // Mix 2
-  {
-    gameMode: 'Mix Game 2',
-    pointsPerEvolve: 10,
-    pointsPerKill: 200,
-    pointsPerReward: 20,
-  },
-  // Kill game
-  {
-    gameMode: 'Deathmatch',
-    pointsPerKill: 300,
-    orbOnDeathPercent: 0,
-    orbTimeoutSeconds: 9999,
-    pointsPerEvolve: 0,
-    pointsPerPowerup: 1,
-    pointsPerReward: 0,
-    baseSpeed: 4,
-    antifeed1: false,
-    dynamicDecayPower: true,
-    decayPowerPerMaxEvolvedPlayers: 0.2,
-  },
-  // Evolve game
-  {
-    gameMode: 'Evolution',
-    pointsPerEvolve: 10,
-  },
-  // Orb game
-  {
-    gameMode: 'Orb Master',
-    // orbOnDeathPercent: 25,
-    orbTimeoutSeconds: 3,
-    pointsPerOrb: 200,
-    pointsPerEvolve: 0,
-    pointsPerReward: 0,
-    pointsPerKill: 0,
-    orbCutoffSeconds: 0
-  },
-  // Sprite game
-  {
-    gameMode: 'Sprite Leader',
-    spritesPerPlayerCount: 20,
-    decayPower: 7,
-    pointsPerEvolve: 0,
-    pointsPerPowerup: 1,
-    pointsPerReward: 0,
-    pointsPerKill: 0,
-    orbTimeoutSeconds: 9999,
-    orbOnDeathPercent: 0,
-  },
-  // Lazy cap game
   // {
-  //   gameMode: 'Lazycap',
-  //   lazycap: true
+  //   gameMode: 'Leadercap',
+  //   leadercap: true
   // },
-  // Fast Drake
-  {
-    gameMode: 'Fast Drake',
-    avatarSpeedMultiplier2: 1.5,
-    decayPower: 4,
-    immunitySeconds: 20,
-    orbOnDeathPercent: 0,
-    orbTimeoutSeconds: 9999,
-  },
-  // Zoom
-  {
-    gameMode: 'Bird Eye',
-    cameraSize: 6,
-    baseSpeed: 4,
-    decayPower: 2.8,
-  },
-  {
-    gameMode: 'Friendly Reverse',
-    pointsPerKill: -200,
-    orbTimeoutSeconds: 9999,
-    orbOnDeathPercent: 0,
-    antifeed1: false,
-    antifeed2: false,
-    pointsPerEvolve: 25,
-    decayPower: -3,
-    dynamicDecayPower: false,
-    avatarDecayPower0: 4,
-    avatarDecayPower1: 3,
-    avatarDecayPower2: 2,
-    spriteXpMultiplier: -1,
-    preventBadKills: false
-  },
-  {
-    gameMode: 'Reverse Evolve',
-    startAvatar: 2,
-    decayPower: -1,
-    antifeed1: false,
-    antifeed2: false,
-    dynamicDecayPower: false,
-    avatarDecayPower0: 4,
-    avatarDecayPower1: 3,
-    avatarDecayPower2: 2,
-    spriteXpMultiplier: -1,
-    // avatarDirection: -1
-  },
-  {
-    gameMode: 'Marco Polo',
-    cameraSize: 2,
-    baseSpeed: 3,
-    decayPower: 1.4,
-    avatarSpeedMultiplier0: 1,
-    avatarSpeedMultiplier1: 1,
-    avatarSpeedMultiplier2: 1,
-    hideMap: true
-  },
   {
     gameMode: 'Sticky Mode',
     stickyIslands: true,
     colliderBuffer: 0
   },
   // {
-  //   gameMode: 'Dynamic Decay',
-  //   pointsPerEvolve: 1,
-  //   pointsPerPowerup: 1,
-  //   pointsPerKill: 20,
-  //   pointsPerReward: 5,
-  //   dynamicDecayPower: true,
-  //   decayPowerPerMaxEvolvedPlayers: 1,
-  // },
-  // {
-  //   gameMode: 'Collapse',
+  //   gameMode: 'Fortnight',
   //   fortnight: true
   // },
 ]
@@ -449,6 +419,7 @@ let clients = [] // to storage clients
 let recentPlayers = []
 let leaderboard = []
 let lastReward
+let lastLeaderName
 let round = {
   index: 0,
   startedAt: Math.round(getTime() / 1000)
@@ -939,7 +910,7 @@ const registerKill = (winner, loser) => {
 
   if (winner.isInvincible) return
   if (loser.isInvincible) return
-  if (config.preventBadKills && winner.isPhased || now < winner.phasedUntil) return
+  if (config.preventBadKills && (winner.isPhased || now < winner.phasedUntil)) return
 
   const currentRound = round.index
 
@@ -959,7 +930,7 @@ const registerKill = (winner, loser) => {
   winner.points += config.pointsPerKill * (loser.avatar + 1)
   winner.log.kills.push(loser.hash)
 
-  const orbOnDeathPercent = config.lazycap && loser.name === 'Lazy' ? 75 : config.orbOnDeathPercent
+  const orbOnDeathPercent = config.leadercap && loser.name === lastLeaderName ? 75 : config.orbOnDeathPercent
   const orbPoints = Math.floor(loser.points * (orbOnDeathPercent / 100))
 
   loser.deaths += 1
@@ -1594,6 +1565,7 @@ function resetLeaderboard() {
   const leaders = recentPlayers.filter(p => p.lastUpdate >= fiveSecondsAgo).sort((a, b) => b.points - a.points)
 
   if (leaders.length) {
+    lastLeaderName = leaders[0].name
     sendLeaderReward(leaders[0], leaders[1], leaders[2], leaders[3], leaders[4])
   }
 
@@ -1849,6 +1821,7 @@ function detectCollisions() {
           else if (gameObject.Name.indexOf('Island') !== -1) {
             if (config.stickyIslands) {
               stuck = true
+              // position = player.position
             } else {
               collided = true
             }
@@ -1876,6 +1849,7 @@ function detectCollisions() {
         }
       }
 
+      if (stuck) break
       if (collided) break
     }
 
@@ -2043,7 +2017,7 @@ function fastGameloop() {
           client.points += config.pointsPerEvolve
           client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
   
-          if (config.lazycap && client.name === 'Lazy') {
+          if (config.leadercap && client.name === lastLeaderName) {
             client.speed = client.speed * 0.9
           }
   
@@ -2067,7 +2041,7 @@ function fastGameloop() {
           client.points += config.pointsPerEvolve
           client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
   
-          if (config.lazycap && client.name === 'Lazy') {
+          if (config.leadercap && client.name === lastLeaderName) {
             client.speed = client.speed * 0.9
           }
   
@@ -2093,7 +2067,7 @@ function fastGameloop() {
             client.avatar = Math.max(Math.min(client.avatar - (1 * config.avatarDirection), config.maxEvolves - 1), 0)
             client.speed = (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
 
-            if (config.lazycap && client.name === 'Lazy') {
+            if (config.leadercap && client.name === lastLeaderName) {
               client.speed = client.speed * 0.9
             }
     
@@ -2107,7 +2081,7 @@ function fastGameloop() {
             client.avatar = Math.max(Math.min(client.avatar - (1 * config.avatarDirection), config.maxEvolves - 1), 0)
             client.speed = (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
 
-            if (config.lazycap && client.name === 'Lazy') {
+            if (config.leadercap && client.name === lastLeaderName) {
               client.speed = client.speed * 0.9
             }
     
