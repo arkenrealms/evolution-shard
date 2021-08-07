@@ -1821,6 +1821,7 @@ function detectCollisions() {
           else if (gameObject.Name.indexOf('Island') !== -1) {
             if (config.stickyIslands) {
               stuck = true
+              player.isStuck = true
               // position = player.position
             } else {
               collided = true
