@@ -1821,7 +1821,6 @@ function detectCollisions() {
           else if (gameObject.Name.indexOf('Island') !== -1) {
             if (config.stickyIslands) {
               stuck = true
-              player.isStuck = true
               // position = player.position
             } else {
               collided = true
@@ -1854,6 +1853,8 @@ function detectCollisions() {
       if (collided) break
     }
 
+    player.isStuck = false
+
     if (collided) {
       player.position = position
       player.target = player.clientTarget
@@ -1863,6 +1864,9 @@ function detectCollisions() {
       player.target = player.clientTarget
       player.phasedUntil = getTime() + 500
       player.overrideSpeed = 0.5
+      if (config.stickyIslands) {
+        player.isStuck = true
+      }
     } else {
       player.position = position
       player.target = player.clientTarget //castVectorTowards(position, player.clientTarget, 9999)
