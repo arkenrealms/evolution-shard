@@ -288,5 +288,85 @@
   [],
   [],
   [],
+  [],
+  [
+    {
+      "name": "Botter",
+      "id": "7wnHUaEgul9FprYZAAAB",
+      "avatar": 2,
+      "network": "bsc",
+      "address": "0xa987f487639920A3c2eFe58C8FBDedB96253ed9B",
+      "device": "desktop",
+      "position": {
+        "x": -2.8832736127056426,
+        "y": -4.356643780836288
+      },
+      "target": {
+        "x": -2.29,
+        "y": -4.44
+      },
+      "clientPosition": {
+        "x": -3,
+        "y": -4.34
+      },
+      "clientTarget": {
+        "x": -2.29,
+        "y": -4.44
+      },
+      "rotation": null,
+      "xp": 35.18400000000105,
+      "latency": 0,
+      "kills": 0,
+      "deaths": 0,
+      "points": 78,
+      "evolves": 8,
+      "powerups": 78,
+      "rewards": 1,
+      "orbs": 0,
+      "isMasterClient": true,
+      "isDisconnected": true,
+      "isDead": true,
+      "isSpectating": false,
+      "isStuck": false,
+      "isPhased": false,
+      "overrideSpeed": null,
+      "overrideCameraSize": null,
+      "cameraSize": 3,
+      "speed": 2.55,
+      "joinedAt": null,
+      "hash": "",
+      "lastReportedTime": 1628433715059,
+      "lastUpdate": 1628433715078,
+      "gameMode": "Orb Master",
+      "phasedUntil": 1628433691001,
+      "log": {
+        "kills": [],
+        "deaths": [],
+        "revenge": 0,
+        "resetPosition": 0,
+        "phases": 33,
+        "stuck": 33,
+        "collided": 0,
+        "timeoutDisconnect": 0,
+        "speedProblem": 0,
+        "clientDistanceProblem": 0,
+        "outOfBounds": 0,
+        "ranOutOfHealth": 0,
+        "notReallyTrying": 0,
+        "tooManyKills": 0,
+        "killingThemselves": 0,
+        "sameNetworkDisconnect": 0,
+        "connectedTooSoon": 0,
+        "clientDisconnected": 1,
+        "positionJump": 0,
+        "pauses": 0,
+        "connects": 0,
+        "path": "-11:-9,-11:-8,-11:-7,-10:-7,-10:-6,-9:-6,-9:-5,-8:-5,-8:-6,-7:-6,-6:-7,-6:-6,-5:-6,-5:-5,-4:-5,-3:-5,-3:-6,-2:-6,-2:-7,-3:-7,-3:-8,-4:-8,-4:-7,-5:-7,-5:-8,-5:-9,-5:-10,-4:-10,-4:-11,-3:-11,-2:-11,-2:-10,-2:-9,-1:-9,-1:-10,-1:-11,-1:-12,0:-12,-2:-12,-3:-12,-4:-12,-5:-12,-6:-12,-6:-11,-7:-11,-7:-12,-8:-12,-7:-13,-6:-13,-8:-13,-9:-12,-10:-12,-10:-11,-10:-13,-11:-13,-12:-13,-13:-13,-14:-13,-14:-12,-15:-12,-15:-11,-16:-11,-16:-12,-15:-13,-16:-13,-17:-13,-15:-10,-15:-9,-14:-9,-14:-8,-15:-8,-14:-7,-14:-6,-15:-6,-15:-5,-16:-5,-17:-5,-17:-6,-17:-7,-16:-7,-17:-8,-16:-8,-13:-8,-13:-7,-13:-6,-12:-6,-12:-7,-10:-5,-7:-5,-7:-4,-4:-6,-4:-4,-3:-4,",
+        "positions": 93,
+        "replay": []
+      }
+    }
+  ],
+  [],
   []
 ]
