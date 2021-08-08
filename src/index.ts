@@ -19,7 +19,7 @@ import Provider from './util/provider'
 
 const path = require('path')
 
-const serverVersion = "0.14.0"
+const serverVersion = "0.16.0"
 
 const server = express()
 const http = require('http').Server(server)
@@ -27,7 +27,19 @@ const https = require('https').createServer({
   key: fs.readFileSync(path.resolve('./privkey.pem')),
   cert: fs.readFileSync(path.resolve('./fullchain.pem'))
 }, server)
-const io = require('socket.io')(process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10' ? https : http, { secure: process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10' ? true : false })
+const io = require('socket.io')(process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10' ? https : http, {
+  secure: process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10' ? true : false,
+  pingInterval: 30005,
+  pingTimeout: 5000,
+  upgradeTimeout: 3000,
+  allowUpgrades: true,
+  cookie: false,
+  serveClient: true,
+  allowEIO3: false,
+  cors: {
+    origin: "*"
+  }
+})
 const shortId = require('shortid')
 
 function logError(err) {
@@ -203,7 +215,7 @@ const sharedConfig = {
   gameMode: 'Standard',
   immunitySeconds: 5,
   isMaintenance: false,
-  lazycap: false,
+  leadercap: false,
   maxEvolves: 3,
   noBoot: testMode,
   noDecay: testMode,
@@ -259,17 +271,6 @@ let config = {
   // },
 
 const presets = [
-  // Lazy Mode
-  // {
-  //   gameMode: 'Lazy Mode',
-  //   avatarDecayPower0: 2,
-  //   avatarDecayPower1: 2.5,
-  //   avatarDecayPower2: 5,
-  //   avatarSpeedMultiplier0: 1,
-  //   avatarSpeedMultiplier1: 0.85,
-  //   avatarSpeedMultiplier2: 0.85,
-  // },
-  // Standard
   {
     gameMode: 'Standard',
     pointsPerEvolve: 1,
@@ -277,7 +278,6 @@ const presets = [
     pointsPerKill: 20,
     pointsPerReward: 5,
   },
-  // Pacifism
   {
     gameMode: 'Lets Be Friends',
     pointsPerKill: -200,
@@ -286,9 +286,8 @@ const presets = [
     antifeed1: false,
     antifeed2: false,
     calcRoundRewards: false,
-    preventBadKills: false
+    // preventBadKills: false
   },
-  // Mix 1
   {
     gameMode: 'Mix Game 1',
     pointsPerEvolve: 2,
@@ -296,14 +295,12 @@ const presets = [
     pointsPerKill: 50,
     pointsPerReward: 10,
   },
-  // Mix 2
   {
     gameMode: 'Mix Game 2',
     pointsPerEvolve: 10,
     pointsPerKill: 200,
     pointsPerReward: 20,
   },
-  // Kill game
   {
     gameMode: 'Deathmatch',
     pointsPerKill: 300,
@@ -317,12 +314,10 @@ const presets = [
     dynamicDecayPower: true,
     decayPowerPerMaxEvolvedPlayers: 0.2,
   },
-  // Evolve game
   {
     gameMode: 'Evolution',
     pointsPerEvolve: 10,
   },
-  // Orb game
   {
     gameMode: 'Orb Master',
     // orbOnDeathPercent: 25,
@@ -333,7 +328,6 @@ const presets = [
     pointsPerKill: 0,
     orbCutoffSeconds: 0
   },
-  // Sprite game
   {
     gameMode: 'Sprite Leader',
     spritesPerPlayerCount: 20,
@@ -345,12 +339,6 @@ const presets = [
     orbTimeoutSeconds: 9999,
     orbOnDeathPercent: 0,
   },
-  // Lazy cap game
-  // {
-  //   gameMode: 'Lazycap',
-  //   lazycap: true
-  // },
-  // Fast Drake
   {
     gameMode: 'Fast Drake',
     avatarSpeedMultiplier2: 1.5,
@@ -359,7 +347,6 @@ const presets = [
     orbOnDeathPercent: 0,
     orbTimeoutSeconds: 9999,
   },
-  // Zoom
   {
     gameMode: 'Bird Eye',
     cameraSize: 6,
@@ -380,7 +367,7 @@ const presets = [
     avatarDecayPower1: 3,
     avatarDecayPower2: 2,
     spriteXpMultiplier: -1,
-    preventBadKills: false
+    // preventBadKills: false
   },
   {
     gameMode: 'Reverse Evolve',
@@ -406,21 +393,16 @@ const presets = [
     hideMap: true
   },
   {
+    gameMode: 'Leadercap',
+    leadercap: true
+  },
+  {
     gameMode: 'Sticky Mode',
     stickyIslands: true,
     colliderBuffer: 0
   },
   // {
-  //   gameMode: 'Dynamic Decay',
-  //   pointsPerEvolve: 1,
-  //   pointsPerPowerup: 1,
-  //   pointsPerKill: 20,
-  //   pointsPerReward: 5,
-  //   dynamicDecayPower: true,
-  //   decayPowerPerMaxEvolvedPlayers: 1,
-  // },
-  // {
-  //   gameMode: 'Collapse',
+  //   gameMode: 'Fortnight',
   //   fortnight: true
   // },
 ]
@@ -449,9 +431,11 @@ let clients = [] // to storage clients
 let recentPlayers = []
 let leaderboard = []
 let lastReward
+let lastLeaderName
 let round = {
   index: 0,
-  startedAt: Math.round(getTime() / 1000)
+  startedAt: Math.round(getTime() / 1000),
+  positions: {}
 }
 
 const spawnBoundary1 = {
@@ -816,6 +800,8 @@ function disconnectPlayer(player) {
   if (player.isDisconnected) return
 
   try {
+    console.log("Disconnecting", player.id)
+
     player.isDisconnected = true
     player.isDead = true
     player.joinedAt = null
@@ -939,7 +925,7 @@ const registerKill = (winner, loser) => {
 
   if (winner.isInvincible) return
   if (loser.isInvincible) return
-  if (config.preventBadKills && winner.isPhased || now < winner.phasedUntil) return
+  if (config.preventBadKills && (winner.isPhased || now < winner.phasedUntil)) return
 
   const currentRound = round.index
 
@@ -948,6 +934,16 @@ const registerKill = (winner, loser) => {
   const tooManyKills = config.antifeed2 ? clients.length > 2 && totalKills >= 5 && totalKills > winner.log.kills.length / clients.filter(c => !c.isDead).length : false
   const killingThemselves = config.antifeed3 ? winner.hash === loser.hash : false
   const allowKill = !notReallyTrying && !tooManyKills && !killingThemselves
+    
+  if (notReallyTrying) {
+    loser.log.notReallyTrying += 1
+  }
+  if (tooManyKills) {
+    loser.log.tooManyKills += 1
+  }
+  if (killingThemselves) {
+    loser.log.killingThemselves += 1
+  }
 
   if (config.preventBadKills && !allowKill) {
     loser.phasedUntil = getTime() + 2000
@@ -959,7 +955,7 @@ const registerKill = (winner, loser) => {
   winner.points += config.pointsPerKill * (loser.avatar + 1)
   winner.log.kills.push(loser.hash)
 
-  const orbOnDeathPercent = config.lazycap && loser.name === 'Lazy' ? 75 : config.orbOnDeathPercent
+  const orbOnDeathPercent = config.leadercap && loser.name === lastLeaderName ? 75 : config.orbOnDeathPercent
   const orbPoints = Math.floor(loser.points * (orbOnDeathPercent / 100))
 
   loser.deaths += 1
@@ -1054,7 +1050,26 @@ io.on('connection', function(socket) {
         kills: [],
         deaths: [],
         revenge: 0,
-        resetPosition: 0
+        resetPosition: 0,
+        phases: 0,
+        stuck: 0,
+        collided: 0,
+        timeoutDisconnect: 0,
+        speedProblem: 0,
+        clientDistanceProblem: 0,
+        outOfBounds: 0,
+        ranOutOfHealth: 0,
+        notReallyTrying: 0,
+        tooManyKills: 0,
+        killingThemselves: 0,
+        sameNetworkDisconnect: 0,
+        connectedTooSoon: 0,
+        clientDisconnected: 0,
+        positionJump: 0,
+        pauses: 0,
+        connects: 0,
+        path: '',
+        positions: 0
       }
     }
 
@@ -1065,6 +1080,7 @@ io.on('connection', function(socket) {
 
       for (const client of sameNetworkClients) {
         disconnectPlayer(client)
+        client.log.sameNetworkDisconnect += 1
       }
     }
 
@@ -1219,13 +1235,9 @@ io.on('connection', function(socket) {
       reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer)
     })
 
-    // socket.on('Ping', function() {
-    //   if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) {
-    //     return
-    //   }
-
-    //   emitDirect(socket, 'Pong', "pong!!!")
-    // })
+    socket.on('ping', function() {
+      emitDirect(socket, 'pong')
+    })
 
     socket.on('SetInfo', function(msg) {
       const pack = decodePayload(msg)
@@ -1263,8 +1275,10 @@ io.on('connection', function(socket) {
           currentPlayer.evolves = recentPlayer.evolves
           currentPlayer.powerups = recentPlayer.powerups
           currentPlayer.rewards = recentPlayer.rewards
-          currentPlayer.log = recentPlayer.log
           currentPlayer.lastUpdate = recentPlayer.lastUpdate
+          currentPlayer.log = recentPlayer.log
+
+          currentPlayer.log.connects += 1
         }
 
         addToRecentPlayers(currentPlayer)
@@ -1280,6 +1294,7 @@ io.on('connection', function(socket) {
 
       if (recentPlayer && (now - recentPlayer.lastUpdate) < 3000) {
         disconnectPlayer(currentPlayer)
+        currentPlayer.log.connectedTooSoon += 1
         return
       }
 
@@ -1406,6 +1421,7 @@ io.on('connection', function(socket) {
     
       if (config.anticheat.disconnectPositionJumps && distanceBetweenPoints(currentPlayer.position, { x: positionY, y: positionY }) > 5) {
         disconnectPlayer(currentPlayer)
+        currentPlayer.log.positionJump += 1
         return
       }
 
@@ -1469,6 +1485,7 @@ io.on('connection', function(socket) {
       log("User has disconnected")
 
       disconnectPlayer(currentPlayer)
+      currentPlayer.log.clientDisconnected += 1
 
       flushEventQueue()
     })
@@ -1593,11 +1610,12 @@ let lastFastGameloopTime = getTime()
 let lastFastestGameloopTime = getTime()
 
 function resetLeaderboard() {
-  const fiveSecondsAgo = getTime() - 5000
+  const fiveSecondsAgo = getTime() - 7000
 
   const leaders = recentPlayers.filter(p => p.lastUpdate >= fiveSecondsAgo).sort((a, b) => b.points - a.points)
 
   if (leaders.length) {
+    lastLeaderName = leaders[0].name
     sendLeaderReward(leaders[0], leaders[1], leaders[2], leaders[3], leaders[4])
   }
 
@@ -1631,7 +1649,26 @@ function resetLeaderboard() {
       kills: [],
       deaths: [],
       revenge: 0,
-      resetPosition: 0
+      resetPosition: 0,
+      phases: 0,
+      stuck: 0,
+      collided: 0,
+      timeoutDisconnect: 0,
+      speedProblem: 0,
+      clientDistanceProblem: 0,
+      outOfBounds: 0,
+      ranOutOfHealth: 0,
+      notReallyTrying: 0,
+      tooManyKills: 0,
+      killingThemselves: 0,
+      sameNetworkDisconnect: 0,
+      connectedTooSoon: 0,
+      clientDisconnected: 0,
+      positionJump: 0,
+      pauses: 0,
+      connects: 0,
+      path: '',
+      positions: 0
     }
     client.gameMode = config.gameMode
 
@@ -1656,6 +1693,7 @@ function resetLeaderboard() {
 
   syncSprites()
 
+  round.positions = {}
   round.startedAt = Math.round(getTime() / 1000)
   round.index++
 
@@ -1700,6 +1738,7 @@ function checkConnectionLoop() {
 
       if (client.lastUpdate !== 0 && client.lastUpdate <= oneMinuteAgo) {
         disconnectPlayer(client)
+        client.log.timeoutDisconnect += 1
       }
     }
   }
@@ -1773,12 +1812,15 @@ function detectCollisions() {
     if (player.isSpectating) continue
 
     if (!Number.isFinite(player.position.x) || !Number.isFinite(player.speed)) { // Not sure what happened
+      player.log.speedProblem += 1
       disconnectPlayer(player)
       continue
     }
 
     if (distanceBetweenPoints(player.position, player.clientPosition) > 2) {
       player.phasedUntil = getTime() + 500
+      player.log.phases += 1
+      player.log.clientDistanceProblem += 1
     }
 
     // if (distanceBetweenPoints(player.position, player.clientPosition) > config.checkPositionDistance) {
@@ -1790,17 +1832,26 @@ function detectCollisions() {
     let position = moveVectorTowards(player.position, player.clientTarget, (player.overrideSpeed || player.speed) * deltaTime) // castVectorTowards(player.position, player.clientTarget, 9999)
     // let target = castVectorTowards(position, player.clientTarget, 100)
 
+    let outOfBounds = false
     if (position.x > mapBoundary.x.max) {
       position.x = mapBoundary.x.max
+      outOfBounds = true
     }
     if (position.x < mapBoundary.x.min) {
       position.x = mapBoundary.x.min
+      outOfBounds = true
     }
     if (position.y > mapBoundary.y.max) {
       position.y = mapBoundary.y.max
+      outOfBounds = true
     }
     if (position.y < mapBoundary.y.min) {
       position.y = mapBoundary.y.min
+      outOfBounds = true
+    }
+
+    if (outOfBounds) {
+      player.log.outOfBounds += 1
     }
 
     let collided = false
@@ -1834,18 +1885,12 @@ function detectCollisions() {
           collider.maxY -= diff
         }
 
-        // if (gameObject.Name === "FGStructure02 (11)") {
-        //   console.log(position, collider, gameCollider, (gameCollider.Max[0] - gameCollider.Min[0]), (gameCollider.Max[0] - gameCollider.Min[0]) * 0.9, gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * 0.9)
-        // }
-        
         if (
           position.x >= collider.minX &&
           position.x <= collider.maxX &&
           position.y >= collider.minY &&
           position.y <= collider.maxY
         ) {
-          // console.log('intersect')
-          // console.log(position, gameObject.Name, collider, gameCollider, (gameCollider.Max[0] - gameCollider.Min[0]), (gameCollider.Max[0] - gameCollider.Min[0]) * 0.9, gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * 0.9)
 
           if (gameObject.Name.indexOf('Land') !== -1) {
             stuck = true
@@ -1864,38 +1909,43 @@ function detectCollisions() {
             stuck = true
           }
 
-          // position = player.position
-
-          // if (player.position.x <= collider.minX)
-          //   position.x = collider.minX
-          // else if (player.position.x >= collider.maxX)
-          //   position.x = collider.maxX
-
-          // if (player.position.y <= collider.minY)
-          //   position.y = collider.minY
-          // else if (player.position.y >= collider.maxY)
-          //   position.y = collider.maxY
-
           break
         }
       }
 
+      if (stuck) break
       if (collided) break
     }
+
+    player.isStuck = false
 
     if (collided) {
       player.position = position
       player.target = player.clientTarget
       player.phasedUntil = getTime() + 500
+      player.log.phases += 1
+      player.log.collided += 1
       player.overrideSpeed = 0.5
     } else if (stuck) {
       player.target = player.clientTarget
       player.phasedUntil = getTime() + 500
+      player.log.phases += 1
+      player.log.stuck += 1
       player.overrideSpeed = 0.5
+      if (config.stickyIslands) {
+        player.isStuck = true
+      }
     } else {
       player.position = position
       player.target = player.clientTarget //castVectorTowards(position, player.clientTarget, 9999)
       player.overrideSpeed = null
+    }
+
+    const pos = Math.round(player.position.x) + ':' + Math.round(player.position.y)
+    
+    if (player.log.path.indexOf(pos) === -1) {
+      player.log.path += pos + ','
+      player.log.positions += 1
     }
   }
 
@@ -2047,7 +2097,7 @@ function fastGameloop() {
           client.points += config.pointsPerEvolve
           client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
   
-          if (config.lazycap && client.name === 'Lazy') {
+          if (config.leadercap && client.name === lastLeaderName) {
             client.speed = client.speed * 0.9
           }
   
@@ -2071,7 +2121,7 @@ function fastGameloop() {
           client.points += config.pointsPerEvolve
           client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
   
-          if (config.lazycap && client.name === 'Lazy') {
+          if (config.leadercap && client.name === lastLeaderName) {
             client.speed = client.speed * 0.9
           }
   
@@ -2090,6 +2140,7 @@ function fastGameloop() {
             const isNew = client.joinedAt >= currentTime - config.immunitySeconds
               
             if (!config.noBoot && !isInvincible && !isNew) {
+              client.log.ranOutOfHealth += 1
               disconnectPlayer(client)
             }
           } else {
@@ -2097,7 +2148,7 @@ function fastGameloop() {
             client.avatar = Math.max(Math.min(client.avatar - (1 * config.avatarDirection), config.maxEvolves - 1), 0)
             client.speed = (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
 
-            if (config.lazycap && client.name === 'Lazy') {
+            if (config.leadercap && client.name === lastLeaderName) {
               client.speed = client.speed * 0.9
             }
     
@@ -2111,7 +2162,7 @@ function fastGameloop() {
             client.avatar = Math.max(Math.min(client.avatar - (1 * config.avatarDirection), config.maxEvolves - 1), 0)
             client.speed = (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
 
-            if (config.lazycap && client.name === 'Lazy') {
+            if (config.leadercap && client.name === lastLeaderName) {
               client.speed = client.speed * 0.9
             }
     
