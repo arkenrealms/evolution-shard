@@ -1064,7 +1064,9 @@ io.on('connection', function(socket) {
         sameNetworkDisconnect: 0,
         connectedTooSoon: 0,
         clientDisconnected: 0,
-        positionJump: 0
+        positionJump: 0,
+        pauses: 0,
+        connects: 0
       }
     }
 
@@ -1270,8 +1272,10 @@ io.on('connection', function(socket) {
           currentPlayer.evolves = recentPlayer.evolves
           currentPlayer.powerups = recentPlayer.powerups
           currentPlayer.rewards = recentPlayer.rewards
-          currentPlayer.log = recentPlayer.log
           currentPlayer.lastUpdate = recentPlayer.lastUpdate
+          currentPlayer.log = recentPlayer.log
+
+          currentPlayer.log.connects += 1
         }
 
         addToRecentPlayers(currentPlayer)
@@ -1642,7 +1646,24 @@ function resetLeaderboard() {
       kills: [],
       deaths: [],
       revenge: 0,
-      resetPosition: 0
+      resetPosition: 0,
+      phases: 0,
+      stuck: 0,
+      collided: 0,
+      timeoutDisconnect: 0,
+      speedProblem: 0,
+      clientDistanceProblem: 0,
+      outOfBounds: 0,
+      ranOutOfHealth: 0,
+      notReallyTrying: 0,
+      tooManyKills: 0,
+      killingThemselves: 0,
+      sameNetworkDisconnect: 0,
+      connectedTooSoon: 0,
+      clientDisconnected: 0,
+      positionJump: 0,
+      pauses: 0,
+      connects: 0
     }
     client.gameMode = config.gameMode
 
