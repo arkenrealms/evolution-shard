@@ -27,7 +27,19 @@ const https = require('https').createServer({
   key: fs.readFileSync(path.resolve('./privkey.pem')),
   cert: fs.readFileSync(path.resolve('./fullchain.pem'))
 }, server)
-const io = require('socket.io')(process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10' ? https : http, { secure: process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10' ? true : false })
+const io = require('socket.io')(process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10' ? https : http, {
+  secure: process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10' ? true : false,
+  pingInterval: 30005,
+  pingTimeout: 5000,
+  upgradeTimeout: 3000,
+  allowUpgrades: true,
+  cookie: false,
+  serveClient: true,
+  allowEIO3: false,
+  cors: {
+    origin: "*"
+  }
+})
 const shortId = require('shortid')
 
 function logError(err) {
@@ -259,131 +271,131 @@ let config = {
   // },
 
 const presets = [
-  // {
-  //   gameMode: 'Standard',
-  //   pointsPerEvolve: 1,
-  //   pointsPerPowerup: 1,
-  //   pointsPerKill: 20,
-  //   pointsPerReward: 5,
-  // },
-  // {
-  //   gameMode: 'Lets Be Friends',
-  //   pointsPerKill: -200,
-  //   orbTimeoutSeconds: 9999,
-  //   orbOnDeathPercent: 0,
-  //   antifeed1: false,
-  //   antifeed2: false,
-  //   calcRoundRewards: false,
-  //   preventBadKills: false
-  // },
-  // {
-  //   gameMode: 'Mix Game 1',
-  //   pointsPerEvolve: 2,
-  //   pointsPerPowerup: 2,
-  //   pointsPerKill: 50,
-  //   pointsPerReward: 10,
-  // },
-  // {
-  //   gameMode: 'Mix Game 2',
-  //   pointsPerEvolve: 10,
-  //   pointsPerKill: 200,
-  //   pointsPerReward: 20,
-  // },
-  // {
-  //   gameMode: 'Deathmatch',
-  //   pointsPerKill: 300,
-  //   orbOnDeathPercent: 0,
-  //   orbTimeoutSeconds: 9999,
-  //   pointsPerEvolve: 0,
-  //   pointsPerPowerup: 1,
-  //   pointsPerReward: 0,
-  //   baseSpeed: 4,
-  //   antifeed1: false,
-  //   dynamicDecayPower: true,
-  //   decayPowerPerMaxEvolvedPlayers: 0.2,
-  // },
-  // {
-  //   gameMode: 'Evolution',
-  //   pointsPerEvolve: 10,
-  // },
-  // {
-  //   gameMode: 'Orb Master',
-  //   // orbOnDeathPercent: 25,
-  //   orbTimeoutSeconds: 3,
-  //   pointsPerOrb: 200,
-  //   pointsPerEvolve: 0,
-  //   pointsPerReward: 0,
-  //   pointsPerKill: 0,
-  //   orbCutoffSeconds: 0
-  // },
-  // {
-  //   gameMode: 'Sprite Leader',
-  //   spritesPerPlayerCount: 20,
-  //   decayPower: 7,
-  //   pointsPerEvolve: 0,
-  //   pointsPerPowerup: 1,
-  //   pointsPerReward: 0,
-  //   pointsPerKill: 0,
-  //   orbTimeoutSeconds: 9999,
-  //   orbOnDeathPercent: 0,
-  // },
-  // {
-  //   gameMode: 'Fast Drake',
-  //   avatarSpeedMultiplier2: 1.5,
-  //   decayPower: 4,
-  //   immunitySeconds: 20,
-  //   orbOnDeathPercent: 0,
-  //   orbTimeoutSeconds: 9999,
-  // },
-  // {
-  //   gameMode: 'Bird Eye',
-  //   cameraSize: 6,
-  //   baseSpeed: 4,
-  //   decayPower: 2.8,
-  // },
-  // {
-  //   gameMode: 'Friendly Reverse',
-  //   pointsPerKill: -200,
-  //   orbTimeoutSeconds: 9999,
-  //   orbOnDeathPercent: 0,
-  //   antifeed1: false,
-  //   antifeed2: false,
-  //   pointsPerEvolve: 25,
-  //   decayPower: -3,
-  //   dynamicDecayPower: false,
-  //   avatarDecayPower0: 4,
-  //   avatarDecayPower1: 3,
-  //   avatarDecayPower2: 2,
-  //   spriteXpMultiplier: -1,
-  //   preventBadKills: false
-  // },
-  // {
-  //   gameMode: 'Reverse Evolve',
-  //   startAvatar: 2,
-  //   decayPower: -1,
-  //   antifeed1: false,
-  //   antifeed2: false,
-  //   dynamicDecayPower: false,
-  //   avatarDecayPower0: 4,
-  //   avatarDecayPower1: 3,
-  //   avatarDecayPower2: 2,
-  //   spriteXpMultiplier: -1,
-  //   // avatarDirection: -1
-  // },
-  // {
-  //   gameMode: 'Marco Polo',
-  //   cameraSize: 2,
-  //   baseSpeed: 3,
-  //   decayPower: 1.4,
-  //   avatarSpeedMultiplier0: 1,
-  //   avatarSpeedMultiplier1: 1,
-  //   avatarSpeedMultiplier2: 1,
-  //   hideMap: true
-  // },
-  // {
-  //   gameMode: 'Leadercap',
-  //   leadercap: true
-  // },
+  {
+    gameMode: 'Standard',
+    pointsPerEvolve: 1,
+    pointsPerPowerup: 1,
+    pointsPerKill: 20,
+    pointsPerReward: 5,
+  },
+  {
+    gameMode: 'Lets Be Friends',
+    pointsPerKill: -200,
+    orbTimeoutSeconds: 9999,
+    orbOnDeathPercent: 0,
+    antifeed1: false,
+    antifeed2: false,
+    calcRoundRewards: false,
+    // preventBadKills: false
+  },
+  {
+    gameMode: 'Mix Game 1',
+    pointsPerEvolve: 2,
+    pointsPerPowerup: 2,
+    pointsPerKill: 50,
+    pointsPerReward: 10,
+  },
+  {
+    gameMode: 'Mix Game 2',
+    pointsPerEvolve: 10,
+    pointsPerKill: 200,
+    pointsPerReward: 20,
+  },
+  {
+    gameMode: 'Deathmatch',
+    pointsPerKill: 300,
+    orbOnDeathPercent: 0,
+    orbTimeoutSeconds: 9999,
+    pointsPerEvolve: 0,
+    pointsPerPowerup: 1,
+    pointsPerReward: 0,
+    baseSpeed: 4,
+    antifeed1: false,
+    dynamicDecayPower: true,
+    decayPowerPerMaxEvolvedPlayers: 0.2,
+  },
+  {
+    gameMode: 'Evolution',
+    pointsPerEvolve: 10,
+  },
+  {
+    gameMode: 'Orb Master',
+    // orbOnDeathPercent: 25,
+    orbTimeoutSeconds: 3,
+    pointsPerOrb: 200,
+    pointsPerEvolve: 0,
+    pointsPerReward: 0,
+    pointsPerKill: 0,
+    orbCutoffSeconds: 0
+  },
+  {
+    gameMode: 'Sprite Leader',
+    spritesPerPlayerCount: 20,
+    decayPower: 7,
+    pointsPerEvolve: 0,
+    pointsPerPowerup: 1,
+    pointsPerReward: 0,
+    pointsPerKill: 0,
+    orbTimeoutSeconds: 9999,
+    orbOnDeathPercent: 0,
+  },
+  {
+    gameMode: 'Fast Drake',
+    avatarSpeedMultiplier2: 1.5,
+    decayPower: 4,
+    immunitySeconds: 20,
+    orbOnDeathPercent: 0,
+    orbTimeoutSeconds: 9999,
+  },
+  {
+    gameMode: 'Bird Eye',
+    cameraSize: 6,
+    baseSpeed: 4,
+    decayPower: 2.8,
+  },
+  {
+    gameMode: 'Friendly Reverse',
+    pointsPerKill: -200,
+    orbTimeoutSeconds: 9999,
+    orbOnDeathPercent: 0,
+    antifeed1: false,
+    antifeed2: false,
+    pointsPerEvolve: 25,
+    decayPower: -3,
+    dynamicDecayPower: false,
+    avatarDecayPower0: 4,
+    avatarDecayPower1: 3,
+    avatarDecayPower2: 2,
+    spriteXpMultiplier: -1,
+    // preventBadKills: false
+  },
+  {
+    gameMode: 'Reverse Evolve',
+    startAvatar: 2,
+    decayPower: -1,
+    antifeed1: false,
+    antifeed2: false,
+    dynamicDecayPower: false,
+    avatarDecayPower0: 4,
+    avatarDecayPower1: 3,
+    avatarDecayPower2: 2,
+    spriteXpMultiplier: -1,
+    // avatarDirection: -1
+  },
+  {
+    gameMode: 'Marco Polo',
+    cameraSize: 2,
+    baseSpeed: 3,
+    decayPower: 1.4,
+    avatarSpeedMultiplier0: 1,
+    avatarSpeedMultiplier1: 1,
+    avatarSpeedMultiplier2: 1,
+    hideMap: true
+  },
+  {
+    gameMode: 'Leadercap',
+    leadercap: true
+  },
   {
     gameMode: 'Sticky Mode',
     stickyIslands: true,
@@ -787,6 +799,8 @@ function disconnectPlayer(player) {
   if (player.isDisconnected) return
 
   try {
+    console.log("Disconnecting", player.id)
+
     player.isDisconnected = true
     player.isDead = true
     player.joinedAt = null
@@ -919,6 +933,16 @@ const registerKill = (winner, loser) => {
   const tooManyKills = config.antifeed2 ? clients.length > 2 && totalKills >= 5 && totalKills > winner.log.kills.length / clients.filter(c => !c.isDead).length : false
   const killingThemselves = config.antifeed3 ? winner.hash === loser.hash : false
   const allowKill = !notReallyTrying && !tooManyKills && !killingThemselves
+    
+  if (notReallyTrying) {
+    loser.log.notReallyTrying += 1
+  }
+  if (tooManyKills) {
+    loser.log.tooManyKills += 1
+  }
+  if (killingThemselves) {
+    loser.log.killingThemselves += 1
+  }
 
   if (config.preventBadKills && !allowKill) {
     loser.phasedUntil = getTime() + 2000
@@ -1025,7 +1049,22 @@ io.on('connection', function(socket) {
         kills: [],
         deaths: [],
         revenge: 0,
-        resetPosition: 0
+        resetPosition: 0,
+        phases: 0,
+        stuck: 0,
+        collided: 0,
+        timeoutDisconnect: 0,
+        speedProblem: 0,
+        clientDistanceProblem: 0,
+        outOfBounds: 0,
+        ranOutOfHealth: 0,
+        notReallyTrying: 0,
+        tooManyKills: 0,
+        killingThemselves: 0,
+        sameNetworkDisconnect: 0,
+        connectedTooSoon: 0,
+        clientDisconnected: 0,
+        positionJump: 0
       }
     }
 
@@ -1036,6 +1075,7 @@ io.on('connection', function(socket) {
 
       for (const client of sameNetworkClients) {
         disconnectPlayer(client)
+        client.log.sameNetworkDisconnect += 1
       }
     }
 
@@ -1247,6 +1287,7 @@ io.on('connection', function(socket) {
 
       if (recentPlayer && (now - recentPlayer.lastUpdate) < 3000) {
         disconnectPlayer(currentPlayer)
+        currentPlayer.log.connectedTooSoon += 1
         return
       }
 
@@ -1373,6 +1414,7 @@ io.on('connection', function(socket) {
     
       if (config.anticheat.disconnectPositionJumps && distanceBetweenPoints(currentPlayer.position, { x: positionY, y: positionY }) > 5) {
         disconnectPlayer(currentPlayer)
+        currentPlayer.log.positionJump += 1
         return
       }
 
@@ -1436,6 +1478,7 @@ io.on('connection', function(socket) {
       log("User has disconnected")
 
       disconnectPlayer(currentPlayer)
+      currentPlayer.log.clientDisconnected += 1
 
       flushEventQueue()
     })
@@ -1668,6 +1711,7 @@ function checkConnectionLoop() {
 
       if (client.lastUpdate !== 0 && client.lastUpdate <= oneMinuteAgo) {
         disconnectPlayer(client)
+        client.log.timeoutDisconnect += 1
       }
     }
   }
@@ -1741,12 +1785,15 @@ function detectCollisions() {
     if (player.isSpectating) continue
 
     if (!Number.isFinite(player.position.x) || !Number.isFinite(player.speed)) { // Not sure what happened
+      player.log.speedProblem += 1
       disconnectPlayer(player)
       continue
     }
 
     if (distanceBetweenPoints(player.position, player.clientPosition) > 2) {
       player.phasedUntil = getTime() + 500
+      player.log.phases += 1
+      player.log.clientDistanceProblem += 1
     }
 
     // if (distanceBetweenPoints(player.position, player.clientPosition) > config.checkPositionDistance) {
@@ -1758,17 +1805,26 @@ function detectCollisions() {
     let position = moveVectorTowards(player.position, player.clientTarget, (player.overrideSpeed || player.speed) * deltaTime) // castVectorTowards(player.position, player.clientTarget, 9999)
     // let target = castVectorTowards(position, player.clientTarget, 100)
 
+    let outOfBounds = false
     if (position.x > mapBoundary.x.max) {
       position.x = mapBoundary.x.max
+      outOfBounds = true
     }
     if (position.x < mapBoundary.x.min) {
       position.x = mapBoundary.x.min
+      outOfBounds = true
     }
     if (position.y > mapBoundary.y.max) {
       position.y = mapBoundary.y.max
+      outOfBounds = true
     }
     if (position.y < mapBoundary.y.min) {
       position.y = mapBoundary.y.min
+      outOfBounds = true
+    }
+
+    if (outOfBounds) {
+      player.log.outOfBounds += 1
     }
 
     let collided = false
@@ -1802,18 +1858,12 @@ function detectCollisions() {
           collider.maxY -= diff
         }
 
-        // if (gameObject.Name === "FGStructure02 (11)") {
-        //   console.log(position, collider, gameCollider, (gameCollider.Max[0] - gameCollider.Min[0]), (gameCollider.Max[0] - gameCollider.Min[0]) * 0.9, gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * 0.9)
-        // }
-        
         if (
           position.x >= collider.minX &&
           position.x <= collider.maxX &&
           position.y >= collider.minY &&
           position.y <= collider.maxY
         ) {
-          // console.log('intersect')
-          // console.log(position, gameObject.Name, collider, gameCollider, (gameCollider.Max[0] - gameCollider.Min[0]), (gameCollider.Max[0] - gameCollider.Min[0]) * 0.9, gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * 0.9)
 
           if (gameObject.Name.indexOf('Land') !== -1) {
             stuck = true
@@ -1821,7 +1871,6 @@ function detectCollisions() {
           else if (gameObject.Name.indexOf('Island') !== -1) {
             if (config.stickyIslands) {
               stuck = true
-              // position = player.position
             } else {
               collided = true
             }
@@ -1832,18 +1881,6 @@ function detectCollisions() {
           else if (gameObject.Name.indexOf('Divider') !== -1) {
             stuck = true
           }
-
-          // position = player.position
-
-          // if (player.position.x <= collider.minX)
-          //   position.x = collider.minX
-          // else if (player.position.x >= collider.maxX)
-          //   position.x = collider.maxX
-
-          // if (player.position.y <= collider.minY)
-          //   position.y = collider.minY
-          // else if (player.position.y >= collider.maxY)
-          //   position.y = collider.maxY
 
           break
         }
@@ -1859,10 +1896,14 @@ function detectCollisions() {
       player.position = position
       player.target = player.clientTarget
       player.phasedUntil = getTime() + 500
+      player.log.phases += 1
+      player.log.collided += 1
       player.overrideSpeed = 0.5
     } else if (stuck) {
       player.target = player.clientTarget
       player.phasedUntil = getTime() + 500
+      player.log.phases += 1
+      player.log.stuck += 1
       player.overrideSpeed = 0.5
       if (config.stickyIslands) {
         player.isStuck = true
@@ -2065,6 +2106,7 @@ function fastGameloop() {
             const isNew = client.joinedAt >= currentTime - config.immunitySeconds
               
             if (!config.noBoot && !isInvincible && !isNew) {
+              client.log.ranOutOfHealth += 1
               disconnectPlayer(client)
             }
           } else {
