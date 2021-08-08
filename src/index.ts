@@ -19,7 +19,7 @@ import Provider from './util/provider'
 
 const path = require('path')
 
-const serverVersion = "0.14.0"
+const serverVersion = "0.16.0"
 
 const server = express()
 const http = require('http').Server(server)
@@ -64,7 +64,7 @@ process
   })
 
 
-const playerWhitelist = ['Botter', 'Bin Zy']
+const modList = ['Botter', 'Bin Zy']
 
 const eventCache: any = {
   'OnUpdateMyself': {},
@@ -77,11 +77,21 @@ db.config = jetpack.read(path.resolve('./public/data/config.json'), 'json')
 db.rewardHistory = jetpack.read(path.resolve('./public/data/rewardHistory.json'), 'json')
 db.rewards = jetpack.read(path.resolve('./public/data/rewards.json'), 'json')
 db.leaderboardHistory = jetpack.read(path.resolve('./public/data/leaderboardHistory.json'), 'json')
+db.modList = jetpack.read(path.resolve('./public/data/modList.json'), 'json') || []
 db.banList = jetpack.read(path.resolve('./public/data/banList.json'), 'json')
 db.reportList = jetpack.read(path.resolve('./public/data/reports.json'), 'json')
 db.playerRewards = jetpack.read(path.resolve('./public/data/playerRewards.json'), 'json')
 db.map = jetpack.read(path.resolve('./public/data/map.json'), 'json')
 db.log = jetpack.read(path.resolve('./public/data/log.json'), 'json')
+
+if (!db.modList.length) {
+  db.modList.push('0xa987f487639920A3c2eFe58C8FBDedB96253ed9B')
+  db.modList.push('0x545612032BeaDED7E9f5F5Ab611aF6428026E53E')
+  db.modList.push('0xfE27380E57e5336eB8FFc017371F2147A3268fbE')
+  db.modList.push('0x2DF94b980FC880100D93072011675E6659C0ca21')
+  db.modList.push('0x37470038C615Def104e1bee33c710bD16a09FdEf')
+  
+}
 
 function getTime() {
   return new Date().getTime()
@@ -105,6 +115,10 @@ const saveRewards = () => {
 
 const saveBanList = () => {
   jetpack.write(path.resolve('./public/data/banList.json'), JSON.stringify(db.banList, null, 2))
+}
+
+const saveModList = () => {
+  jetpack.write(path.resolve('./public/data/modList.json'), JSON.stringify(db.modList, null, 2))
 }
 
 const saveReportList = () => {
@@ -252,23 +266,6 @@ let config = {
   ...baseConfig,
   ...sharedConfig
 }
-
-  // Decay
-  // {
-  //   gameMode: 'Decay 2X',
-  //   decayPower: 2.8,
-  // },
-  // Orb
-  // {
-  //   gameMode: 'Orb 50%',
-  //   orbOnDeathPercent: 50,
-  //   orbCutoffSeconds: 0
-  // },
-  // Fast game
-  // {
-  //   gameMode: 'Speedy',
-  //   baseSpeed: 6,
-  // },
 
 const presets = [
   {
@@ -428,13 +425,15 @@ const orbs = []
 const orbLookup = {}
 let eventQueue = []
 let clients = [] // to storage clients
-let recentPlayers = []
 let leaderboard = []
 let lastReward
 let lastLeaderName
 let round = {
-  index: 0,
-  startedAt: Math.round(getTime() / 1000)
+  id: (db.config.roundId || 1),
+  startedAt: Math.round(getTime() / 1000),
+  events: [],
+  states: [],
+  players: []
 }
 
 const spawnBoundary1 = {
@@ -551,8 +550,18 @@ const emitDirect = (socket, ...args) => {
 
   if (!socket || !socket.emit) return
 
-  socket.emit('Events', getPayload([[...args]].map(e => `["${e[0]}","${e.slice(1).join(':')}"]`)))
-  // socket.emit(...args)
+  const eventQueue = [[...args]]
+  const compiled = []
+  for (const e of eventQueue) {
+    const name = e[0]
+    const args = e.slice(1)
+    
+    compiled.push(`["${name}","${args.join(':')}"]`)
+
+    round.events.push({ type: 'emitDirect', player: socket.id, name, args })
+  }
+
+  socket.emit('Events', getPayload(compiled))
 }
 
 const emitAllFast = (socket, ...args) => {
@@ -903,11 +912,11 @@ function spawnSprites(amount) {
 function addToRecentPlayers(player) {
   if (!player.address || !player.name) return
 
-  recentPlayers = recentPlayers.filter(r => r.address !== player.address)
+  round.players = round.players.filter(r => r.address !== player.address)
 
-  recentPlayers.push(player)
+  round.players.push(player)
 
-  db.recentPlayersTotal = recentPlayers.length
+  db.recentPlayersTotal = round.players.length
 }
 
 function roundEndingSoon(sec) {
@@ -926,7 +935,7 @@ const registerKill = (winner, loser) => {
   if (loser.isInvincible) return
   if (config.preventBadKills && (winner.isPhased || now < winner.phasedUntil)) return
 
-  const currentRound = round.index
+  const currentRound = round.id
 
   const totalKills = winner.log.kills.filter(h => h === loser.hash).length
   const notReallyTrying = config.antifeed1 ? (totalKills >= 2 && loser.kills < 2 && loser.rewards <= 1) || (totalKills >= 2 && loser.kills < 2 && loser.powerups <= 100) : false
@@ -988,7 +997,7 @@ const registerKill = (winner, loser) => {
 
   if (!roundEndingSoon(config.orbCutoffSeconds)) {
     setTimeout(function() {
-      if (currentRound !== round.index) return
+      if (currentRound !== round.id) return
       
       orbs.push(orb)
       orbLookup[orb.id] = orb
@@ -1066,7 +1075,10 @@ io.on('connection', function(socket) {
         clientDisconnected: 0,
         positionJump: 0,
         pauses: 0,
-        connects: 0
+        connects: 0,
+        path: '',
+        positions: 0,
+        replay: []
       }
     }
 
@@ -1104,7 +1116,7 @@ io.on('connection', function(socket) {
 
       try {
         if (data.event === 'Ban') {
-          if (!playerWhitelist.includes(currentPlayer?.name)) return
+          if (!modList.includes(currentPlayer?.address)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
           if (!verifySignature(data.signature, currentPlayer?.address)) return
       
@@ -1118,7 +1130,7 @@ io.on('connection', function(socket) {
       
           saveBanList()
         } else if (data.event === 'Unban') {
-          if (!playerWhitelist.includes(currentPlayer?.name)) return
+          if (!modList.includes(currentPlayer?.address)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
           if (!verifySignature(data.signature, currentPlayer?.address)) return
       
@@ -1128,13 +1140,13 @@ io.on('connection', function(socket) {
       
           saveBanList()
         } else if (data.event === 'SetBroadcast') {
-          if (!playerWhitelist.includes(currentPlayer?.name)) return
+          if (!modList.includes(currentPlayer?.address)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
           if (!verifySignature(data.signature, currentPlayer?.address)) return
       
           publishEvent('OnBroadcast', escape(JSON.stringify(data.value)))
         } else if (data.event === 'SetMaintenance') {
-          if (!playerWhitelist.includes(currentPlayer?.name)) return
+          if (!modList.includes(currentPlayer?.address)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
           if (!verifySignature(data.signature, currentPlayer?.address)) return
       
@@ -1143,7 +1155,7 @@ io.on('connection', function(socket) {
       
           publishEvent('OnMaintenance', config.isMaintenance)
         } else if (data.event === 'SetConfig') {
-          if (!playerWhitelist.includes(currentPlayer?.name)) return
+          if (!modList.includes(currentPlayer?.address)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
           if (!verifySignature(data.signature, currentPlayer?.address)) return
 
@@ -1161,13 +1173,13 @@ io.on('connection', function(socket) {
             }
           }
         } else if (data.event === 'SetClaiming') {
-          if (!playerWhitelist.includes(currentPlayer?.name)) return
+          if (!modList.includes(currentPlayer?.address)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
           if (!verifySignature(data.signature, currentPlayer?.address)) return
       
           db.playerRewards[data.value.address].claiming = data.value.value
         } else if (data.event === 'ResetClaiming') {
-          if (!playerWhitelist.includes(currentPlayer?.name)) return
+          if (!modList.includes(currentPlayer?.address)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
           if (!verifySignature(data.signature, currentPlayer?.address)) return
       
@@ -1175,13 +1187,13 @@ io.on('connection', function(socket) {
             db.playerRewards[address].claiming = false
           }
         } else if (data.event === 'SetPreset') {
-          if (!playerWhitelist.includes(currentPlayer?.name)) return
+          if (!modList.includes(currentPlayer?.address)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
           if (!verifySignature(data.signature, currentPlayer?.address)) return
       
           presets[data.value.index] = data.value.config
         } else if (data.event === 'SetGodmode') {
-          if (!playerWhitelist.includes(currentPlayer?.name)) return
+          if (!modList.includes(currentPlayer?.address)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
           if (!verifySignature(data.signature, currentPlayer?.address)) return
       
@@ -1207,7 +1219,7 @@ io.on('connection', function(socket) {
     })
 
     socket.on('Spectate', function() {
-      if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) {
+      if (config.isMaintenance && !modList.includes(currentPlayer?.address)) {
         return
       }
 
@@ -1239,7 +1251,7 @@ io.on('connection', function(socket) {
     socket.on('SetInfo', function(msg) {
       const pack = decodePayload(msg)
 
-      if (config.isMaintenance && !playerWhitelist.includes(pack.name)) {
+      if (config.isMaintenance && !modList.includes(pack.name)) {
         emitDirect(socket, 'OnMaintenance', true)
         disconnectPlayer(currentPlayer)
         return
@@ -1258,7 +1270,7 @@ io.on('connection', function(socket) {
         currentPlayer.network = pack.network
         currentPlayer.device = pack.device
 
-        const recentPlayer = recentPlayers.find(r => r.address === pack.address)
+        const recentPlayer = round.players.find(r => r.address === pack.address)
 
         if (recentPlayer) {
           if ((now - recentPlayer.lastUpdate) < 3000) {
@@ -1287,7 +1299,7 @@ io.on('connection', function(socket) {
     socket.on('JoinRoom', function(msg) {
       // const pack = decodePayload(msg)
       const now = getTime()
-      const recentPlayer = recentPlayers.find(r => r.address === currentPlayer.address)
+      const recentPlayer = round.players.find(r => r.address === currentPlayer.address)
 
       if (recentPlayer && (now - recentPlayer.lastUpdate) < 3000) {
         disconnectPlayer(currentPlayer)
@@ -1295,7 +1307,7 @@ io.on('connection', function(socket) {
         return
       }
 
-      if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) {
+      if (config.isMaintenance && !modList.includes(currentPlayer?.address)) {
         emitDirect(socket, 'OnMaintenance', true)
         disconnectPlayer(currentPlayer)
         return
@@ -1395,7 +1407,7 @@ io.on('connection', function(socket) {
     socket.on('UpdateMyself', function(msg) {
       if (currentPlayer.isDead) return
       if (currentPlayer.isSpectating) return
-      if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) return
+      if (config.isMaintenance && !modList.includes(currentPlayer?.address)) return
 
       const now = getTime()
 
@@ -1443,7 +1455,7 @@ io.on('connection', function(socket) {
       if (currentPlayer.isDead) return
       if (currentPlayer.isSpectating) return
       if (isPhased) return
-      if (config.isMaintenance && !playerWhitelist.includes(currentPlayer?.name)) return
+      if (config.isMaintenance && !modList.includes(currentPlayer?.address)) return
 
       const pack = decodePayload(msg)
 
@@ -1609,18 +1621,20 @@ let lastFastestGameloopTime = getTime()
 function resetLeaderboard() {
   const fiveSecondsAgo = getTime() - 7000
 
-  const leaders = recentPlayers.filter(p => p.lastUpdate >= fiveSecondsAgo).sort((a, b) => b.points - a.points)
+  const leaders = round.players.filter(p => p.lastUpdate >= fiveSecondsAgo).sort((a, b) => b.points - a.points)
 
   if (leaders.length) {
     lastLeaderName = leaders[0].name
     sendLeaderReward(leaders[0], leaders[1], leaders[2], leaders[3], leaders[4])
   }
 
-  db.leaderboardHistory.push(JSON.parse(JSON.stringify(recentPlayers)))
+  db.leaderboardHistory.push(JSON.parse(JSON.stringify(round.players)))
 
   saveLeaderboardHistory()
   savePlayerRewards()
   saveRewards()
+
+  jetpack.write(path.resolve(`./public/data/rounds/${round.id}.json`), JSON.stringify(round, null, 2))
 
   if (config.calcRoundRewards) {
     calcRoundRewards()
@@ -1628,7 +1642,14 @@ function resetLeaderboard() {
 
   randomRoundPreset()
 
-  recentPlayers = []
+  round.players = []
+  round.events = []
+  round.startedAt = Math.round(getTime() / 1000)
+  round.id++
+
+  db.config.roundId = round.id
+
+  jetpack.write(path.resolve(`./public/data/config.json`), JSON.stringify(db.config, null, 2))
 
   for (const client of clients) {
     client.points = 0
@@ -1663,7 +1684,10 @@ function resetLeaderboard() {
       clientDisconnected: 0,
       positionJump: 0,
       pauses: 0,
-      connects: 0
+      connects: 0,
+      path: '',
+      positions: 0,
+      replay: []
     }
     client.gameMode = config.gameMode
 
@@ -1673,7 +1697,7 @@ function resetLeaderboard() {
 
     client.startedRoundAt = Math.round(getTime() / 1000)
 
-    recentPlayers.push(client)
+    round.players.push(client)
   }
 
   for (let i = 0; i < orbs.length; i++) {
@@ -1688,8 +1712,6 @@ function resetLeaderboard() {
 
   syncSprites()
 
-  round.startedAt = Math.round(getTime() / 1000)
-  round.index++
 
   publishEvent('OnSetRoundInfo', config.roundLoopSeconds + ':' + getRoundInfo().join(':'))
 
@@ -1747,10 +1769,10 @@ function getPayload(messages) {
 
 //updates the list of best players every 1000 milliseconds
 function slowGameloop() {
-  if (recentPlayers.length === 0) {
+  if (round.players.length === 0) {
     leaderboard = []
   } else {
-    const topPlayers = recentPlayers.sort(comparePlayers).slice(0, 10) // filter(p => !p.isSpectating).
+    const topPlayers = round.players.sort(comparePlayers).slice(0, 10) // filter(p => !p.isSpectating).
   
     // @ts-ignore
     if (isNaN(leaderboard) || leaderboard.length !== topPlayers.length) {
@@ -1933,6 +1955,13 @@ function detectCollisions() {
       player.position = position
       player.target = player.clientTarget //castVectorTowards(position, player.clientTarget, 9999)
       player.overrideSpeed = null
+    }
+
+    const pos = Math.round(player.position.x) + ':' + Math.round(player.position.y)
+    
+    if (player.log.path.indexOf(pos) === -1) {
+      player.log.path += pos + ','
+      player.log.positions += 1
     }
   }
 
@@ -2184,7 +2213,20 @@ function fastGameloop() {
 function flushEventQueue() {
   if (eventQueue.length) {
     log('Sending queue', eventQueue)
-    emitAll('Events', getPayload(eventQueue.map(e => `["${e[0]}","${e.slice(1).join(':')}"]`)))
+
+    const compiled = []
+    for (const e of eventQueue) {
+      const name = e[0]
+      const args = e.slice(1)
+
+      compiled.push(`["${name}","${args.join(':')}"]`)
+
+      round.events.push({ type: 'emitAll', name, args })
+    }
+
+    emitAll('Events', getPayload(compiled))
+
+    // round.events = round.events.concat(eventQueue)
   
     eventQueue = []
   }
@@ -2283,7 +2325,7 @@ const initRoutes = async () => {
         clientTotal: clients.length,
         playerTotal: clients.filter(c => !c.isDead && !c.isSpectating).length,
         spectatorTotal: clients.filter(c => c.isSpectating).length,
-        recentPlayersTotal: recentPlayers.length,
+        recentPlayersTotal: round.players.length,
         spritesTotal: config.spritesTotal,
         leaderboard: leaderboard,
         connectedPlayers: clients.map(c => c.name),
@@ -2324,6 +2366,157 @@ const initRoutes = async () => {
       savePlayerRewards()
     
       res.json(db.playerRewards['0xa987f487639920A3c2eFe58C8FBDedB96253ed9B'].pending)
+    })
+
+    server.post('/maintenance', function(req, res) {
+      db.log.push({
+        event: 'Maintenance',
+        caller: req.body.address
+      })
+
+      saveLog()
+
+      if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+        sharedConfig.isMaintenance = true
+        config.isMaintenance = true
+    
+        publishEvent('OnMaintenance', config.isMaintenance)
+
+        res.json({ success: 1 })
+      } else {
+        res.json({ success: 0 })
+      }
+    })
+
+    server.post('/unmaintenance', function(req, res) {
+      db.log.push({
+        event: 'Unmaintenance',
+        caller: req.body.address
+      })
+
+      saveLog()
+
+      if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+        sharedConfig.isMaintenance = false
+        config.isMaintenance = false
+    
+        publishEvent('OnMaintenance', config.isMaintenance)
+
+        res.json({ success: 1 })
+      } else {
+        res.json({ success: 0 })
+      }
+    })
+
+    server.post('/report/:address', function(req, res) {
+      db.log.push({
+        event: 'Report',
+        value: req.params.address,
+        caller: req.body.address
+      })
+
+      saveLog()
+
+      const currentPlayer = round.players.find(p => p.address === req.body.address)
+      if (currentPlayer && verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address)) {
+        const reportedPlayer = clients.find(c => c.address === req.params.address)
+
+        if (reportedPlayer) {
+          reportPlayer(clients, currentPlayer, reportedPlayer)
+
+          res.json({ success: 1 })
+        } else {
+          res.json({ success: 0 })
+        }
+      } else {
+        res.json({ success: 0 })
+      }
+    })
+
+    server.post('/ban/:address', function(req, res) {
+      db.log.push({
+        event: 'Ban',
+        value: req.params.address,
+        caller: req.body.address
+      })
+
+      saveLog()
+
+      if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+        if (!db.banList.includes(req.params.address)) {
+          db.banList.push(req.params.address)
+        }
+
+        if (clients.find(c => c.address === req.params.address)) {
+          disconnectPlayer(clients.find(c => c.address === req.params.address))
+        }
+
+        saveBanList()
+    
+        res.json({ success: 1 })
+      } else {
+        res.json({ success: 0 })
+      }
+    })
+
+    server.post('/unban/:address', function(req, res) {
+      db.log.push({
+        event: 'Unban',
+        value: req.params.address,
+        caller: req.body.address
+      })
+
+      saveLog()
+
+      if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+        db.banList.splice(db.banList.indexOf(req.params.address), 1)
+
+        saveBanList()
+    
+        res.json({ success: 1 })
+      } else {
+        res.json({ success: 0 })
+      }
+    })
+
+    server.post('/message/:address', function(req, res) {
+      db.log.push({
+        event: 'Message',
+        value: req.params.address,
+        caller: req.body.address,
+        message: req.body.message
+      })
+
+      saveLog()
+
+      if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+        const socket = sockets[clients.find(c => c.address === req.params.address).id]
+
+        emitDirect(socket, 'OnBroadcast', escape(JSON.stringify(req.body.message)))
+    
+        res.json({ success: 1 })
+      } else {
+        res.json({ success: 0 })
+      }
+    })
+
+    server.post('/broadcast', function(req, res) {
+      db.log.push({
+        event: 'Broadcast',
+        caller: req.body.address,
+        message: req.body.message
+      })
+
+      saveLog()
+
+      if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+
+        publishEvent('OnBroadcast', escape(JSON.stringify(req.body.message)))
+    
+        res.json({ success: 1 })
+      } else {
+        res.json({ success: 0 })
+      }
     })
 
     server.get('/user/:address', function(req, res) {
