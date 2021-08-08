@@ -19,7 +19,7 @@ import Provider from './util/provider'
 
 const path = require('path')
 
-const serverVersion = "0.14.0"
+const serverVersion = "0.16.0"
 
 const server = express()
 const http = require('http').Server(server)
@@ -434,7 +434,8 @@ let lastReward
 let lastLeaderName
 let round = {
   index: 0,
-  startedAt: Math.round(getTime() / 1000)
+  startedAt: Math.round(getTime() / 1000),
+  positions: {}
 }
 
 const spawnBoundary1 = {
@@ -1066,7 +1067,9 @@ io.on('connection', function(socket) {
         clientDisconnected: 0,
         positionJump: 0,
         pauses: 0,
-        connects: 0
+        connects: 0,
+        path: '',
+        positions: 0
       }
     }
 
@@ -1663,7 +1666,9 @@ function resetLeaderboard() {
       clientDisconnected: 0,
       positionJump: 0,
       pauses: 0,
-      connects: 0
+      connects: 0,
+      path: '',
+      positions: 0
     }
     client.gameMode = config.gameMode
 
@@ -1688,6 +1693,7 @@ function resetLeaderboard() {
 
   syncSprites()
 
+  round.positions = {}
   round.startedAt = Math.round(getTime() / 1000)
   round.index++
 
@@ -1933,6 +1939,13 @@ function detectCollisions() {
       player.position = position
       player.target = player.clientTarget //castVectorTowards(position, player.clientTarget, 9999)
       player.overrideSpeed = null
+    }
+
+    const pos = Math.round(player.position.x) + ':' + Math.round(player.position.y)
+    
+    if (player.log.positions.indexOf(pos) === -1) {
+      player.log.path += pos + ','
+      player.log.positions += 1
     }
   }
 
