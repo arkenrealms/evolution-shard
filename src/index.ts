@@ -1994,7 +1994,11 @@ function detectCollisions() {
         // playerDamageGiven[currentPlayer.id + pack.id] = now
         // // console.log('Player Damage Given', currentPlayer.id + pack.id)
         // if (playerDamageTaken[currentPlayer.id + pack.id] > now - 500) {
-          registerKill(player2, player1)
+          if (player1.xp > 5) {
+            player1.xp -= 5
+          } else {
+            registerKill(player2, player1)
+          }
           break
         // }
       } else if (player1.avatar > player2.avatar) {
@@ -2002,7 +2006,11 @@ function detectCollisions() {
         // playerDamageGiven[pack.id + currentPlayer.id] = now
         // // console.log('Player Damage Given', pack.id + currentPlayer.id)
         // if (playerDamageTaken[pack.id + currentPlayer.id] > now - 500) {
-          registerKill(player1, player2)
+          if (player2.xp > 5) {
+            player2.xp -= 5
+          } else {
+            registerKill(player1, player2)
+          }
           break
         // }
       }
