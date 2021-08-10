@@ -1995,7 +1995,7 @@ function detectCollisions() {
         // // console.log('Player Damage Given', currentPlayer.id + pack.id)
         // if (playerDamageTaken[currentPlayer.id + pack.id] > now - 500) {
           if (player1.xp > 5) {
-            player1.xp -= 5
+            player1.xp -= 1
           } else {
             registerKill(player2, player1)
           }
@@ -2007,7 +2007,7 @@ function detectCollisions() {
         // // console.log('Player Damage Given', pack.id + currentPlayer.id)
         // if (playerDamageTaken[pack.id + currentPlayer.id] > now - 500) {
           if (player2.xp > 5) {
-            player2.xp -= 5
+            player2.xp -= 1
           } else {
             registerKill(player1, player2)
           }
