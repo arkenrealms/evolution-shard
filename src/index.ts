@@ -425,7 +425,6 @@ const orbs = []
 const orbLookup = {}
 let eventQueue = []
 let clients = [] // to storage clients
-let leaderboard = []
 let lastReward
 let lastLeaderName
 let round = {
@@ -435,6 +434,7 @@ let round = {
   states: [],
   players: []
 }
+const ranks = {}
 
 const spawnBoundary1 = {
   x: {min: -17, max: 0},
@@ -618,9 +618,12 @@ const spawnRandomReward = () => {
 
   if (reward.type === 'rune' && reward.quantity <= 0) return spawnRandomReward()
 
+  const now = getTime()
+
   currentReward = JSON.parse(JSON.stringify(reward))
   currentReward.id = shortId.generate()
   currentReward.position = config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)]
+  currentReward.enabledAt = now
   
   if (currentReward.type === 'rune') {
     sharedConfig.rewardItemType = 0
@@ -983,6 +986,7 @@ const registerKill = (winner, loser) => {
     type: 4,
     points: orbPoints,
     scale: orbPoints,
+    enabledAt: now + config.orbTimeoutSeconds * 1000,
     position: {
       x: loser.position.x,
       y: loser.position.y
@@ -996,14 +1000,10 @@ const registerKill = (winner, loser) => {
   }, 2 * 1000)
 
   if (!roundEndingSoon(config.orbCutoffSeconds)) {
-    setTimeout(function() {
-      if (currentRound !== round.id) return
-      
-      orbs.push(orb)
-      orbLookup[orb.id] = orb
+    orbs.push(orb)
+    orbLookup[orb.id] = orb
 
-      publishEvent('OnSpawnPowerUp', orb.id, orb.type, orb.position.x, orb.position.y, orb.scale)
-    }, config.orbTimeoutSeconds * 1000)
+    publishEvent('OnSpawnPowerUp', orb.id, orb.type, orb.position.x, orb.position.y, orb.scale)
   }
 }
 
@@ -1485,8 +1485,9 @@ io.on('connection', function(socket) {
     })
     
     socket.on('GetBestKillers', function(pack) {
+      const leaderboard = round.players.sort(comparePlayers)
       for (let j = 0; j < leaderboard.length; j++) {
-        emitDirect(socket, 'OnUpdateBestKiller', leaderboard[j].name, j, leaderboard[j].points, leaderboard[j].kills, leaderboard[j].deaths, leaderboard[j].powerups, leaderboard[j].evolves, leaderboard[j].rewards, leaderboard[j].isDead ? '-' : Math.round(leaderboard[j].latency))
+        emitDirect(socket, 'OnUpdateBestKiller', leaderboard[j].name, j, leaderboard[j].points, leaderboard[j].kills, leaderboard[j].deaths, leaderboard[j].powerups, leaderboard[j].evolves, leaderboard[j].rewards, leaderboard[j].isDead ? '-' : Math.round(leaderboard[j].latency), ranks[leaderboard[j].address]?.kills / 5 || 1)
       }
     })
 
@@ -1505,8 +1506,9 @@ io.on('connection', function(socket) {
 
 function sendUpdates() {
   publishEvent('OnClearLeaderboard')
+  const leaderboard = round.players.sort(comparePlayers)
   for (let j = 0; j < leaderboard.length; j++) {
-    publishEvent('OnUpdateBestKiller', leaderboard[j].name, j, leaderboard[j].points, leaderboard[j].kills, leaderboard[j].deaths, leaderboard[j].powerups, leaderboard[j].evolves, leaderboard[j].rewards, leaderboard[j].isDead ? '-' : Math.round(leaderboard[j].latency))
+    publishEvent('OnUpdateBestKiller', leaderboard[j].name, j, leaderboard[j].points, leaderboard[j].kills, leaderboard[j].deaths, leaderboard[j].powerups, leaderboard[j].evolves, leaderboard[j].rewards, leaderboard[j].isDead ? '-' : Math.round(leaderboard[j].latency), ranks[leaderboard[j].address]?.kills / 5 || 1)
   }
   
   setTimeout(sendUpdates, config.sendUpdateLoopSeconds * 1000)
@@ -1652,6 +1654,11 @@ function resetLeaderboard() {
   jetpack.write(path.resolve(`./public/data/config.json`), JSON.stringify(db.config, null, 2))
 
   for (const client of clients) {
+    if (!ranks[client.address]) ranks[client.address] = {}
+    if (!ranks[client.address].kills) ranks[client.address].kills = 0
+
+    ranks[client.address].kills += client.kills
+
     client.points = 0
     client.kills = 0
     client.deaths = 0
@@ -1769,24 +1776,6 @@ function getPayload(messages) {
 
 //updates the list of best players every 1000 milliseconds
 function slowGameloop() {
-  if (round.players.length === 0) {
-    leaderboard = []
-  } else {
-    const topPlayers = round.players.sort(comparePlayers).slice(0, 10) // filter(p => !p.isSpectating).
-  
-    // @ts-ignore
-    if (isNaN(leaderboard) || leaderboard.length !== topPlayers.length) {
-      leaderboard = topPlayers
-    } else {
-      for (let i = 0; i < leaderboard.length; i++) {
-        if (leaderboard[i].name !== topPlayers[i].name) {
-          leaderboard = topPlayers
-          break
-        }
-      }
-    }
-  }
-
   if (config.dynamicDecayPower) {
     const players = clients.filter(p => !p.isDead && !p.isSpectating)
     const maxEvolvedPlayers = players.filter(p => p.avatar === config.maxEvolves - 1)
@@ -2055,6 +2044,7 @@ function detectCollisions() {
 
     if (!isNew) {
       for (const orb of orbs) {
+        if (now < orb.enabledAt) continue
         if (distanceBetweenPoints(player.position, orb.position) > touchDistance) continue
   
         player.orbs += 1
@@ -2069,6 +2059,7 @@ function detectCollisions() {
       const rewards = [currentReward]
 
       for (const reward of rewards) {
+        if (now < reward.enabledAt) continue
         if (!reward) continue
         // console.log(distanceBetweenPoints(player.position, reward.position), player.position, reward.position, touchDistance)
         if (distanceBetweenPoints(player.position, reward.position) > touchDistance) continue
