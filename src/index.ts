@@ -577,6 +577,7 @@ const emitAllFast = (socket, ...args) => {
 }
 
 const publishEvent = (...args) => {
+  console.log(args)
   eventQueue.push(args)
 }
 
@@ -1327,7 +1328,7 @@ io.on('connection', function(socket) {
       emitDirect(socket, 'OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
       emitDirect(socket, 'OnJoinGame', currentPlayer.id, currentPlayer.name, currentPlayer.avatar, currentPlayer.isMasterClient ? 'true' : 'false', roundTimer, spawnPoint.x, spawnPoint.y)
       emitDirect(socket, 'OnSetInfo', currentPlayer.id, currentPlayer.name, currentPlayer.address, currentPlayer.network, currentPlayer.device)
-      emitDirect(socket, 'OnSetRoundInfo', roundTimer + ':' + getRoundInfo().join(':'))
+      emitDirect(socket, 'OnSetRoundInfo', roundTimer + ':' + getRoundInfo().join(':') + '1. Eat sprites to stay alive' + ':' + '2. Avoid bigger dragons' + ':' + '3. Eat smaller dragons')
 
       syncSprites()
 
@@ -1719,8 +1720,7 @@ function resetLeaderboard() {
 
   syncSprites()
 
-
-  publishEvent('OnSetRoundInfo', config.roundLoopSeconds + ':' + getRoundInfo().join(':'))
+  publishEvent('OnSetRoundInfo', config.roundLoopSeconds + ':' + getRoundInfo().join(':')  + '1. Eat sprites to stay alive' + ':' + '2. Avoid bigger dragons' + ':' + '3. Eat smaller dragons')
 
   if (config.hideMap) {
     publishEvent('OnHideMinimap')
