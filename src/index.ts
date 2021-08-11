@@ -2326,7 +2326,6 @@ const initRoutes = async () => {
         spectatorTotal: clients.filter(c => c.isSpectating).length,
         recentPlayersTotal: round.players.length,
         spritesTotal: config.spritesTotal,
-        leaderboard: leaderboard,
         connectedPlayers: clients.map(c => c.name),
         rewardItemAmount: config.rewardItemAmount,
         rewardWinnerAmount: config.rewardWinnerAmount,
