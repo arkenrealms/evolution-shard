@@ -43,7 +43,7 @@ const io = require('socket.io')(process.env.SUDO_USER === 'dev' || process.env.O
 const shortId = require('shortid')
 
 function logError(err) {
-  const errorLog = jetpack.read(path.resolve('./public/data/errors.json'), 'json')
+  const errorLog = jetpack.read(path.resolve('./public/data/errors.json'), 'json') || []
 
   errorLog.push(err + '')
   
@@ -364,6 +364,7 @@ const presets = [
     avatarDecayPower1: 3,
     avatarDecayPower2: 2,
     spriteXpMultiplier: -1,
+    spritesPerPlayerCount: 20,
     // preventBadKills: false
   },
   {
@@ -1823,7 +1824,7 @@ function detectCollisions() {
     }
 
     if (distanceBetweenPoints(player.position, player.clientPosition) > 2) {
-      player.phasedUntil = getTime() + 500
+      player.phasedUntil = getTime() + 2000
       player.log.phases += 1
       player.log.clientDistanceProblem += 1
     }
@@ -1927,13 +1928,13 @@ function detectCollisions() {
     if (collided) {
       player.position = position
       player.target = player.clientTarget
-      player.phasedUntil = getTime() + 500
+      player.phasedUntil = getTime() + 2000
       player.log.phases += 1
       player.log.collided += 1
       player.overrideSpeed = 0.5
     } else if (stuck) {
       player.target = player.clientTarget
-      player.phasedUntil = getTime() + 500
+      player.phasedUntil = getTime() + 2000
       player.log.phases += 1
       player.log.stuck += 1
       player.overrideSpeed = 0.5
@@ -2044,6 +2045,7 @@ function detectCollisions() {
 
     if (!isNew) {
       for (const orb of orbs) {
+        if (!orb) continue
         if (now < orb.enabledAt) continue
         if (distanceBetweenPoints(player.position, orb.position) > touchDistance) continue
   
