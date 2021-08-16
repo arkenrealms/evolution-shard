@@ -578,7 +578,7 @@ const emitAllFast = (socket, ...args) => {
 }
 
 const publishEvent = (...args) => {
-  console.log(args)
+  // console.log(args)
   eventQueue.push(args)
 }
 
