@@ -888,20 +888,67 @@ function removeReward() {
   currentReward = undefined
 }
 
+function getUnobstructedPosition() {
+  const spawnBoundary = config.level2open ? spawnBoundary2 : spawnBoundary1
+
+  let res
+  let collided = false
+
+  while(!res) {
+    const position = {
+      x: randomPosition(spawnBoundary.x.min, spawnBoundary.x.max),
+      y: randomPosition(spawnBoundary.y.min, spawnBoundary.y.max)
+    }
+  
+    for (const gameObject of db.map) {
+      if (!gameObject.Colliders || !gameObject.Colliders.length) continue
+
+      for (const gameCollider of gameObject.Colliders) {
+        const collider = {
+          minX: gameCollider.Min[0],
+          maxX: gameCollider.Max[0],
+          minY: gameCollider.Min[1],
+          maxY: gameCollider.Max[1]
+        }
+
+        if (config.level2open && gameObject.Name === 'Level2Divider') {
+          const diff = gameObject.Transform.LocalPosition[1] - -16
+          collider.minY -= diff
+          collider.maxY -= diff
+        }
+
+        if (
+          position.x >= collider.minX &&
+          position.x <= collider.maxX &&
+          position.y >= collider.minY &&
+          position.y <= collider.maxY
+        ) {
+          collided = true
+
+          break
+        }
+      }
+
+      if (collided) break
+    }
+
+    if (!collided) {
+      res = position
+    }
+  }
+
+  return res
+}
+
 function spawnSprites(amount) {
   for (let i = 0; i < amount; i++) {
-    const spawnBoundary = config.level2open ? spawnBoundary2 : spawnBoundary1
-    const spawnX = randomPosition(spawnBoundary.x.min, spawnBoundary.x.max)
-    const spawnY = randomPosition(spawnBoundary.y.min, spawnBoundary.y.max)
+    const position = getUnobstructedPosition()
 
     const powerupSpawnPoint = {
       id: shortId.generate(),
       type: (Math.floor(Math.random() * 4)),
       scale: 1,
-      position: {
-        x: spawnX,
-        y: spawnY
-      }
+      position
     }
 
     powerups.push(powerupSpawnPoint) // add power up on the list
