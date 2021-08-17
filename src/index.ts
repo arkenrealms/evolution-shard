@@ -892,9 +892,10 @@ function getUnobstructedPosition() {
   const spawnBoundary = config.level2open ? spawnBoundary2 : spawnBoundary1
 
   let res
-  let collided = false
 
   while(!res) {
+    let collided = false
+
     const position = {
       x: randomPosition(spawnBoundary.x.min, spawnBoundary.x.max),
       y: randomPosition(spawnBoundary.y.min, spawnBoundary.y.max)
