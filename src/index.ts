@@ -333,6 +333,7 @@ const presets = [
     pointsPerPowerup: 1,
     pointsPerReward: 0,
     pointsPerKill: 0,
+    immunitySeconds: 10,
     orbTimeoutSeconds: 9999,
     orbOnDeathPercent: 0,
   },
