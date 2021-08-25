@@ -102,6 +102,10 @@ const savePlayerRewards = () => {
 }
 
 const saveLeaderboardHistory = () => {
+  if (db.leaderboardHistory.length > 1100) {
+    db.leaderboardHistory = db.leaderboardHistory.slice(100)
+  }
+
   jetpack.write(path.resolve('./public/data/leaderboardHistory.json'), JSON.stringify(db.leaderboardHistory, null, 2))
 }
 
@@ -278,7 +282,6 @@ const presets = [
   {
     gameMode: 'Lets Be Friends',
     pointsPerKill: -200,
-    orbTimeoutSeconds: 9999,
     orbOnDeathPercent: 0,
     antifeed1: false,
     antifeed2: false,
@@ -302,7 +305,6 @@ const presets = [
     gameMode: 'Deathmatch',
     pointsPerKill: 300,
     orbOnDeathPercent: 0,
-    orbTimeoutSeconds: 9999,
     pointsPerEvolve: 0,
     pointsPerPowerup: 1,
     pointsPerReward: 0,
@@ -327,14 +329,13 @@ const presets = [
   },
   {
     gameMode: 'Sprite Leader',
-    spritesPerPlayerCount: 20,
+    spritesPerPlayerCount: 10,
     decayPower: 7,
     pointsPerEvolve: 0,
     pointsPerPowerup: 1,
     pointsPerReward: 0,
     pointsPerKill: 0,
     immunitySeconds: 10,
-    orbTimeoutSeconds: 9999,
     orbOnDeathPercent: 0,
   },
   {
@@ -343,7 +344,6 @@ const presets = [
     decayPower: 4,
     immunitySeconds: 20,
     orbOnDeathPercent: 0,
-    orbTimeoutSeconds: 9999,
   },
   {
     gameMode: 'Bird Eye',
@@ -354,7 +354,6 @@ const presets = [
   {
     gameMode: 'Friendly Reverse',
     pointsPerKill: -200,
-    orbTimeoutSeconds: 9999,
     orbOnDeathPercent: 0,
     antifeed1: false,
     antifeed2: false,
@@ -1050,7 +1049,7 @@ const registerKill = (winner, loser) => {
     disconnectPlayer(loser)
   }, 2 * 1000)
 
-  if (!roundEndingSoon(config.orbCutoffSeconds)) {
+  if (config.orbOnDeathPercent > 0 && !roundEndingSoon(config.orbCutoffSeconds)) {
     orbs.push(orb)
     orbLookup[orb.id] = orb
 
@@ -2033,11 +2032,11 @@ function detectCollisions() {
         // playerDamageGiven[currentPlayer.id + pack.id] = now
         // // console.log('Player Damage Given', currentPlayer.id + pack.id)
         // if (playerDamageTaken[currentPlayer.id + pack.id] > now - 500) {
-          if (player1.xp > 5) {
-            player1.xp -= 1
-          } else {
+          // if (player1.xp > 5) {
+            // player1.xp -= 1
+          // } else {
             registerKill(player2, player1)
-          }
+          // }
           break
         // }
       } else if (player1.avatar > player2.avatar) {
@@ -2045,11 +2044,11 @@ function detectCollisions() {
         // playerDamageGiven[pack.id + currentPlayer.id] = now
         // // console.log('Player Damage Given', pack.id + currentPlayer.id)
         // if (playerDamageTaken[pack.id + currentPlayer.id] > now - 500) {
-          if (player2.xp > 5) {
-            player2.xp -= 1
-          } else {
+          // if (player2.xp > 5) {
+          //   player2.xp -= 1
+          // } else {
             registerKill(player1, player2)
-          }
+          // }
           break
         // }
       }
@@ -2371,7 +2370,7 @@ const initRoutes = async () => {
     server.get('/info', async function(req, res) {
       return res.json({
         version: serverVersion,
-        round: round,
+        round: { id: round.id, startedAt: round.startedAt },
         clientTotal: clients.length,
         playerTotal: clients.filter(c => !c.isDead && !c.isSpectating).length,
         spectatorTotal: clients.filter(c => c.isSpectating).length,
