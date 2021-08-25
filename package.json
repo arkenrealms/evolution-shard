@@ -64,7 +64,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "NODE_ENV=development yarn run nodemon",
-    "prod": "NODE_ENV=production yarn run nodemon",
+    "prod": "NODE_ENV=production yarn run nodemon --config nodemon.production.json",
     "build": "NODE_ENV=production tsc",
     "start": "NODE_ENV=production node build/index.js",
     "forever": "NODE_ENV=production yarn build && sudo nohup forever start forever-config.json &",
@@ -75,7 +75,11 @@
     "release-sa1": "NODE_ENV=production tsc && gcloud app deploy app.yaml --project rune-evolution-sa1",
     "release-ptr": "NODE_ENV=staging tsc && gcloud app deploy app.ptr.yaml --project rune-evolution-ptr",
     "config": "sudo /opt/bitnami/ctlscript.sh stop apache",
-    "renew": "certbot renew"
+    "renew": "certbot renew",
+    "connect": "gcloud beta compute ssh --zone \"asia-northeast1-b\" \"rune-evolution-pr1\"  --project \"rune-evolution-ptr\"",
+    "kill": "sudo pkill -f node",
+    "nohup": "sudo nohup node --max_semi_space_size=30000 --max-old-space-size=30000 --initial-old-space-size=8000 --optimize-for-size --experimental-modules --experimental-json-modules build/index.js &",
+    "manual": "sudo node --max_semi_space_size=30000 --max-old-space-size=30000 --initial-old-space-size=8000 --optimize-for-size --experimental-modules --experimental-json-modules build/index.js"
   },
   "author": "Binzy",
   "license": "Unlicensed"
