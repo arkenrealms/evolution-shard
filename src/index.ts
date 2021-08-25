@@ -283,7 +283,7 @@ const presets = [
     antifeed1: false,
     antifeed2: false,
     calcRoundRewards: false,
-    // preventBadKills: false
+    preventBadKills: false
   },
   {
     gameMode: 'Mix Game 1',
@@ -366,7 +366,7 @@ const presets = [
     avatarDecayPower2: 2,
     spriteXpMultiplier: -1,
     spritesPerPlayerCount: 20,
-    // preventBadKills: false
+    preventBadKills: false
   },
   {
     gameMode: 'Reverse Evolve',
