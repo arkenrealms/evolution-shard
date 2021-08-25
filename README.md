@@ -26,4 +26,6 @@ sudo cat /etc/letsencrypt/live/na1.runeevolution.com/fullchain.pem
 sudo cat /etc/letsencrypt/live/na1.runeevolution.com/privkey.pem
 git pull
 yarn build
-nohup forever start forever-config.json &
+
+sudo nohup forever start forever-config.json &
+
