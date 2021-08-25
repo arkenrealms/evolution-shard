@@ -282,7 +282,6 @@ const presets = [
   {
     gameMode: 'Lets Be Friends',
     pointsPerKill: -200,
-    orbTimeoutSeconds: 9999,
     orbOnDeathPercent: 0,
     antifeed1: false,
     antifeed2: false,
@@ -306,7 +305,6 @@ const presets = [
     gameMode: 'Deathmatch',
     pointsPerKill: 300,
     orbOnDeathPercent: 0,
-    orbTimeoutSeconds: 9999,
     pointsPerEvolve: 0,
     pointsPerPowerup: 1,
     pointsPerReward: 0,
@@ -338,7 +336,6 @@ const presets = [
     pointsPerReward: 0,
     pointsPerKill: 0,
     immunitySeconds: 10,
-    orbTimeoutSeconds: 9999,
     orbOnDeathPercent: 0,
   },
   {
@@ -347,7 +344,6 @@ const presets = [
     decayPower: 4,
     immunitySeconds: 20,
     orbOnDeathPercent: 0,
-    orbTimeoutSeconds: 9999,
   },
   {
     gameMode: 'Bird Eye',
@@ -358,7 +354,6 @@ const presets = [
   {
     gameMode: 'Friendly Reverse',
     pointsPerKill: -200,
-    orbTimeoutSeconds: 9999,
     orbOnDeathPercent: 0,
     antifeed1: false,
     antifeed2: false,
@@ -1054,7 +1049,7 @@ const registerKill = (winner, loser) => {
     disconnectPlayer(loser)
   }, 2 * 1000)
 
-  if (!roundEndingSoon(config.orbCutoffSeconds)) {
+  if (config.orbOnDeathPercent > 0 && !roundEndingSoon(config.orbCutoffSeconds)) {
     orbs.push(orb)
     orbLookup[orb.id] = orb
 
