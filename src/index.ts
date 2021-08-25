@@ -102,10 +102,6 @@ const savePlayerRewards = () => {
 }
 
 const saveLeaderboardHistory = () => {
-  if (db.leaderboardHistory.length > 1100) {
-    db.leaderboardHistory = db.leaderboardHistory.slice(100)
-  }
-
   jetpack.write(path.resolve('./public/data/leaderboardHistory.json'), JSON.stringify(db.leaderboardHistory, null, 2))
 }
 
