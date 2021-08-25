@@ -79,7 +79,7 @@ db.rewards = jetpack.read(path.resolve('./public/data/rewards.json'), 'json')
 db.leaderboardHistory = jetpack.read(path.resolve('./public/data/leaderboardHistory.json'), 'json')
 db.modList = jetpack.read(path.resolve('./public/data/modList.json'), 'json') || []
 db.banList = jetpack.read(path.resolve('./public/data/banList.json'), 'json')
-db.reportList = jetpack.read(path.resolve('./public/data/reports.json'), 'json')
+db.reportList = jetpack.read(path.resolve('./public/data/playerReports.json'), 'json')
 db.playerRewards = jetpack.read(path.resolve('./public/data/playerRewards.json'), 'json')
 db.map = jetpack.read(path.resolve('./public/data/map.json'), 'json')
 db.log = jetpack.read(path.resolve('./public/data/log.json'), 'json')
@@ -122,7 +122,7 @@ const saveModList = () => {
 }
 
 const saveReportList = () => {
-  jetpack.write(path.resolve('./public/data/reports.json'), JSON.stringify(db.reportList, null, 2))
+  jetpack.write(path.resolve('./public/data/playerReports.json'), JSON.stringify(db.reportList, null, 2))
 }
 
 const saveLog = () => {
