@@ -329,7 +329,7 @@ const presets = [
   },
   {
     gameMode: 'Sprite Leader',
-    spritesPerPlayerCount: 10,
+    spritesPerPlayerCount: 5,
     decayPower: 7,
     pointsPerEvolve: 0,
     pointsPerPowerup: 1,
@@ -364,7 +364,7 @@ const presets = [
     avatarDecayPower1: 3,
     avatarDecayPower2: 2,
     spriteXpMultiplier: -1,
-    spritesPerPlayerCount: 20,
+    spritesPerPlayerCount: 5,
     preventBadKills: false
   },
   {
