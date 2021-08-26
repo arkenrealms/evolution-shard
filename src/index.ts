@@ -1299,50 +1299,54 @@ io.on('connection', function(socket) {
     })
 
     socket.on('SetInfo', function(msg) {
-      const pack = decodePayload(msg)
+      try {
+        const pack = decodePayload(msg)
 
-      if (config.isMaintenance && !modList.includes(pack.name)) {
-        emitDirect(socket, 'OnMaintenance', true)
-        disconnectPlayer(currentPlayer)
-        return
-      }
-
-      if (db.banList.includes(pack.address)) {
-        emitDirect(socket, 'OnBanned', true)
-        disconnectPlayer(currentPlayer)
-        return
-      }
-
-      const now = getTime()
-      if (currentPlayer.name !== pack.name || currentPlayer.address !== pack.address) {
-        currentPlayer.name = pack.name
-        currentPlayer.address = pack.address
-        currentPlayer.network = pack.network
-        currentPlayer.device = pack.device
-
-        const recentPlayer = round.players.find(r => r.address === pack.address)
-
-        if (recentPlayer) {
-          if ((now - recentPlayer.lastUpdate) < 3000) {
-            disconnectPlayer(currentPlayer)
-            return
-          }
-
-          currentPlayer.kills = recentPlayer.kills
-          currentPlayer.deaths = recentPlayer.deaths
-          currentPlayer.points = recentPlayer.points
-          currentPlayer.evolves = recentPlayer.evolves
-          currentPlayer.powerups = recentPlayer.powerups
-          currentPlayer.rewards = recentPlayer.rewards
-          currentPlayer.lastUpdate = recentPlayer.lastUpdate
-          currentPlayer.log = recentPlayer.log
-
-          currentPlayer.log.connects += 1
+        if (config.isMaintenance && !modList.includes(pack.name)) {
+          emitDirect(socket, 'OnMaintenance', true)
+          disconnectPlayer(currentPlayer)
+          return
         }
 
-        addToRecentPlayers(currentPlayer)
-    
-        publishEvent('OnSetInfo', currentPlayer.id, pack.name, pack.address, pack.network, pack.device)
+        if (db.banList.includes(pack.address)) {
+          emitDirect(socket, 'OnBanned', true)
+          disconnectPlayer(currentPlayer)
+          return
+        }
+
+        const now = getTime()
+        if (currentPlayer.name !== pack.name || currentPlayer.address !== pack.address) {
+          currentPlayer.name = pack.name
+          currentPlayer.address = pack.address
+          currentPlayer.network = pack.network
+          currentPlayer.device = pack.device
+
+          const recentPlayer = round.players.find(r => r.address === pack.address)
+
+          if (recentPlayer) {
+            if ((now - recentPlayer.lastUpdate) < 3000) {
+              disconnectPlayer(currentPlayer)
+              return
+            }
+
+            currentPlayer.kills = recentPlayer.kills
+            currentPlayer.deaths = recentPlayer.deaths
+            currentPlayer.points = recentPlayer.points
+            currentPlayer.evolves = recentPlayer.evolves
+            currentPlayer.powerups = recentPlayer.powerups
+            currentPlayer.rewards = recentPlayer.rewards
+            currentPlayer.lastUpdate = recentPlayer.lastUpdate
+            currentPlayer.log = recentPlayer.log
+
+            currentPlayer.log.connects += 1
+          }
+
+          addToRecentPlayers(currentPlayer)
+      
+          publishEvent('OnSetInfo', currentPlayer.id, pack.name, pack.address, pack.network, pack.device)
+        }
+      } catch(e) {
+        console.log(e)
       }
     })
 
@@ -1455,82 +1459,90 @@ io.on('connection', function(socket) {
     })
 
     socket.on('UpdateMyself', function(msg) {
-      if (currentPlayer.isDead) return
-      if (currentPlayer.isSpectating) return
-      if (config.isMaintenance && !modList.includes(currentPlayer?.address)) return
+      try {
+        if (currentPlayer.isDead) return
+        if (currentPlayer.isSpectating) return
+        if (config.isMaintenance && !modList.includes(currentPlayer?.address)) return
 
-      const now = getTime()
+        const now = getTime()
 
-      if (now - currentPlayer.lastUpdate < config.forcedLatency) return
+        if (now - currentPlayer.lastUpdate < config.forcedLatency) return
 
-      const pack = decodePayload(msg)
+        const pack = decodePayload(msg)
 
-      const positionX = parseFloat(parseFloat(pack.position.split(':')[0]).toFixed(2))
-      const positionY = parseFloat(parseFloat(pack.position.split(':')[1]).toFixed(2))
+        const positionX = parseFloat(parseFloat(pack.position.split(':')[0]).toFixed(2))
+        const positionY = parseFloat(parseFloat(pack.position.split(':')[1]).toFixed(2))
 
-      const targetX = parseFloat(parseFloat(pack.target.split(':')[0]).toFixed(2))
-      const targetY = parseFloat(parseFloat(pack.target.split(':')[1]).toFixed(2))
+        const targetX = parseFloat(parseFloat(pack.target.split(':')[0]).toFixed(2))
+        const targetY = parseFloat(parseFloat(pack.target.split(':')[1]).toFixed(2))
 
 
-      if (!Number.isFinite(positionX) || !Number.isFinite(positionY) || !Number.isFinite(targetX) || !Number.isFinite(targetY)) return
-      if (positionX < mapBoundary.x.min) return
-      if (positionX > mapBoundary.x.max) return
-      if (positionY < mapBoundary.y.min) return
-      if (positionY > mapBoundary.y.max) return
-    
-      if (config.anticheat.disconnectPositionJumps && distanceBetweenPoints(currentPlayer.position, { x: positionY, y: positionY }) > 5) {
-        disconnectPlayer(currentPlayer)
-        currentPlayer.log.positionJump += 1
-        return
+        if (!Number.isFinite(positionX) || !Number.isFinite(positionY) || !Number.isFinite(targetX) || !Number.isFinite(targetY)) return
+        if (positionX < mapBoundary.x.min) return
+        if (positionX > mapBoundary.x.max) return
+        if (positionY < mapBoundary.y.min) return
+        if (positionY > mapBoundary.y.max) return
+      
+        if (config.anticheat.disconnectPositionJumps && distanceBetweenPoints(currentPlayer.position, { x: positionY, y: positionY }) > 5) {
+          disconnectPlayer(currentPlayer)
+          currentPlayer.log.positionJump += 1
+          return
+        }
+
+        currentPlayer.clientPosition = { x: positionX, y: positionY }
+        currentPlayer.clientTarget = { x: targetX, y: targetY }
+        currentPlayer.lastReportedTime = parseFloat(pack.time)
+
+        // const cacheKey = Math.floor(pack.target.split(':')[0])
+
+        // if (eventCache['OnUpdateMyself'][socket.id] !== cacheKey) {
+          currentPlayer.lastUpdate = now
+
+          // publishEvent('OnUpdateMyself', data.id, data.position, data.target)
+        //   eventCache['OnUpdateMyself'][socket.id] = cacheKey
+        // }
+      } catch(e) {
+        console.log(e)
       }
-
-      currentPlayer.clientPosition = { x: positionX, y: positionY }
-      currentPlayer.clientTarget = { x: targetX, y: targetY }
-      currentPlayer.lastReportedTime = parseFloat(pack.time)
-
-      // const cacheKey = Math.floor(pack.target.split(':')[0])
-
-      // if (eventCache['OnUpdateMyself'][socket.id] !== cacheKey) {
-        currentPlayer.lastUpdate = now
-
-        // publishEvent('OnUpdateMyself', data.id, data.position, data.target)
-      //   eventCache['OnUpdateMyself'][socket.id] = cacheKey
-      // }
     })
 
     socket.on('Pickup', async function (msg) {
-      const now = getTime()
-      const isPhased = currentPlayer.isPhased ? true : now <= currentPlayer.phasedUntil
+      try {
+        const now = getTime()
+        const isPhased = currentPlayer.isPhased ? true : now <= currentPlayer.phasedUntil
 
-      if (currentPlayer.isDead) return
-      if (currentPlayer.isSpectating) return
-      if (isPhased) return
-      if (config.isMaintenance && !modList.includes(currentPlayer?.address)) return
+        if (currentPlayer.isDead) return
+        if (currentPlayer.isSpectating) return
+        if (isPhased) return
+        if (config.isMaintenance && !modList.includes(currentPlayer?.address)) return
 
-      const pack = decodePayload(msg)
+        const pack = decodePayload(msg)
 
-      const powerup = powerupLookup[pack.id]
+        const powerup = powerupLookup[pack.id]
 
-      log('Pickup', msg, powerup)
+        log('Pickup', msg, powerup)
 
-      if (powerup) {
-        removeSprite(pack.id)
+        if (powerup) {
+          removeSprite(pack.id)
 
-        let value = 0
+          let value = 0
 
-        if (powerup.type == 0) value = config.powerupXp0
-        if (powerup.type == 1) value = config.powerupXp1
-        if (powerup.type == 2) value = config.powerupXp2
-        if (powerup.type == 3) value = config.powerupXp3
+          if (powerup.type == 0) value = config.powerupXp0
+          if (powerup.type == 1) value = config.powerupXp1
+          if (powerup.type == 2) value = config.powerupXp2
+          if (powerup.type == 3) value = config.powerupXp3
 
-        currentPlayer.powerups += 1
-        currentPlayer.points += config.pointsPerPowerup
-        currentPlayer.xp += (value * config.spriteXpMultiplier)
-    
-        publishEvent('OnUpdatePickup', currentPlayer.id, pack.id, value)
+          currentPlayer.powerups += 1
+          currentPlayer.points += config.pointsPerPowerup
+          currentPlayer.xp += (value * config.spriteXpMultiplier)
+      
+          publishEvent('OnUpdatePickup', currentPlayer.id, pack.id, value)
 
-        removeSprite(pack.id)
-        spawnSprites(1)
+          removeSprite(pack.id)
+          spawnSprites(1)
+        }
+      } catch(e) {
+        console.log(e)
       }
     })
     
