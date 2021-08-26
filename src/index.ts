@@ -254,7 +254,7 @@ const sharedConfig = {
   rewardWinnerAmount: 0.02,
   rewardWinnerName: 'ZOD',
   roundLoopSeconds: testMode ? 2 * 60 : 5 * 60,
-  sendUpdateLoopSeconds: 2,
+  sendUpdateLoopSeconds: 3,
   slowLoopSeconds: 1,
   spritesPerPlayerCount: 1,
   spritesStartCount: 50,
@@ -984,8 +984,6 @@ const registerKill = (winner, loser) => {
   if (loser.isInvincible) return
   if (config.preventBadKills && (winner.isPhased || now < winner.phasedUntil)) return
 
-  const currentRound = round.id
-
   const totalKills = winner.log.kills.filter(h => h === loser.hash).length
   const notReallyTrying = config.antifeed1 ? (totalKills >= 2 && loser.kills < 2 && loser.rewards <= 1) || (totalKills >= 2 && loser.kills < 2 && loser.powerups <= 100) : false
   const tooManyKills = config.antifeed2 ? clients.length > 2 && totalKills >= 5 && totalKills > winner.log.kills.length / clients.filter(c => !c.isDead).length : false
@@ -1027,6 +1025,12 @@ const registerKill = (winner, loser) => {
     winner.log.revenge += 1
   }
 
+  publishEvent('OnGameOver', loser.id, winner.id)
+
+  setTimeout(() => {
+    disconnectPlayer(loser)
+  }, 2 * 1000)
+
   const orb = {
     id: shortId.generate(),
     type: 4,
@@ -1039,17 +1043,17 @@ const registerKill = (winner, loser) => {
     }
   }
 
-  publishEvent('OnGameOver', loser.id, winner.id)
-
-  setTimeout(() => {
-    disconnectPlayer(loser)
-  }, 2 * 1000)
+  const currentRound = round.id
 
   if (config.orbOnDeathPercent > 0 && !roundEndingSoon(config.orbCutoffSeconds)) {
-    orbs.push(orb)
-    orbLookup[orb.id] = orb
+    setTimeout(() => {
+      if (round.id !== currentRound) return
 
-    publishEvent('OnSpawnPowerUp', orb.id, orb.type, orb.position.x, orb.position.y, orb.scale)
+      orbs.push(orb)
+      orbLookup[orb.id] = orb
+  
+      publishEvent('OnSpawnPowerUp', orb.id, orb.type, orb.position.x, orb.position.y, orb.scale)
+    }, config.orbTimeoutSeconds * 1000)
   }
 }
 
@@ -1569,8 +1573,7 @@ io.on('connection', function(socket) {
 })
 
 function sendUpdates() {
-  publishEvent('OnClearLeaderboard')
-  const leaderboard = round.players.sort(comparePlayers)
+  const leaderboard = round.players.sort(comparePlayers).slice(0, 10)
   for (let j = 0; j < leaderboard.length; j++) {
     publishEvent('OnUpdateBestKiller', leaderboard[j].name, j, leaderboard[j].points, leaderboard[j].kills, leaderboard[j].deaths, leaderboard[j].powerups, leaderboard[j].evolves, leaderboard[j].rewards, leaderboard[j].isDead ? '-' : Math.round(leaderboard[j].latency), ranks[leaderboard[j].address]?.kills / 5 || 1)
   }
@@ -1785,6 +1788,8 @@ function resetLeaderboard() {
   syncSprites()
 
   publishEvent('OnSetRoundInfo', config.roundLoopSeconds + ':' + getRoundInfo().join(':')  + '1. Eat sprites to stay alive' + ':' + '2. Avoid bigger dragons' + ':' + '3. Eat smaller dragons')
+
+  publishEvent('OnClearLeaderboard')
 
   if (config.hideMap) {
     publishEvent('OnHideMinimap')
