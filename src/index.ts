@@ -329,7 +329,7 @@ const presets = [
   },
   {
     gameMode: 'Sprite Leader',
-    spritesPerPlayerCount: 10,
+    spritesPerPlayerCount: 5,
     decayPower: 7,
     pointsPerEvolve: 0,
     pointsPerPowerup: 1,
@@ -364,7 +364,7 @@ const presets = [
     avatarDecayPower1: 3,
     avatarDecayPower2: 2,
     spriteXpMultiplier: -1,
-    spritesPerPlayerCount: 20,
+    spritesPerPlayerCount: 5,
     preventBadKills: false
   },
   {
@@ -1153,18 +1153,18 @@ io.on('connection', function(socket) {
     clients.push(currentPlayer)
 
     socket.on('Passthrough', function(msg) {
-      const pack = decodePayload(msg)
-      const data = JSON.parse(unescape(pack.data))
-
-      db.log.push({
-        event: data.event,
-        value: data.value,
-        caller: currentPlayer?.address
-      })
-
-      saveLog()
-
       try {
+        const pack = decodePayload(msg)
+        const data = JSON.parse(unescape(pack.data))
+
+        db.log.push({
+          event: data.event,
+          value: data.value,
+          caller: currentPlayer?.address
+        })
+
+        saveLog()
+
         if (data.event === 'Ban') {
           if (!modList.includes(currentPlayer?.address)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
@@ -1259,7 +1259,7 @@ io.on('connection', function(socket) {
             client.isInvincible = true
           }
         }
-      } catch (e) {
+      } catch(e) {
         console.log(e)
       }
     })
@@ -1269,29 +1269,37 @@ io.on('connection', function(socket) {
     })
 
     socket.on('Spectate', function() {
-      if (config.isMaintenance && !modList.includes(currentPlayer?.address)) {
-        return
+      try {
+        if (config.isMaintenance && !modList.includes(currentPlayer?.address)) {
+          return
+        }
+
+        currentPlayer.isSpectating = true
+        // currentPlayer.points = 0
+        currentPlayer.xp = 0
+        currentPlayer.avatar = config.startAvatar
+        currentPlayer.speed = 5
+        currentPlayer.overrideSpeed = 5
+        currentPlayer.cameraSize = 6
+        currentPlayer.overrideCameraSize = 6
+
+        syncSprites()
+
+        publishEvent('OnSpectate', currentPlayer.id, currentPlayer.speed, currentPlayer.cameraSize)
+      } catch(e) {
+        console.log(e)
       }
-
-      currentPlayer.isSpectating = true
-      // currentPlayer.points = 0
-      currentPlayer.xp = 0
-      currentPlayer.avatar = config.startAvatar
-      currentPlayer.speed = 5
-      currentPlayer.overrideSpeed = 5
-      currentPlayer.cameraSize = 6
-      currentPlayer.overrideCameraSize = 6
-
-      syncSprites()
-
-      publishEvent('OnSpectate', currentPlayer.id, currentPlayer.speed, currentPlayer.cameraSize)
     })
     
     socket.on('Report', function(name) {
-      const currentGamePlayers = clients.map(c => c.name)
-      const reportedPlayer = clients.find(c => c.name === name)
+      try {
+        const currentGamePlayers = clients.map(c => c.name)
+        const reportedPlayer = clients.find(c => c.name === name)
 
-      reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer)
+        reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer)
+      } catch(e) {
+        console.log(e)
+      }
     })
 
     socket.on('ping', function() {
