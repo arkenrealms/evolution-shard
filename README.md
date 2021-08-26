@@ -29,3 +29,16 @@ yarn build
 
 sudo nohup forever start forever-config.json &
 
+
+
+Download:
+
+gcloud compute scp rune-evolution-asia1:/opt/bitnami/projects/rune-evolution-game-server/public/data/leaderboardHistory.json ~/Documents/a/ --zone "asia-northeast1-b"  --project "rune-evolution-ptr"
+
+
+Upload:
+
+gcloud compute scp ~/Documents/a/leaderboardHistory.json rune-evolution-asia1:/opt/bitnami/projects/rune-evolution-game-server/public/data/leaderboardHistory.json --zone "asia-northeast1-b"  --project "rune-evolution-ptr"
+
+
+
