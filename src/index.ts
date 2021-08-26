@@ -142,12 +142,9 @@ function reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer) {
   if (!db.reportList[reportedPlayer.address].includes(currentPlayer.address))
     db.reportList[reportedPlayer.address].push(currentPlayer.address)
   
-  saveReportList()
-
   if (db.reportList[reportedPlayer.address].length >= 6) {
     db.banList.push(reportedPlayer.address)
 
-    saveBanList()
     disconnectPlayer(reportedPlayer)
     // emitDirect(sockets[reportedPlayer.id], 'OnBanned', true)
     return
@@ -161,7 +158,6 @@ function reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer) {
     if (reportsFromCurrentGamePlayers.length >= currentGamePlayers.length / 3) {
       db.banList.push(reportedPlayer.address)
 
-      saveBanList()
       disconnectPlayer(reportedPlayer)
       // emitDirect(sockets[reportedPlayer.id], 'OnBanned', true)
       return
@@ -1163,8 +1159,6 @@ io.on('connection', function(socket) {
           caller: currentPlayer?.address
         })
 
-        saveLog()
-
         if (data.event === 'Ban') {
           if (!modList.includes(currentPlayer?.address)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
@@ -1650,8 +1644,6 @@ function sendLeaderReward(leader1, leader2, leader3, leader4, leader5) {
       console.log(e)
     }
   }
-
-  savePlayerRewards()
 }
 
 function getRoundInfo() {
@@ -1705,6 +1697,9 @@ function resetLeaderboard() {
   saveLeaderboardHistory()
   savePlayerRewards()
   saveRewards()
+  saveReportList()
+  saveBanList()
+  saveLog()
 
   jetpack.write(path.resolve(`./public/data/rounds/${round.id}.json`), JSON.stringify(round, null, 2))
 
