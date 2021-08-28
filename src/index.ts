@@ -103,7 +103,7 @@ const savePlayerRewards = () => {
 
 const saveLeaderboardHistory = () => {
   if (db.leaderboardHistory.length > 1100) {
-    db.leaderboardHistory = db.leaderboardHistory.slice(100)
+    db.leaderboardHistory = db.leaderboardHistory.slice(db.leaderboardHistory.length - 1000, db.leaderboardHistory.length)
   }
 
   jetpack.write(path.resolve('./public/data/leaderboardHistory.json'), JSON.stringify(db.leaderboardHistory, null, 2))
@@ -142,12 +142,9 @@ function reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer) {
   if (!db.reportList[reportedPlayer.address].includes(currentPlayer.address))
     db.reportList[reportedPlayer.address].push(currentPlayer.address)
   
-  saveReportList()
-
   if (db.reportList[reportedPlayer.address].length >= 6) {
     db.banList.push(reportedPlayer.address)
 
-    saveBanList()
     disconnectPlayer(reportedPlayer)
     // emitDirect(sockets[reportedPlayer.id], 'OnBanned', true)
     return
@@ -161,7 +158,6 @@ function reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer) {
     if (reportsFromCurrentGamePlayers.length >= currentGamePlayers.length / 3) {
       db.banList.push(reportedPlayer.address)
 
-      saveBanList()
       disconnectPlayer(reportedPlayer)
       // emitDirect(sockets[reportedPlayer.id], 'OnBanned', true)
       return
@@ -193,10 +189,10 @@ const baseConfig = {
   antifeed4: true,
   avatarDirection: 1,
   calcRoundRewards: true,
-  rewardItemAmountPerLegitPlayer: 0.05 / 20,
-  rewardItemAmountMax: 0.05,
-  rewardWinnerAmountPerLegitPlayer: 0.3 / 20,
-  rewardWinnerAmountMax: 0.3,
+  rewardItemAmountPerLegitPlayer: 0.03 / 20,
+  rewardItemAmountMax: 0.03,
+  rewardWinnerAmountPerLegitPlayer: 0.15 / 20,
+  rewardWinnerAmountMax: 0.15,
   flushEventQueueSeconds: 0.02,
   anticheat: {
     enabled: false,
@@ -255,10 +251,10 @@ const sharedConfig = {
   rewardItemName: '?',
   rewardItemType: 0,
   rewardSpawnLoopSeconds: testMode ? 1 : 3 * 60 / 20,
-  rewardWinnerAmount: 0.02,
+  rewardWinnerAmount: 0.15 / 20,
   rewardWinnerName: 'ZOD',
   roundLoopSeconds: testMode ? 2 * 60 : 5 * 60,
-  sendUpdateLoopSeconds: 2,
+  sendUpdateLoopSeconds: 3,
   slowLoopSeconds: 1,
   spritesPerPlayerCount: 1,
   spritesStartCount: 50,
@@ -329,7 +325,7 @@ const presets = [
   },
   {
     gameMode: 'Sprite Leader',
-    spritesPerPlayerCount: 10,
+    spritesPerPlayerCount: 5,
     decayPower: 7,
     pointsPerEvolve: 0,
     pointsPerPowerup: 1,
@@ -364,7 +360,7 @@ const presets = [
     avatarDecayPower1: 3,
     avatarDecayPower2: 2,
     spriteXpMultiplier: -1,
-    spritesPerPlayerCount: 20,
+    spritesPerPlayerCount: 5,
     preventBadKills: false
   },
   {
@@ -988,8 +984,6 @@ const registerKill = (winner, loser) => {
   if (loser.isInvincible) return
   if (config.preventBadKills && (winner.isPhased || now < winner.phasedUntil)) return
 
-  const currentRound = round.id
-
   const totalKills = winner.log.kills.filter(h => h === loser.hash).length
   const notReallyTrying = config.antifeed1 ? (totalKills >= 2 && loser.kills < 2 && loser.rewards <= 1) || (totalKills >= 2 && loser.kills < 2 && loser.powerups <= 100) : false
   const tooManyKills = config.antifeed2 ? clients.length > 2 && totalKills >= 5 && totalKills > winner.log.kills.length / clients.filter(c => !c.isDead).length : false
@@ -1031,6 +1025,12 @@ const registerKill = (winner, loser) => {
     winner.log.revenge += 1
   }
 
+  publishEvent('OnGameOver', loser.id, winner.id)
+
+  setTimeout(() => {
+    disconnectPlayer(loser)
+  }, 2 * 1000)
+
   const orb = {
     id: shortId.generate(),
     type: 4,
@@ -1043,17 +1043,17 @@ const registerKill = (winner, loser) => {
     }
   }
 
-  publishEvent('OnGameOver', loser.id, winner.id)
-
-  setTimeout(() => {
-    disconnectPlayer(loser)
-  }, 2 * 1000)
+  const currentRound = round.id
 
   if (config.orbOnDeathPercent > 0 && !roundEndingSoon(config.orbCutoffSeconds)) {
-    orbs.push(orb)
-    orbLookup[orb.id] = orb
+    setTimeout(() => {
+      if (round.id !== currentRound) return
 
-    publishEvent('OnSpawnPowerUp', orb.id, orb.type, orb.position.x, orb.position.y, orb.scale)
+      orbs.push(orb)
+      orbLookup[orb.id] = orb
+  
+      publishEvent('OnSpawnPowerUp', orb.id, orb.type, orb.position.x, orb.position.y, orb.scale)
+    }, config.orbTimeoutSeconds * 1000)
   }
 }
 
@@ -1153,18 +1153,16 @@ io.on('connection', function(socket) {
     clients.push(currentPlayer)
 
     socket.on('Passthrough', function(msg) {
-      const pack = decodePayload(msg)
-      const data = JSON.parse(unescape(pack.data))
-
-      db.log.push({
-        event: data.event,
-        value: data.value,
-        caller: currentPlayer?.address
-      })
-
-      saveLog()
-
       try {
+        const pack = decodePayload(msg)
+        const data = JSON.parse(unescape(pack.data))
+
+        db.log.push({
+          event: data.event,
+          value: data.value,
+          caller: currentPlayer?.address
+        })
+
         if (data.event === 'Ban') {
           if (!modList.includes(currentPlayer?.address)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
@@ -1259,7 +1257,7 @@ io.on('connection', function(socket) {
             client.isInvincible = true
           }
         }
-      } catch (e) {
+      } catch(e) {
         console.log(e)
       }
     })
@@ -1269,29 +1267,37 @@ io.on('connection', function(socket) {
     })
 
     socket.on('Spectate', function() {
-      if (config.isMaintenance && !modList.includes(currentPlayer?.address)) {
-        return
+      try {
+        if (config.isMaintenance && !modList.includes(currentPlayer?.address)) {
+          return
+        }
+
+        currentPlayer.isSpectating = true
+        // currentPlayer.points = 0
+        currentPlayer.xp = 0
+        currentPlayer.avatar = config.startAvatar
+        currentPlayer.speed = 5
+        currentPlayer.overrideSpeed = 5
+        currentPlayer.cameraSize = 6
+        currentPlayer.overrideCameraSize = 6
+
+        syncSprites()
+
+        publishEvent('OnSpectate', currentPlayer.id, currentPlayer.speed, currentPlayer.cameraSize)
+      } catch(e) {
+        console.log(e)
       }
-
-      currentPlayer.isSpectating = true
-      // currentPlayer.points = 0
-      currentPlayer.xp = 0
-      currentPlayer.avatar = config.startAvatar
-      currentPlayer.speed = 5
-      currentPlayer.overrideSpeed = 5
-      currentPlayer.cameraSize = 6
-      currentPlayer.overrideCameraSize = 6
-
-      syncSprites()
-
-      publishEvent('OnSpectate', currentPlayer.id, currentPlayer.speed, currentPlayer.cameraSize)
     })
     
     socket.on('Report', function(name) {
-      const currentGamePlayers = clients.map(c => c.name)
-      const reportedPlayer = clients.find(c => c.name === name)
+      try {
+        const currentGamePlayers = clients.map(c => c.name)
+        const reportedPlayer = clients.find(c => c.name === name)
 
-      reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer)
+        reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer)
+      } catch(e) {
+        console.log(e)
+      }
     })
 
     socket.on('ping', function() {
@@ -1299,50 +1305,54 @@ io.on('connection', function(socket) {
     })
 
     socket.on('SetInfo', function(msg) {
-      const pack = decodePayload(msg)
+      try {
+        const pack = decodePayload(msg)
 
-      if (config.isMaintenance && !modList.includes(pack.name)) {
-        emitDirect(socket, 'OnMaintenance', true)
-        disconnectPlayer(currentPlayer)
-        return
-      }
-
-      if (db.banList.includes(pack.address)) {
-        emitDirect(socket, 'OnBanned', true)
-        disconnectPlayer(currentPlayer)
-        return
-      }
-
-      const now = getTime()
-      if (currentPlayer.name !== pack.name || currentPlayer.address !== pack.address) {
-        currentPlayer.name = pack.name
-        currentPlayer.address = pack.address
-        currentPlayer.network = pack.network
-        currentPlayer.device = pack.device
-
-        const recentPlayer = round.players.find(r => r.address === pack.address)
-
-        if (recentPlayer) {
-          if ((now - recentPlayer.lastUpdate) < 3000) {
-            disconnectPlayer(currentPlayer)
-            return
-          }
-
-          currentPlayer.kills = recentPlayer.kills
-          currentPlayer.deaths = recentPlayer.deaths
-          currentPlayer.points = recentPlayer.points
-          currentPlayer.evolves = recentPlayer.evolves
-          currentPlayer.powerups = recentPlayer.powerups
-          currentPlayer.rewards = recentPlayer.rewards
-          currentPlayer.lastUpdate = recentPlayer.lastUpdate
-          currentPlayer.log = recentPlayer.log
-
-          currentPlayer.log.connects += 1
+        if (config.isMaintenance && !modList.includes(pack.name)) {
+          emitDirect(socket, 'OnMaintenance', true)
+          disconnectPlayer(currentPlayer)
+          return
         }
 
-        addToRecentPlayers(currentPlayer)
-    
-        publishEvent('OnSetInfo', currentPlayer.id, pack.name, pack.address, pack.network, pack.device)
+        if (db.banList.includes(pack.address)) {
+          emitDirect(socket, 'OnBanned', true)
+          disconnectPlayer(currentPlayer)
+          return
+        }
+
+        const now = getTime()
+        if (currentPlayer.name !== pack.name || currentPlayer.address !== pack.address) {
+          currentPlayer.name = pack.name
+          currentPlayer.address = pack.address
+          currentPlayer.network = pack.network
+          currentPlayer.device = pack.device
+
+          const recentPlayer = round.players.find(r => r.address === pack.address)
+
+          if (recentPlayer) {
+            if ((now - recentPlayer.lastUpdate) < 3000) {
+              disconnectPlayer(currentPlayer)
+              return
+            }
+
+            currentPlayer.kills = recentPlayer.kills
+            currentPlayer.deaths = recentPlayer.deaths
+            currentPlayer.points = recentPlayer.points
+            currentPlayer.evolves = recentPlayer.evolves
+            currentPlayer.powerups = recentPlayer.powerups
+            currentPlayer.rewards = recentPlayer.rewards
+            currentPlayer.lastUpdate = recentPlayer.lastUpdate
+            currentPlayer.log = recentPlayer.log
+
+            currentPlayer.log.connects += 1
+          }
+
+          addToRecentPlayers(currentPlayer)
+      
+          publishEvent('OnSetInfo', currentPlayer.id, pack.name, pack.address, pack.network, pack.device)
+        }
+      } catch(e) {
+        console.log(e)
       }
     })
 
@@ -1455,91 +1465,99 @@ io.on('connection', function(socket) {
     })
 
     socket.on('UpdateMyself', function(msg) {
-      if (currentPlayer.isDead) return
-      if (currentPlayer.isSpectating) return
-      if (config.isMaintenance && !modList.includes(currentPlayer?.address)) return
+      try {
+        if (currentPlayer.isDead) return
+        if (currentPlayer.isSpectating) return
+        if (config.isMaintenance && !modList.includes(currentPlayer?.address)) return
 
-      const now = getTime()
+        const now = getTime()
 
-      if (now - currentPlayer.lastUpdate < config.forcedLatency) return
+        if (now - currentPlayer.lastUpdate < config.forcedLatency) return
 
-      const pack = decodePayload(msg)
+        const pack = decodePayload(msg)
 
-      const positionX = parseFloat(parseFloat(pack.position.split(':')[0]).toFixed(2))
-      const positionY = parseFloat(parseFloat(pack.position.split(':')[1]).toFixed(2))
+        const positionX = parseFloat(parseFloat(pack.position.split(':')[0]).toFixed(2))
+        const positionY = parseFloat(parseFloat(pack.position.split(':')[1]).toFixed(2))
 
-      const targetX = parseFloat(parseFloat(pack.target.split(':')[0]).toFixed(2))
-      const targetY = parseFloat(parseFloat(pack.target.split(':')[1]).toFixed(2))
+        const targetX = parseFloat(parseFloat(pack.target.split(':')[0]).toFixed(2))
+        const targetY = parseFloat(parseFloat(pack.target.split(':')[1]).toFixed(2))
 
 
-      if (!Number.isFinite(positionX) || !Number.isFinite(positionY) || !Number.isFinite(targetX) || !Number.isFinite(targetY)) return
-      if (positionX < mapBoundary.x.min) return
-      if (positionX > mapBoundary.x.max) return
-      if (positionY < mapBoundary.y.min) return
-      if (positionY > mapBoundary.y.max) return
-    
-      if (config.anticheat.disconnectPositionJumps && distanceBetweenPoints(currentPlayer.position, { x: positionY, y: positionY }) > 5) {
-        disconnectPlayer(currentPlayer)
-        currentPlayer.log.positionJump += 1
-        return
+        if (!Number.isFinite(positionX) || !Number.isFinite(positionY) || !Number.isFinite(targetX) || !Number.isFinite(targetY)) return
+        if (positionX < mapBoundary.x.min) return
+        if (positionX > mapBoundary.x.max) return
+        if (positionY < mapBoundary.y.min) return
+        if (positionY > mapBoundary.y.max) return
+      
+        if (config.anticheat.disconnectPositionJumps && distanceBetweenPoints(currentPlayer.position, { x: positionY, y: positionY }) > 5) {
+          disconnectPlayer(currentPlayer)
+          currentPlayer.log.positionJump += 1
+          return
+        }
+
+        currentPlayer.clientPosition = { x: positionX, y: positionY }
+        currentPlayer.clientTarget = { x: targetX, y: targetY }
+        currentPlayer.lastReportedTime = parseFloat(pack.time)
+
+        // const cacheKey = Math.floor(pack.target.split(':')[0])
+
+        // if (eventCache['OnUpdateMyself'][socket.id] !== cacheKey) {
+          currentPlayer.lastUpdate = now
+
+          // publishEvent('OnUpdateMyself', data.id, data.position, data.target)
+        //   eventCache['OnUpdateMyself'][socket.id] = cacheKey
+        // }
+      } catch(e) {
+        console.log(e)
       }
-
-      currentPlayer.clientPosition = { x: positionX, y: positionY }
-      currentPlayer.clientTarget = { x: targetX, y: targetY }
-      currentPlayer.lastReportedTime = parseFloat(pack.time)
-
-      // const cacheKey = Math.floor(pack.target.split(':')[0])
-
-      // if (eventCache['OnUpdateMyself'][socket.id] !== cacheKey) {
-        currentPlayer.lastUpdate = now
-
-        // publishEvent('OnUpdateMyself', data.id, data.position, data.target)
-      //   eventCache['OnUpdateMyself'][socket.id] = cacheKey
-      // }
     })
 
     socket.on('Pickup', async function (msg) {
-      const now = getTime()
-      const isPhased = currentPlayer.isPhased ? true : now <= currentPlayer.phasedUntil
+      try {
+        const now = getTime()
+        const isPhased = currentPlayer.isPhased ? true : now <= currentPlayer.phasedUntil
 
-      if (currentPlayer.isDead) return
-      if (currentPlayer.isSpectating) return
-      if (isPhased) return
-      if (config.isMaintenance && !modList.includes(currentPlayer?.address)) return
+        if (currentPlayer.isDead) return
+        if (currentPlayer.isSpectating) return
+        if (isPhased) return
+        if (config.isMaintenance && !modList.includes(currentPlayer?.address)) return
 
-      const pack = decodePayload(msg)
+        const pack = decodePayload(msg)
 
-      const powerup = powerupLookup[pack.id]
+        const powerup = powerupLookup[pack.id]
 
-      log('Pickup', msg, powerup)
+        log('Pickup', msg, powerup)
 
-      if (powerup) {
-        removeSprite(pack.id)
+        if (powerup) {
+          removeSprite(pack.id)
 
-        let value = 0
+          let value = 0
 
-        if (powerup.type == 0) value = config.powerupXp0
-        if (powerup.type == 1) value = config.powerupXp1
-        if (powerup.type == 2) value = config.powerupXp2
-        if (powerup.type == 3) value = config.powerupXp3
+          if (powerup.type == 0) value = config.powerupXp0
+          if (powerup.type == 1) value = config.powerupXp1
+          if (powerup.type == 2) value = config.powerupXp2
+          if (powerup.type == 3) value = config.powerupXp3
 
-        currentPlayer.powerups += 1
-        currentPlayer.points += config.pointsPerPowerup
-        currentPlayer.xp += (value * config.spriteXpMultiplier)
-    
-        publishEvent('OnUpdatePickup', currentPlayer.id, pack.id, value)
+          currentPlayer.powerups += 1
+          currentPlayer.points += config.pointsPerPowerup
+          currentPlayer.xp += (value * config.spriteXpMultiplier)
+      
+          publishEvent('OnUpdatePickup', currentPlayer.id, pack.id, value)
 
-        removeSprite(pack.id)
-        spawnSprites(1)
+          removeSprite(pack.id)
+          spawnSprites(1)
+        }
+      } catch(e) {
+        console.log(e)
       }
     })
     
-    socket.on('GetBestKillers', function(pack) {
-      const leaderboard = round.players.sort(comparePlayers)
-      for (let j = 0; j < leaderboard.length; j++) {
-        emitDirect(socket, 'OnUpdateBestKiller', leaderboard[j].name, j, leaderboard[j].points, leaderboard[j].kills, leaderboard[j].deaths, leaderboard[j].powerups, leaderboard[j].evolves, leaderboard[j].rewards, leaderboard[j].isDead ? '-' : Math.round(leaderboard[j].latency), ranks[leaderboard[j].address]?.kills / 5 || 1)
-      }
-    })
+    // socket.on('GetBestKillers', function(pack) {
+    //   const leaderboard = round.players.sort(comparePlayers)
+    //   for (let j = 0; j < leaderboard.length; j++) {
+    //     emitDirect(socket, 'OnUpdateBestKiller', leaderboard[j].name, j, leaderboard[j].points, leaderboard[j].kills, leaderboard[j].deaths, leaderboard[j].powerups, leaderboard[j].evolves, leaderboard[j].rewards, leaderboard[j].isDead ? '-' : Math.round(leaderboard[j].latency), ranks[leaderboard[j].address]?.kills / 5 || 1)
+    //   }
+    // })
 
     socket.on('disconnect', function() {
       log("User has disconnected")
@@ -1556,7 +1574,8 @@ io.on('connection', function(socket) {
 
 function sendUpdates() {
   publishEvent('OnClearLeaderboard')
-  const leaderboard = round.players.sort(comparePlayers)
+
+  const leaderboard = round.players.sort(comparePlayers).slice(0, 10)
   for (let j = 0; j < leaderboard.length; j++) {
     publishEvent('OnUpdateBestKiller', leaderboard[j].name, j, leaderboard[j].points, leaderboard[j].kills, leaderboard[j].deaths, leaderboard[j].powerups, leaderboard[j].evolves, leaderboard[j].rewards, leaderboard[j].isDead ? '-' : Math.round(leaderboard[j].latency), ranks[leaderboard[j].address]?.kills / 5 || 1)
   }
@@ -1630,8 +1649,6 @@ function sendLeaderReward(leader1, leader2, leader3, leader4, leader5) {
       console.log(e)
     }
   }
-
-  savePlayerRewards()
 }
 
 function getRoundInfo() {
@@ -1685,6 +1702,9 @@ function resetLeaderboard() {
   saveLeaderboardHistory()
   savePlayerRewards()
   saveRewards()
+  saveReportList()
+  saveBanList()
+  saveLog()
 
   jetpack.write(path.resolve(`./public/data/rounds/${round.id}.json`), JSON.stringify(round, null, 2))
 
@@ -1770,6 +1790,8 @@ function resetLeaderboard() {
   syncSprites()
 
   publishEvent('OnSetRoundInfo', config.roundLoopSeconds + ':' + getRoundInfo().join(':')  + '1. Eat sprites to stay alive' + ':' + '2. Avoid bigger dragons' + ':' + '3. Eat smaller dragons')
+
+  publishEvent('OnClearLeaderboard')
 
   if (config.hideMap) {
     publishEvent('OnHideMinimap')
