@@ -189,10 +189,10 @@ const baseConfig = {
   antifeed4: true,
   avatarDirection: 1,
   calcRoundRewards: true,
-  rewardItemAmountPerLegitPlayer: 0.05 / 20,
-  rewardItemAmountMax: 0.05,
-  rewardWinnerAmountPerLegitPlayer: 0.3 / 20,
-  rewardWinnerAmountMax: 0.3,
+  rewardItemAmountPerLegitPlayer: 0.03 / 20,
+  rewardItemAmountMax: 0.03,
+  rewardWinnerAmountPerLegitPlayer: 0.15 / 20,
+  rewardWinnerAmountMax: 0.15,
   flushEventQueueSeconds: 0.02,
   anticheat: {
     enabled: false,
@@ -1552,12 +1552,12 @@ io.on('connection', function(socket) {
       }
     })
     
-    socket.on('GetBestKillers', function(pack) {
-      const leaderboard = round.players.sort(comparePlayers)
-      for (let j = 0; j < leaderboard.length; j++) {
-        emitDirect(socket, 'OnUpdateBestKiller', leaderboard[j].name, j, leaderboard[j].points, leaderboard[j].kills, leaderboard[j].deaths, leaderboard[j].powerups, leaderboard[j].evolves, leaderboard[j].rewards, leaderboard[j].isDead ? '-' : Math.round(leaderboard[j].latency), ranks[leaderboard[j].address]?.kills / 5 || 1)
-      }
-    })
+    // socket.on('GetBestKillers', function(pack) {
+    //   const leaderboard = round.players.sort(comparePlayers)
+    //   for (let j = 0; j < leaderboard.length; j++) {
+    //     emitDirect(socket, 'OnUpdateBestKiller', leaderboard[j].name, j, leaderboard[j].points, leaderboard[j].kills, leaderboard[j].deaths, leaderboard[j].powerups, leaderboard[j].evolves, leaderboard[j].rewards, leaderboard[j].isDead ? '-' : Math.round(leaderboard[j].latency), ranks[leaderboard[j].address]?.kills / 5 || 1)
+    //   }
+    // })
 
     socket.on('disconnect', function() {
       log("User has disconnected")
@@ -1573,6 +1573,8 @@ io.on('connection', function(socket) {
 })
 
 function sendUpdates() {
+  publishEvent('OnClearLeaderboard')
+
   const leaderboard = round.players.sort(comparePlayers).slice(0, 10)
   for (let j = 0; j < leaderboard.length; j++) {
     publishEvent('OnUpdateBestKiller', leaderboard[j].name, j, leaderboard[j].points, leaderboard[j].kills, leaderboard[j].deaths, leaderboard[j].powerups, leaderboard[j].evolves, leaderboard[j].rewards, leaderboard[j].isDead ? '-' : Math.round(leaderboard[j].latency), ranks[leaderboard[j].address]?.kills / 5 || 1)
