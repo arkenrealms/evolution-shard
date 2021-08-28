@@ -1,11 +1,11 @@
 [
   {
-    "Id": "106760",
+    "Id": "34146",
     "Name": "Structures",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "105032",
+      "Parent": "32588",
       "Position": [
         -5.801094,
         -8.908676,
@@ -39,67 +39,12 @@
     "Terrain": null
   },
   {
-    "Id": "104198",
-    "Name": "FGStructure02 (8)",
+    "Id": "33350",
+    "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
-      "Position": [
-        -16.3321953,
-        -17.174675,
-        0.0
-      ],
-      "Rotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "LocalPosition": [
-        -10.5311,
-        -8.265999,
-        0.0
-      ],
-      "LocalRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "LocalScale": [
-        4.0,
-        4.0,
-        4.0
-      ]
-    },
-    "Renderer": null,
-    "Colliders": [
-      {
-        "Enabled": true,
-        "Min": [
-          -19.2285538,
-          -18.0722389,
-          0.0
-        ],
-        "Max": [
-          -15.1503534,
-          -16.2426949,
-          0.0
-        ],
-        "Radius": 0.0,
-        "Type": 0
-      }
-    ],
-    "Light": null,
-    "ReflectionProbe": null,
-    "Terrain": null
-  },
-  {
-    "Id": "105868",
-    "Name": "FGStructure02 (9)",
-    "IsStatic": false,
-    "IsActive": true,
-    "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -5.971092,
         -21.383873,
@@ -149,12 +94,12 @@
     "Terrain": null
   },
   {
-    "Id": "105574",
-    "Name": "FGStructure02 (10)",
+    "Id": "33064",
+    "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -13.2810974,
         -21.4470749,
@@ -204,12 +149,12 @@
     "Terrain": null
   },
   {
-    "Id": "104806",
-    "Name": "FGStructure02 (11)",
+    "Id": "32378",
+    "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -11.9710922,
         -20.739975,
@@ -259,12 +204,12 @@
     "Terrain": null
   },
   {
-    "Id": "104118",
-    "Name": "FGStructure02 (12)",
+    "Id": "31740",
+    "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -9.171097,
         -21.3873749,
@@ -314,12 +259,12 @@
     "Terrain": null
   },
   {
-    "Id": "105692",
-    "Name": "FGStructure02 (13)",
+    "Id": "33182",
+    "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -31.5510941,
         -10.1886759,
@@ -369,12 +314,12 @@
     "Terrain": null
   },
   {
-    "Id": "106298",
-    "Name": "FGStructure02 (14)",
+    "Id": "33740",
+    "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -2.27109528,
         -20.7444763,
@@ -424,12 +369,12 @@
     "Terrain": null
   },
   {
-    "Id": "103984",
-    "Name": "FGStructure07 (1)",
+    "Id": "31614",
+    "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -12.5750885,
         -11.5246735,
@@ -479,12 +424,12 @@
     "Terrain": null
   },
   {
-    "Id": "104738",
-    "Name": "FGStructure09 (5)",
+    "Id": "32316",
+    "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -13.7000885,
         -10.037674,
@@ -534,12 +479,12 @@
     "Terrain": null
   },
   {
-    "Id": "106796",
-    "Name": "FGStructure09 (6)",
+    "Id": "34182",
+    "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -11.1420975,
         -12.0467758,
@@ -589,12 +534,12 @@
     "Terrain": null
   },
   {
-    "Id": "105266",
-    "Name": "FGStructure04 (3)",
+    "Id": "32774",
+    "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -13.3950958,
         -10.9586792,
@@ -644,12 +589,12 @@
     "Terrain": null
   },
   {
-    "Id": "104140",
-    "Name": "FGStructure07 (2)",
+    "Id": "31762",
+    "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -13.1190948,
         -9.020279,
@@ -699,12 +644,12 @@
     "Terrain": null
   },
   {
-    "Id": "105832",
-    "Name": "FGStructure02 (15)",
+    "Id": "33314",
+    "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -26.0811,
         -23.4486771,
@@ -754,15 +699,15 @@
     "Terrain": null
   },
   {
-    "Id": "104814",
+    "Id": "32386",
     "Name": "Level2Divider",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -18.1486969,
-        -7.608676,
+        -8.908676,
         0.0
       ],
       "Rotation": [
@@ -772,7 +717,7 @@
       ],
       "LocalPosition": [
         -12.3476028,
-        1.3,
+        0.0,
         0.0
       ],
       "LocalRotation": [
@@ -792,12 +737,12 @@
         "Enabled": true,
         "Min": [
           -19.0115967,
-          -21.1840858,
+          -22.4840851,
           0.0
         ],
         "Max": [
           -17.54702,
-          1.6140213,
+          0.314022064,
           0.0
         ],
         "Radius": 0.0,
@@ -809,15 +754,15 @@
     "Terrain": null
   },
   {
-    "Id": "105954",
+    "Id": "33430",
     "Name": "Chara01frame01",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "104814",
+      "Parent": "32386",
       "Position": [
         -17.8366966,
-        2.20332432,
+        0.9033241,
         0.0
       ],
       "Rotation": [
@@ -847,12 +792,12 @@
         "Enabled": true,
         "Min": [
           -18.436697,
-          1.60332441,
+          0.3033241,
           0.0
         ],
         "Max": [
           -17.2366962,
-          2.80332422,
+          1.50332415,
           0.0
         ],
         "Radius": 0.0,
@@ -864,12 +809,12 @@
     "Terrain": null
   },
   {
-    "Id": "106556",
-    "Name": "FGStructure01",
+    "Id": "33994",
+    "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -12.565094,
         -9.468674,
@@ -934,12 +879,12 @@
     "Terrain": null
   },
   {
-    "Id": "104396",
-    "Name": "FGStructure06",
+    "Id": "31994",
+    "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -10.6985931,
         -10.287178,
@@ -1004,12 +949,12 @@
     "Terrain": null
   },
   {
-    "Id": "104496",
-    "Name": "FGStructure04",
+    "Id": "32094",
+    "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -5.350006,
         -8.26741,
@@ -1059,12 +1004,12 @@
     "Terrain": null
   },
   {
-    "Id": "106066",
-    "Name": "FGStructure07",
+    "Id": "33536",
+    "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -2.94001,
         -8.927406,
@@ -1114,12 +1059,12 @@
     "Terrain": null
   },
   {
-    "Id": "105804",
-    "Name": "FGStructure09",
+    "Id": "33286",
+    "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -8.280006,
         -7.3174057,
@@ -1169,12 +1114,12 @@
     "Terrain": null
   },
   {
-    "Id": "106308",
-    "Name": "FGStructure02",
+    "Id": "33750",
+    "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         3.130005,
         -19.5812759,
@@ -1224,12 +1169,12 @@
     "Terrain": null
   },
   {
-    "Id": "104964",
-    "Name": "FGStructure04 (1)",
+    "Id": "32526",
+    "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -11.0500031,
         -5.26741028,
@@ -1279,12 +1224,12 @@
     "Terrain": null
   },
   {
-    "Id": "104646",
-    "Name": "FGStructure09 (1)",
+    "Id": "32232",
+    "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -7.140007,
         -13.6074066,
@@ -1334,12 +1279,12 @@
     "Terrain": null
   },
   {
-    "Id": "105494",
-    "Name": "FGStructure04 (2)",
+    "Id": "32996",
+    "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -27.0610943,
         -10.0386763,
@@ -1389,12 +1334,12 @@
     "Terrain": null
   },
   {
-    "Id": "106574",
-    "Name": "FGStructure09 (2)",
+    "Id": "34006",
+    "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -23.2010937,
         -7.318676,
@@ -1427,12 +1372,12 @@
         "Enabled": true,
         "Min": [
           -24.9328232,
-          -7.61174774,
+          -7.536233,
           0.0
         ],
         "Max": [
           -22.3683319,
-          -6.9640007,
+          -6.96399975,
           0.0
         ],
         "Radius": 0.0,
@@ -1444,12 +1389,12 @@
     "Terrain": null
   },
   {
-    "Id": "106746",
-    "Name": "FGStructure04 (5)",
+    "Id": "34132",
+    "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -25.5810947,
         -9.208676,
@@ -1499,12 +1444,12 @@
     "Terrain": null
   },
   {
-    "Id": "106604",
-    "Name": "FGStructure09 (7)",
+    "Id": "34032",
+    "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -27.8210945,
         -7.66867638,
@@ -1554,12 +1499,12 @@
     "Terrain": null
   },
   {
-    "Id": "105548",
-    "Name": "FGStructure06 (1)",
+    "Id": "33046",
+    "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -24.6010933,
         -11.5586758,
@@ -1624,12 +1569,12 @@
     "Terrain": null
   },
   {
-    "Id": "106284",
-    "Name": "FGStructure02 (16)",
+    "Id": "33726",
+    "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -35.3210945,
         -28.4086761,
@@ -1679,12 +1624,12 @@
     "Terrain": null
   },
   {
-    "Id": "105964",
-    "Name": "FGStructure02 (17)",
+    "Id": "33440",
+    "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -29.6693935,
         -24.5986748,
@@ -1734,12 +1679,12 @@
     "Terrain": null
   },
   {
-    "Id": "105676",
-    "Name": "FGStructure02 (1)",
+    "Id": "33166",
+    "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -10.2459946,
         -33.3786774,
@@ -1789,67 +1734,12 @@
     "Terrain": null
   },
   {
-    "Id": "104080",
-    "Name": "Collider",
-    "IsStatic": false,
-    "IsActive": true,
-    "Transform": {
-      "Parent": "106760",
-      "Position": [
-        -18.2799988,
-        -20.2274017,
-        0.0
-      ],
-      "Rotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "LocalPosition": [
-        -12.4789047,
-        -11.3187256,
-        0.0
-      ],
-      "LocalRotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "LocalScale": [
-        1.0,
-        1.0,
-        1.0
-      ]
-    },
-    "Renderer": null,
-    "Colliders": [
-      {
-        "Enabled": true,
-        "Min": [
-          -108.888824,
-          -22.7274017,
-          0.0
-        ],
-        "Max": [
-          63.63565,
-          -17.7274017,
-          0.0
-        ],
-        "Radius": 0.0,
-        "Type": 0
-      }
-    ],
-    "Light": null,
-    "ReflectionProbe": null,
-    "Terrain": null
-  },
-  {
-    "Id": "106210",
+    "Id": "33652",
     "Name": "Collider (1)",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -29.5800018,
         2.62259674,
@@ -1899,12 +1789,12 @@
     "Terrain": null
   },
   {
-    "Id": "106114",
+    "Id": "33584",
     "Name": "Collider (2)",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         2.619995,
         -7.76740265,
@@ -1954,12 +1844,12 @@
     "Terrain": null
   },
   {
-    "Id": "105762",
+    "Id": "33244",
     "Name": "Collider (3)",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "106760",
+      "Parent": "34146",
       "Position": [
         -40.2100067,
         -7.76740265,
@@ -1998,6 +1888,201 @@
         "Max": [
           -37.7100067,
           58.2381058,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      }
+    ],
+    "Light": null,
+    "ReflectionProbe": null,
+    "Terrain": null
+  },
+  {
+    "Id": "33870",
+    "Name": "Island",
+    "IsStatic": false,
+    "IsActive": true,
+    "Transform": {
+      "Parent": "34146",
+      "Position": [
+        -26.9199982,
+        -5.91,
+        0.0
+      ],
+      "Rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalPosition": [
+        -21.1189041,
+        2.9986763,
+        0.0
+      ],
+      "LocalRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalScale": [
+        4.0,
+        4.0,
+        4.0
+      ]
+    },
+    "Renderer": null,
+    "Colliders": [
+      {
+        "Enabled": true,
+        "Min": [
+          -28.06081,
+          -6.78643036,
+          0.0
+        ],
+        "Max": [
+          -26.0443687,
+          -4.979313,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      }
+    ],
+    "Light": null,
+    "ReflectionProbe": null,
+    "Terrain": null
+  },
+  {
+    "Id": "33252",
+    "Name": "Island",
+    "IsStatic": false,
+    "IsActive": true,
+    "Transform": {
+      "Parent": "34146",
+      "Position": [
+        -23.23,
+        -5.24,
+        0.0
+      ],
+      "Rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalPosition": [
+        -17.4289055,
+        3.66867638,
+        0.0
+      ],
+      "LocalRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalScale": [
+        4.0,
+        4.0,
+        4.0
+      ]
+    },
+    "Renderer": null,
+    "Colliders": [
+      {
+        "Enabled": true,
+        "Min": [
+          -25.1081352,
+          -5.74321747,
+          0.0
+        ],
+        "Max": [
+          -22.1814232,
+          -4.136421,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      {
+        "Enabled": true,
+        "Min": [
+          -24.2706833,
+          -6.489642,
+          0.0
+        ],
+        "Max": [
+          -22.18142,
+          -3.89974976,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      },
+      {
+        "Enabled": true,
+        "Min": [
+          -25.0080032,
+          -6.489643,
+          0.0
+        ],
+        "Max": [
+          -21.7080765,
+          -4.53694153,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      }
+    ],
+    "Light": null,
+    "ReflectionProbe": null,
+    "Terrain": null
+  },
+  {
+    "Id": "32428",
+    "Name": "Land",
+    "IsStatic": false,
+    "IsActive": true,
+    "Transform": {
+      "Parent": "34146",
+      "Position": [
+        -30.15,
+        -17.31,
+        0.0
+      ],
+      "Rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalPosition": [
+        -24.3489056,
+        -8.401323,
+        0.0
+      ],
+      "LocalRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalScale": [
+        4.0,
+        4.0,
+        4.0
+      ]
+    },
+    "Renderer": null,
+    "Colliders": [
+      {
+        "Enabled": true,
+        "Min": [
+          -33.2155762,
+          -22.2105751,
+          0.0
+        ],
+        "Max": [
+          -26.8765526,
+          -15.5076866,
           0.0
         ],
         "Radius": 0.0,
