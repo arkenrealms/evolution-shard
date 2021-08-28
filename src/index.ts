@@ -1589,62 +1589,117 @@ function spawnRewards() {
   setTimeout(spawnRewards, config.rewardSpawnLoopSeconds * 1000)
 }
 
-function sendLeaderReward(leader1, leader2, leader3, leader4, leader5) {
-  log('Leader: ', leader1)
+function sendLeaderReward(leaders) {
+  log('Leader: ', leaders[0])
 
-  if (leader1?.address) {
+  if (leaders[0]?.address) {
     try {
-      if (!db.playerRewards[leader1.address]) db.playerRewards[leader1.address] = {}
-      if (!db.playerRewards[leader1.address].pending) db.playerRewards[leader1.address].pending = {}
-      if (!db.playerRewards[leader1.address].pending.zod) db.playerRewards[leader1.address].pending.zod = 0
+      if (!db.playerRewards[leaders[0].address]) db.playerRewards[leaders[0].address] = {}
+      if (!db.playerRewards[leaders[0].address].pending) db.playerRewards[leaders[0].address].pending = {}
+      if (!db.playerRewards[leaders[0].address].pending.zod) db.playerRewards[leaders[0].address].pending.zod = 0
     
-      db.playerRewards[leader1.address].pending.zod  = Math.round((db.playerRewards[leader1.address].pending.zod + config.rewardWinnerAmount * 1) * 1000) / 1000
+      db.playerRewards[leaders[0].address].pending.zod  = Math.round((db.playerRewards[leaders[0].address].pending.zod + config.rewardWinnerAmount * 1) * 1000) / 1000
 
-      publishEvent('OnRoundWinner', leader1.name)
+      publishEvent('OnRoundWinner', leaders[0].name)
     } catch(e) {
       console.log(e)
     }
   }
-  if (leader2?.address) {
+  if (leaders[1]?.address) {
     try {
-      if (!db.playerRewards[leader2.address]) db.playerRewards[leader2.address] = {}
-      if (!db.playerRewards[leader2.address].pending) db.playerRewards[leader2.address].pending = {}
-      if (!db.playerRewards[leader2.address].pending.zod) db.playerRewards[leader2.address].pending.zod = 0
+      if (!db.playerRewards[leaders[1].address]) db.playerRewards[leaders[1].address] = {}
+      if (!db.playerRewards[leaders[1].address].pending) db.playerRewards[leaders[1].address].pending = {}
+      if (!db.playerRewards[leaders[1].address].pending.zod) db.playerRewards[leaders[1].address].pending.zod = 0
     
-      db.playerRewards[leader2.address].pending.zod  = Math.round((db.playerRewards[leader2.address].pending.zod + config.rewardWinnerAmount * 0.30) * 1000) / 1000
+      db.playerRewards[leaders[1].address].pending.zod  = Math.round((db.playerRewards[leaders[1].address].pending.zod + config.rewardWinnerAmount * 0.25) * 1000) / 1000
     } catch(e) {
       console.log(e)
     }
   }
-  if (leader3?.address) {
+  if (leaders[2]?.address) {
     try {
-      if (!db.playerRewards[leader3.address]) db.playerRewards[leader3.address] = {}
-      if (!db.playerRewards[leader3.address].pending) db.playerRewards[leader3.address].pending = {}
-      if (!db.playerRewards[leader3.address].pending.zod) db.playerRewards[leader3.address].pending.zod = 0
+      if (!db.playerRewards[leaders[2].address]) db.playerRewards[leaders[2].address] = {}
+      if (!db.playerRewards[leaders[2].address].pending) db.playerRewards[leaders[2].address].pending = {}
+      if (!db.playerRewards[leaders[2].address].pending.zod) db.playerRewards[leaders[2].address].pending.zod = 0
     
-      db.playerRewards[leader3.address].pending.zod  = Math.round((db.playerRewards[leader3.address].pending.zod + config.rewardWinnerAmount * 0.15) * 1000) / 1000
+      db.playerRewards[leaders[2].address].pending.zod  = Math.round((db.playerRewards[leaders[2].address].pending.zod + config.rewardWinnerAmount * 0.15) * 1000) / 1000
     } catch(e) {
       console.log(e)
     }
   }
-  if (leader4?.address) {
+  if (leaders[3]?.address) {
     try {
-      if (!db.playerRewards[leader4.address]) db.playerRewards[leader4.address] = {}
-      if (!db.playerRewards[leader4.address].pending) db.playerRewards[leader4.address].pending = {}
-      if (!db.playerRewards[leader4.address].pending.zod) db.playerRewards[leader4.address].pending.zod = 0
+      if (!db.playerRewards[leaders[3].address]) db.playerRewards[leaders[3].address] = {}
+      if (!db.playerRewards[leaders[3].address].pending) db.playerRewards[leaders[3].address].pending = {}
+      if (!db.playerRewards[leaders[3].address].pending.zod) db.playerRewards[leaders[3].address].pending.zod = 0
     
-      db.playerRewards[leader4.address].pending.zod  = Math.round((db.playerRewards[leader4.address].pending.zod + config.rewardWinnerAmount * 0.05) * 1000) / 1000
+      db.playerRewards[leaders[3].address].pending.zod  = Math.round((db.playerRewards[leaders[3].address].pending.zod + config.rewardWinnerAmount * 0.05) * 1000) / 1000
     } catch(e) {
       console.log(e)
     }
   }
-  if (leader5?.address) {
+  if (leaders[4]?.address) {
     try {
-      if (!db.playerRewards[leader5.address]) db.playerRewards[leader5.address] = {}
-      if (!db.playerRewards[leader5.address].pending) db.playerRewards[leader5.address].pending = {}
-      if (!db.playerRewards[leader5.address].pending.zod) db.playerRewards[leader5.address].pending.zod = 0
+      if (!db.playerRewards[leaders[4].address]) db.playerRewards[leaders[4].address] = {}
+      if (!db.playerRewards[leaders[4].address].pending) db.playerRewards[leaders[4].address].pending = {}
+      if (!db.playerRewards[leaders[4].address].pending.zod) db.playerRewards[leaders[4].address].pending.zod = 0
     
-      db.playerRewards[leader5.address].pending.zod  = Math.round((db.playerRewards[leader5.address].pending.zod + config.rewardWinnerAmount * 0.05) * 1000) / 1000
+      db.playerRewards[leaders[4].address].pending.zod  = Math.round((db.playerRewards[leaders[4].address].pending.zod + config.rewardWinnerAmount * 0.05) * 1000) / 1000
+    } catch(e) {
+      console.log(e)
+    }
+  }
+  if (leaders[5]?.address) {
+    try {
+      if (!db.playerRewards[leaders[5].address]) db.playerRewards[leaders[5].address] = {}
+      if (!db.playerRewards[leaders[5].address].pending) db.playerRewards[leaders[5].address].pending = {}
+      if (!db.playerRewards[leaders[5].address].pending.zod) db.playerRewards[leaders[5].address].pending.zod = 0
+    
+      db.playerRewards[leaders[5].address].pending.zod  = Math.round((db.playerRewards[leaders[5].address].pending.zod + config.rewardWinnerAmount * 0.05) * 1000) / 1000
+    } catch(e) {
+      console.log(e)
+    }
+  }
+  if (leaders[6]?.address) {
+    try {
+      if (!db.playerRewards[leaders[6].address]) db.playerRewards[leaders[6].address] = {}
+      if (!db.playerRewards[leaders[6].address].pending) db.playerRewards[leaders[6].address].pending = {}
+      if (!db.playerRewards[leaders[6].address].pending.zod) db.playerRewards[leaders[6].address].pending.zod = 0
+    
+      db.playerRewards[leaders[6].address].pending.zod  = Math.round((db.playerRewards[leaders[6].address].pending.zod + config.rewardWinnerAmount * 0.05) * 1000) / 1000
+    } catch(e) {
+      console.log(e)
+    }
+  }
+  if (leaders[7]?.address) {
+    try {
+      if (!db.playerRewards[leaders[7].address]) db.playerRewards[leaders[7].address] = {}
+      if (!db.playerRewards[leaders[7].address].pending) db.playerRewards[leaders[7].address].pending = {}
+      if (!db.playerRewards[leaders[7].address].pending.zod) db.playerRewards[leaders[7].address].pending.zod = 0
+    
+      db.playerRewards[leaders[7].address].pending.zod  = Math.round((db.playerRewards[leaders[7].address].pending.zod + config.rewardWinnerAmount * 0.05) * 1000) / 1000
+    } catch(e) {
+      console.log(e)
+    }
+  }
+  if (leaders[8]?.address) {
+    try {
+      if (!db.playerRewards[leaders[8].address]) db.playerRewards[leaders[8].address] = {}
+      if (!db.playerRewards[leaders[8].address].pending) db.playerRewards[leaders[8].address].pending = {}
+      if (!db.playerRewards[leaders[8].address].pending.zod) db.playerRewards[leaders[8].address].pending.zod = 0
+    
+      db.playerRewards[leaders[8].address].pending.zod  = Math.round((db.playerRewards[leaders[8].address].pending.zod + config.rewardWinnerAmount * 0.05) * 1000) / 1000
+    } catch(e) {
+      console.log(e)
+    }
+  }
+  if (leaders[9]?.address) {
+    try {
+      if (!db.playerRewards[leaders[9].address]) db.playerRewards[leaders[9].address] = {}
+      if (!db.playerRewards[leaders[9].address].pending) db.playerRewards[leaders[9].address].pending = {}
+      if (!db.playerRewards[leaders[9].address].pending.zod) db.playerRewards[leaders[9].address].pending.zod = 0
+    
+      db.playerRewards[leaders[9].address].pending.zod  = Math.round((db.playerRewards[leaders[9].address].pending.zod + config.rewardWinnerAmount * 0.05) * 1000) / 1000
     } catch(e) {
       console.log(e)
     }
@@ -1694,7 +1749,7 @@ function resetLeaderboard() {
 
   if (leaders.length) {
     lastLeaderName = leaders[0].name
-    sendLeaderReward(leaders[0], leaders[1], leaders[2], leaders[3], leaders[4])
+    sendLeaderReward(leaders)
   }
 
   db.leaderboardHistory.push(JSON.parse(JSON.stringify(round.players)))
