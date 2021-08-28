@@ -103,7 +103,7 @@ const savePlayerRewards = () => {
 
 const saveLeaderboardHistory = () => {
   if (db.leaderboardHistory.length > 1100) {
-    db.leaderboardHistory = db.leaderboardHistory.slice(100)
+    db.leaderboardHistory = db.leaderboardHistory.slice(db.leaderboardHistory.length - 1000, db.leaderboardHistory.length)
   }
 
   jetpack.write(path.resolve('./public/data/leaderboardHistory.json'), JSON.stringify(db.leaderboardHistory, null, 2))
@@ -251,7 +251,7 @@ const sharedConfig = {
   rewardItemName: '?',
   rewardItemType: 0,
   rewardSpawnLoopSeconds: testMode ? 1 : 3 * 60 / 20,
-  rewardWinnerAmount: 0.02,
+  rewardWinnerAmount: 0.15 / 20,
   rewardWinnerName: 'ZOD',
   roundLoopSeconds: testMode ? 2 * 60 : 5 * 60,
   sendUpdateLoopSeconds: 3,
