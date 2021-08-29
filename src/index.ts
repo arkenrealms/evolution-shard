@@ -2336,7 +2336,11 @@ function fastGameloop() {
   setTimeout(fastGameloop, config.fastLoopSeconds * 1000)
 }
 
+let eventFlushedAt = getTime()
+
 function flushEventQueue() {
+  const now = getTime()
+
   if (eventQueue.length) {
     log('Sending queue', eventQueue)
 
@@ -2347,7 +2351,13 @@ function flushEventQueue() {
 
       compiled.push(`["${name}","${args.join(':')}"]`)
 
-      round.events.push({ type: 'emitAll', name, args })
+      if (name == 'OnUpdatePlayer') {
+        if (now - eventFlushedAt > 200) {
+          round.events.push({ type: 'emitAll', name, args })
+        }
+      } else {
+        round.events.push({ type: 'emitAll', name, args })
+      }
     }
 
     emitAll('Events', getPayload(compiled))
@@ -2355,6 +2365,8 @@ function flushEventQueue() {
     // round.events = round.events.concat(eventQueue)
   
     eventQueue = []
+
+    eventFlushedAt = now
   }
 }
 
