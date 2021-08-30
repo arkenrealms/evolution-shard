@@ -2075,7 +2075,7 @@ function detectCollisions() {
     const pos = Math.round(player.position.x) + ':' + Math.round(player.position.y)
     
     if (player.log.path.indexOf(pos) === -1) {
-      player.log.path += pos + ','
+      // player.log.path += pos + ','
       player.log.positions += 1
     }
   }
