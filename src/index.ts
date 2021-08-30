@@ -494,9 +494,9 @@ const playerSpawnPoints = [
 ]
 
 const log = (...msgs) => {
-  if (!debug) return
-
-  console.log(...msgs)
+  if (debug) {
+    console.log(...msgs)
+  }
 }
 
 // @ts-ignore
@@ -1350,6 +1350,13 @@ io.on('connection', function(socket) {
           addToRecentPlayers(currentPlayer)
       
           publishEvent('OnSetInfo', currentPlayer.id, pack.name, pack.address, pack.network, pack.device)
+
+          db.log.push({
+            event: 'Connected',
+            ip,
+            address: currentPlayer.address,
+            name: currentPlayer.name
+          })
         }
       } catch(e) {
         console.log(e)
