@@ -411,7 +411,7 @@ let roundConfig = {
 let announceReboot = false
 let rebootAfterRound = false
 let totalLegitPlayers = 0
-const debug = !(process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10')
+const debug = false // !(process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10')
 const killSameNetworkClients = false
 const sockets = {} // to storage sockets
 const clientLookup = {}
@@ -809,7 +809,7 @@ function disconnectPlayer(player) {
   if (player.isDisconnected) return
 
   try {
-    console.log("Disconnecting", player.id)
+    log("Disconnecting", player.id)
 
     player.isDisconnected = true
     player.isDead = true
