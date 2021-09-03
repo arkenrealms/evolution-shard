@@ -411,7 +411,7 @@ let roundConfig = {
 let announceReboot = false
 let rebootAfterRound = false
 let totalLegitPlayers = 0
-const debug = !(process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10')
+const debug = false // !(process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10')
 const killSameNetworkClients = false
 const sockets = {} // to storage sockets
 const clientLookup = {}
@@ -494,9 +494,9 @@ const playerSpawnPoints = [
 ]
 
 const log = (...msgs) => {
-  if (!debug) return
-
-  console.log(...msgs)
+  if (debug) {
+    console.log(...msgs)
+  }
 }
 
 // @ts-ignore
@@ -809,7 +809,7 @@ function disconnectPlayer(player) {
   if (player.isDisconnected) return
 
   try {
-    console.log("Disconnecting", player.id)
+    log("Disconnecting", player.id)
 
     player.isDisconnected = true
     player.isDead = true
@@ -1350,6 +1350,13 @@ io.on('connection', function(socket) {
           addToRecentPlayers(currentPlayer)
       
           publishEvent('OnSetInfo', currentPlayer.id, pack.name, pack.address, pack.network, pack.device)
+
+          db.log.push({
+            event: 'Connected',
+            ip,
+            address: currentPlayer.address,
+            name: currentPlayer.name
+          })
         }
       } catch(e) {
         console.log(e)
@@ -2075,7 +2082,7 @@ function detectCollisions() {
     const pos = Math.round(player.position.x) + ':' + Math.round(player.position.y)
     
     if (player.log.path.indexOf(pos) === -1) {
-      player.log.path += pos + ','
+      // player.log.path += pos + ','
       player.log.positions += 1
     }
   }
@@ -2336,7 +2343,11 @@ function fastGameloop() {
   setTimeout(fastGameloop, config.fastLoopSeconds * 1000)
 }
 
+let eventFlushedAt = getTime()
+
 function flushEventQueue() {
+  const now = getTime()
+
   if (eventQueue.length) {
     log('Sending queue', eventQueue)
 
@@ -2347,7 +2358,13 @@ function flushEventQueue() {
 
       compiled.push(`["${name}","${args.join(':')}"]`)
 
-      round.events.push({ type: 'emitAll', name, args })
+      if (name == 'OnUpdatePlayer') {
+        if (now - eventFlushedAt > 200) {
+          round.events.push({ type: 'emitAll', name, args })
+        }
+      } else {
+        round.events.push({ type: 'emitAll', name, args })
+      }
     }
 
     emitAll('Events', getPayload(compiled))
@@ -2355,6 +2372,8 @@ function flushEventQueue() {
     // round.events = round.events.concat(eventQueue)
   
     eventQueue = []
+
+    eventFlushedAt = now
   }
 }
 
