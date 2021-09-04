@@ -251,7 +251,7 @@ const sharedConfig = {
   rewardItemName: '?',
   rewardItemType: 0,
   rewardSpawnLoopSeconds: testMode ? 1 : 3 * 60 / 20,
-  rewardWinnerAmount: 0.15 / 20,
+  rewardWinnerAmount: 0.10 / 20,
   rewardWinnerName: 'ZOD',
   roundLoopSeconds: testMode ? 2 * 60 : 5 * 60,
   sendUpdateLoopSeconds: 3,
@@ -325,10 +325,10 @@ const presets = [
   },
   {
     gameMode: 'Sprite Leader',
-    spritesPerPlayerCount: 5,
+    spritesPerPlayerCount: 3,
     decayPower: 7,
     pointsPerEvolve: 0,
-    pointsPerPowerup: 1,
+    pointsPerPowerup: 2,
     pointsPerReward: 0,
     pointsPerKill: 0,
     immunitySeconds: 10,
@@ -360,7 +360,7 @@ const presets = [
     avatarDecayPower1: 3,
     avatarDecayPower2: 2,
     spriteXpMultiplier: -1,
-    spritesPerPlayerCount: 5,
+    spritesPerPlayerCount: 3,
     preventBadKills: false
   },
   {
