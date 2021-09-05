@@ -251,7 +251,7 @@ const sharedConfig = {
   rewardItemName: '?',
   rewardItemType: 0,
   rewardSpawnLoopSeconds: testMode ? 1 : 3 * 60 / 20,
-  rewardWinnerAmount: 0.75 / 20,
+  rewardWinnerAmount: 0.08 / 15,
   rewardWinnerName: 'ZOD',
   roundLoopSeconds: testMode ? 2 * 60 : 5 * 60,
   sendUpdateLoopSeconds: 3,
