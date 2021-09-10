@@ -2351,6 +2351,12 @@ function flushEventQueue() {
   if (eventQueue.length) {
     log('Sending queue', eventQueue)
 
+    let recordDetailed = now - eventFlushedAt > 500
+
+    if (recordDetailed) {
+      eventFlushedAt = now
+    }
+
     const compiled = []
     for (const e of eventQueue) {
       const name = e[0]
@@ -2358,8 +2364,8 @@ function flushEventQueue() {
 
       compiled.push(`["${name}","${args.join(':')}"]`)
 
-      if (name == 'OnUpdatePlayer') {
-        if (now - eventFlushedAt > 200) {
+      if (name == 'OnUpdatePlayer' || name == 'OnSpawnPowerup') {
+        if (recordDetailed) {
           round.events.push({ type: 'emitAll', name, args })
         }
       } else {
@@ -2372,8 +2378,6 @@ function flushEventQueue() {
     // round.events = round.events.concat(eventQueue)
   
     eventQueue = []
-
-    eventFlushedAt = now
   }
 }
 
@@ -2670,7 +2674,7 @@ const initRoutes = async () => {
       res.json(db.playerRewards[req.params.address].pending)
     })
 
-    server.get('/admin/claim/:address/:symbol/:tx', function(req, res) {
+    server.get('/admin/claim/:address/:symbol/:amount/:tx', function(req, res) {
       if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
       if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
       if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending[req.params.symbol] = 0
@@ -2690,7 +2694,7 @@ const initRoutes = async () => {
 
       saveRewardHistory()
 
-      db.playerRewards[req.params.address].pending[req.params.symbol] = 0
+      db.playerRewards[req.params.address].pending[req.params.symbol] -= parseFloat(req.params.amount)
       db.playerRewards[req.params.address].tx.push(req.params.tx)
 
       savePlayerRewards()
