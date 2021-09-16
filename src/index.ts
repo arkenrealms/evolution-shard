@@ -1327,6 +1327,11 @@ io.on('connection', function(socket) {
       try {
         const pack = decodePayload(msg)
 
+        if (!pack.signature || !pack.network || !pack.device || !pack.address) {
+          disconnectPlayer(currentPlayer)
+          return
+        }
+
         const address = web3.utils.toChecksumAddress(pack.address.trim())
 
         if (!verifySignature({ value: 'evolution', hash: pack.signature }, address)) {
@@ -1398,6 +1403,8 @@ io.on('connection', function(socket) {
     })
 
     socket.on('JoinRoom', function(msg) {
+      log('JoinRoom')
+
       // const pack = decodePayload(msg)
       const now = getTime()
       const recentPlayer = round.players.find(r => r.address === currentPlayer.address)
@@ -1413,8 +1420,6 @@ io.on('connection', function(socket) {
         disconnectPlayer(currentPlayer)
         return
       }
-
-      log('JoinRoom')
 
       currentPlayer.isDead = false
       currentPlayer.avatar = config.startAvatar
