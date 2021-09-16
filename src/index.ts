@@ -11,14 +11,13 @@ import * as bodyParser from 'body-parser'
 import * as morgan from 'morgan'
 import * as crypto from 'crypto'
 import * as jetpack from 'fs-jetpack'
+import axios from 'axios'
 import middleware from './middleware'
 import * as database from './db'
 import * as services from './services'
 import { decodeItem } from './decodeItem'
 import Provider from './util/provider'
 
-// @ts-ignore
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args))
 const path = require('path')
 
 const serverVersion = "1.5.0"
@@ -790,15 +789,9 @@ function decodePayload(msg) {
 export const getUsername = async (address: string): Promise<string> => {
   try {
     log(`Getting username for ${address}`)
-    const response = await fetch(`https://rune-api.binzy.workers.dev/users/${address}`)
+    const res = await axios(`https://rune-api.binzy.workers.dev/users/${address}`)
 
-    if (!response.ok) {
-      return ''
-    }
-
-    const data: any = await response.json()
-    console.log(data)
-    const { username = '' } = data
+    const { username = '' } = res as any
 
     return username
   } catch (error) {
