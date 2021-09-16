@@ -796,10 +796,13 @@ export const getUsername = async (address: string): Promise<string> => {
       return ''
     }
 
-    const { username = '' } = await response.json() as any
+    const data: any = await response.json()
+    console.log(data)
+    const { username = '' } = data
 
     return username
   } catch (error) {
+    console.log(error)
     return ''
   }
 }
@@ -1331,8 +1334,7 @@ io.on('connection', function(socket) {
 
         const address = web3.utils.toChecksumAddress(pack.address.trim())
 
-        if (config.isMaintenance && !modList.includes(pack.name)) {
-          emitDirect(socket, 'OnMaintenance', true)
+        if (!verifySignature({ value: 'evolution', hash: pack.signature }, address)) {
           disconnectPlayer(currentPlayer)
           return
         }
@@ -1343,16 +1345,18 @@ io.on('connection', function(socket) {
           return
         }
 
-        if (!verifySignature({ value: 'evolution', hash: pack.signature }, address)) {
+        if (config.isMaintenance && !modList.includes(address)) {
+          emitDirect(socket, 'OnMaintenance', true)
           disconnectPlayer(currentPlayer)
           return
         }
-
 
         let name = addressToUsername[address]
 
         if (!name) {
           name = await getUsername(address)
+          log('Username: ' + name)
+          addressToUsername[address] = name
         }
 
         const now = getTime()
@@ -1384,7 +1388,7 @@ io.on('connection', function(socket) {
 
           addToRecentPlayers(currentPlayer)
       
-          publishEvent('OnSetInfo', currentPlayer.id, name, pack.address, pack.network, pack.device)
+          publishEvent('OnSetInfo', currentPlayer.id, currentPlayer.name, currentPlayer.address, currentPlayer.network, currentPlayer.device)
 
           db.log.push({
             event: 'Connected',
