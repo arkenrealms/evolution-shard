@@ -17,9 +17,11 @@ import * as services from './services'
 import { decodeItem } from './decodeItem'
 import Provider from './util/provider'
 
+// @ts-ignore
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args))
 const path = require('path')
 
-const serverVersion = "0.16.0"
+const serverVersion = "1.5.0"
 
 const server = express()
 const http = require('http').Server(server)
@@ -261,6 +263,7 @@ const sharedConfig = {
   spritesTotal: 50
 }
 
+const addressToUsername = {}
 
 let config = {
   ...baseConfig,
@@ -781,6 +784,23 @@ function decodePayload(msg) {
     console.log(err)
   }
   
+}
+
+
+export const getUsername = async (address: string): Promise<string> => {
+  try {
+    const response = await fetch(`https://rune-api.binzy.workers.dev/users/${address}`)
+
+    if (!response.ok) {
+      return ''
+    }
+
+    const { username = '' } = await response.json() as any
+
+    return username
+  } catch (error) {
+    return ''
+  }
 }
 
 function distanceBetweenPoints(pos1, pos2) {
@@ -1304,9 +1324,11 @@ io.on('connection', function(socket) {
       emitDirect(socket, 'pong')
     })
 
-    socket.on('SetInfo', function(msg) {
+    socket.on('SetInfo', async function(msg) {
       try {
         const pack = decodePayload(msg)
+
+        const address = web3.utils.toChecksumAddress(pack.address.trim())
 
         if (config.isMaintenance && !modList.includes(pack.name)) {
           emitDirect(socket, 'OnMaintenance', true)
@@ -1314,25 +1336,32 @@ io.on('connection', function(socket) {
           return
         }
 
-        if (db.banList.includes(pack.address)) {
+        if (db.banList.includes(address)) {
           emitDirect(socket, 'OnBanned', true)
           disconnectPlayer(currentPlayer)
           return
         }
 
-        if (!verifySignature(pack.signature, pack.address)) {
+        if (!verifySignature({ value: 'evolution', hash: pack.signature }, address)) {
           disconnectPlayer(currentPlayer)
           return
         }
 
+
+        let name = addressToUsername[address]
+
+        if (!name) {
+          name = await getUsername(address)
+        }
+
         const now = getTime()
-        if (currentPlayer.name !== pack.name || currentPlayer.address !== pack.address) {
-          currentPlayer.name = pack.name
-          currentPlayer.address = pack.address
+        if (currentPlayer.name !== name || currentPlayer.address !== address) {
+          currentPlayer.name = name
+          currentPlayer.address = address
           currentPlayer.network = pack.network
           currentPlayer.device = pack.device
 
-          const recentPlayer = round.players.find(r => r.address === pack.address)
+          const recentPlayer = round.players.find(r => r.address === address)
 
           if (recentPlayer) {
             if ((now - recentPlayer.lastUpdate) < 3000) {
@@ -1354,7 +1383,7 @@ io.on('connection', function(socket) {
 
           addToRecentPlayers(currentPlayer)
       
-          publishEvent('OnSetInfo', currentPlayer.id, pack.name, pack.address, pack.network, pack.device)
+          publishEvent('OnSetInfo', currentPlayer.id, pack.address, pack.network, pack.device)
 
           db.log.push({
             event: 'Connected',
@@ -2766,13 +2795,13 @@ const init = async () => {
     await initRoutes()
 
     https.listen(443, function() {
-      log(`:: Backend ready and listening on *: ${port}`)
+      log(`:: Backend ready and listening on *:443`)
     })
 
     const port = process.env.PORT || 80
 
     http.listen(port, function() {
-      log(`:: Backend ready and listening on *: ${port}`)
+      log(`:: Backend ready and listening on *:${port}`)
     })
   } catch(e) {
     logError(e)
