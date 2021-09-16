@@ -793,7 +793,7 @@ export const getUsername = async (address: string): Promise<string> => {
 
     // const data = await response.json()
 console.log(response)
-    const { username = '' } = JSON.parse(response)
+    const { username = '' } = JSON.parse(response.data as any)
 
     return username
   } catch (error) {
