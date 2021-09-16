@@ -789,6 +789,7 @@ function decodePayload(msg) {
 
 export const getUsername = async (address: string): Promise<string> => {
   try {
+    log(`Getting username for ${address}`)
     const response = await fetch(`https://rune-api.binzy.workers.dev/users/${address}`)
 
     if (!response.ok) {
