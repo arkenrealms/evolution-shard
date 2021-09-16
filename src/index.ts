@@ -1383,7 +1383,7 @@ io.on('connection', function(socket) {
 
           addToRecentPlayers(currentPlayer)
       
-          publishEvent('OnSetInfo', currentPlayer.id, currentPlayer.name, currentPlayer.address, currentPlayer.network, currentPlayer.device)
+          publishEvent('OnSetInfo', currentPlayer.id, currentPlayer.name, currentPlayer.network, currentPlayer.address, currentPlayer.device)
 
           db.log.push({
             event: 'Connected',
