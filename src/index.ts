@@ -792,9 +792,9 @@ export const getUsername = async (address: string): Promise<string> => {
     const response = await axios(`https://rune-api.binzy.workers.dev/users/${address}`)
 
     // const data = await response.json()
-console.log(response)
-    const { username = '' } = JSON.parse(response.data as any)
 
+    const { username = '' } = response.data as any
+  
     return username
   } catch (error) {
     console.log(error)
