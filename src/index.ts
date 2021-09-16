@@ -414,7 +414,7 @@ let roundConfig = {
 let announceReboot = false
 let rebootAfterRound = false
 let totalLegitPlayers = 0
-const debug = false // !(process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10')
+const debug = true // !(process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10')
 const killSameNetworkClients = false
 const sockets = {} // to storage sockets
 const clientLookup = {}
@@ -582,11 +582,11 @@ const publishEvent = (...args) => {
 }
 
 const verifySignature = (signature, address) => {
-  console.log('Verifying', signature)
+  log('Verifying', signature, address)
   try {
     return web3.eth.accounts.recover(signature.value, signature.hash).toLowerCase() === address.toLowerCase()
   } catch(e) {
-    console.log(e)
+    log(e)
     return false
   }
 }
