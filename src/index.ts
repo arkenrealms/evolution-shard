@@ -1320,6 +1320,11 @@ io.on('connection', function(socket) {
           return
         }
 
+        if (!verifySignature(pack.signature, pack.address)) {
+          disconnectPlayer(currentPlayer)
+          return
+        }
+
         const now = getTime()
         if (currentPlayer.name !== pack.name || currentPlayer.address !== pack.address) {
           currentPlayer.name = pack.name
