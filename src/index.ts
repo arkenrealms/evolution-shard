@@ -1516,7 +1516,7 @@ io.on('connection', function(socket) {
 
     socket.on('UpdateMyself', function(msg) {
       try {
-        if (currentPlayer.isDead) return
+        if (currentPlayer.isDead && !currentPlayer.isJoining) return
         if (currentPlayer.isSpectating) return
         if (config.isMaintenance && !modList.includes(currentPlayer?.address)) return
 
