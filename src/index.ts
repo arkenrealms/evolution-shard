@@ -2285,6 +2285,8 @@ function fastGameloop() {
 
     let decay = config.noDecay ? 0 : (client.avatar + 1) / (1 / config.fastLoopSeconds) * ((config['avatarDecayPower' + client.avatar] || 1) * config.decayPower)
 
+    client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
+
     if (client.xp > 100) {
       if (decay > 0) {
         if (client.avatar < (config.maxEvolves - 1)) {
@@ -2292,7 +2294,6 @@ function fastGameloop() {
           client.avatar = Math.max(Math.min(client.avatar + (1 * config.avatarDirection), config.maxEvolves - 1), 0)
           client.evolves += 1
           client.points += config.pointsPerEvolve
-          client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
   
           if (config.leadercap && client.name === lastLeaderName) {
             client.speed = client.speed * 0.9
@@ -2316,7 +2317,6 @@ function fastGameloop() {
           client.avatar = Math.max(Math.min(client.avatar + (1 * config.avatarDirection), config.maxEvolves - 1), 0)
           client.evolves += 1
           client.points += config.pointsPerEvolve
-          client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
   
           if (config.leadercap && client.name === lastLeaderName) {
             client.speed = client.speed * 0.9
@@ -2343,7 +2343,6 @@ function fastGameloop() {
           } else {
             client.xp = 100
             client.avatar = Math.max(Math.min(client.avatar - (1 * config.avatarDirection), config.maxEvolves - 1), 0)
-            client.speed = (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
 
             if (config.leadercap && client.name === lastLeaderName) {
               client.speed = client.speed * 0.9
@@ -2357,7 +2356,6 @@ function fastGameloop() {
           } else {
             client.xp = 100
             client.avatar = Math.max(Math.min(client.avatar - (1 * config.avatarDirection), config.maxEvolves - 1), 0)
-            client.speed = (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
 
             if (config.leadercap && client.name === lastLeaderName) {
               client.speed = client.speed * 0.9
