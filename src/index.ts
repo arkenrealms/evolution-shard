@@ -328,7 +328,10 @@ const presets = [
   {
     gameMode: 'Sprite Leader',
     spritesPerPlayerCount: 3,
-    decayPower: 7,
+    // decayPower: 7,
+    avatarDecayPower0: 2,
+    avatarDecayPower1: 2 * (7 / 1.4),
+    avatarDecayPower2: 3 * (7 / 1.4),
     pointsPerEvolve: 0,
     pointsPerPowerup: 2,
     pointsPerReward: 0,
@@ -1110,6 +1113,7 @@ io.on('connection', function(socket) {
       isMasterClient: false,
       isDisconnected: false,
       isDead: true,
+      isJoining: false,
       isSpectating: false,
       isStuck: false,
       isPhased: false,
@@ -1334,7 +1338,7 @@ io.on('connection', function(socket) {
 
         const address = web3.utils.toChecksumAddress(pack.address.trim())
 
-        if (!verifySignature({ value: 'evolution', hash: pack.signature }, address)) {
+        if (!verifySignature({ value: 'evolution', hash: pack.signature.trim() }, address)) {
           disconnectPlayer(currentPlayer)
           return
         }
@@ -1421,7 +1425,7 @@ io.on('connection', function(socket) {
         return
       }
 
-      currentPlayer.isDead = false
+      currentPlayer.isJoining = true
       currentPlayer.avatar = config.startAvatar
       currentPlayer.joinedAt = Math.round(getTime() / 1000)
       currentPlayer.speed = (config.baseSpeed * config['avatarSpeedMultiplier' + currentPlayer.avatar])
@@ -1519,6 +1523,11 @@ io.on('connection', function(socket) {
         const now = getTime()
 
         if (now - currentPlayer.lastUpdate < config.forcedLatency) return
+
+        if (currentPlayer.isJoining) {
+          currentPlayer.isDead = false
+          currentPlayer.isJoining = false
+        }
 
         const pack = decodePayload(msg)
 
