@@ -207,7 +207,7 @@ const baseConfig = {
 
 const sharedConfig = {
   antifeed1: true,
-  avatarDecayPower0: 2,
+  avatarDecayPower0: 1.5,
   avatarDecayPower1: 2.5,
   avatarDecayPower2: 3,
   avatarTouchDistance0: 0.25,
