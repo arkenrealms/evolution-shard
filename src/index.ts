@@ -11,6 +11,7 @@ import * as bodyParser from 'body-parser'
 import * as morgan from 'morgan'
 import * as crypto from 'crypto'
 import * as jetpack from 'fs-jetpack'
+import axios from 'axios'
 import middleware from './middleware'
 import * as database from './db'
 import * as services from './services'
@@ -19,7 +20,7 @@ import Provider from './util/provider'
 
 const path = require('path')
 
-const serverVersion = "0.16.0"
+const serverVersion = "1.5.0"
 
 const server = express()
 const http = require('http').Server(server)
@@ -206,7 +207,7 @@ const baseConfig = {
 
 const sharedConfig = {
   antifeed1: true,
-  avatarDecayPower0: 2,
+  avatarDecayPower0: 1.5,
   avatarDecayPower1: 2.5,
   avatarDecayPower2: 3,
   avatarTouchDistance0: 0.25,
@@ -261,6 +262,7 @@ const sharedConfig = {
   spritesTotal: 50
 }
 
+const addressToUsername = {}
 
 let config = {
   ...baseConfig,
@@ -326,7 +328,10 @@ const presets = [
   {
     gameMode: 'Sprite Leader',
     spritesPerPlayerCount: 3,
-    decayPower: 7,
+    // decayPower: 7,
+    avatarDecayPower0: 2,
+    avatarDecayPower1: 2 * (7 / 1.4),
+    avatarDecayPower2: 3 * (7 / 1.4),
     pointsPerEvolve: 0,
     pointsPerPowerup: 2,
     pointsPerReward: 0,
@@ -411,7 +416,7 @@ let roundConfig = {
 let announceReboot = false
 let rebootAfterRound = false
 let totalLegitPlayers = 0
-const debug = false // !(process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10')
+const debug = true // !(process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10')
 const killSameNetworkClients = false
 const sockets = {} // to storage sockets
 const clientLookup = {}
@@ -579,11 +584,11 @@ const publishEvent = (...args) => {
 }
 
 const verifySignature = (signature, address) => {
-  console.log('Verifying', signature)
+  log('Verifying', signature, address)
   try {
     return web3.eth.accounts.recover(signature.value, signature.hash).toLowerCase() === address.toLowerCase()
   } catch(e) {
-    console.log(e)
+    log(e)
     return false
   }
 }
@@ -781,6 +786,23 @@ function decodePayload(msg) {
     console.log(err)
   }
   
+}
+
+
+export const getUsername = async (address: string): Promise<string> => {
+  try {
+    log(`Getting username for ${address}`)
+    const response = await axios(`https://rune-api.binzy.workers.dev/users/${address}`)
+
+    // const data = await response.json()
+
+    const { username = '' } = response.data as any
+  
+    return username
+  } catch (error) {
+    console.log(error)
+    return ''
+  }
 }
 
 function distanceBetweenPoints(pos1, pos2) {
@@ -1091,6 +1113,7 @@ io.on('connection', function(socket) {
       isMasterClient: false,
       isDisconnected: false,
       isDead: true,
+      isJoining: false,
       isSpectating: false,
       isStuck: false,
       isPhased: false,
@@ -1304,35 +1327,50 @@ io.on('connection', function(socket) {
       emitDirect(socket, 'pong')
     })
 
-    socket.on('SetInfo', function(msg) {
+    socket.on('SetInfo', async function(msg) {
       try {
         const pack = decodePayload(msg)
 
-        if (config.isMaintenance && !modList.includes(pack.name)) {
-          emitDirect(socket, 'OnMaintenance', true)
+        if (!pack.signature || !pack.network || !pack.device || !pack.address) {
           disconnectPlayer(currentPlayer)
           return
         }
 
-        if (db.banList.includes(pack.address)) {
+        const address = web3.utils.toChecksumAddress(pack.address.trim())
+
+        if (!verifySignature({ value: 'evolution', hash: pack.signature.trim() }, address)) {
+          disconnectPlayer(currentPlayer)
+          return
+        }
+
+        if (db.banList.includes(address)) {
           emitDirect(socket, 'OnBanned', true)
           disconnectPlayer(currentPlayer)
           return
         }
 
-        if (!verifySignature(pack.signature, pack.address)) {
+        if (config.isMaintenance && !modList.includes(address)) {
+          emitDirect(socket, 'OnMaintenance', true)
           disconnectPlayer(currentPlayer)
           return
         }
 
+        let name = addressToUsername[address]
+
+        if (!name) {
+          name = await getUsername(address)
+          log('Username: ' + name)
+          addressToUsername[address] = name
+        }
+
         const now = getTime()
-        if (currentPlayer.name !== pack.name || currentPlayer.address !== pack.address) {
-          currentPlayer.name = pack.name
-          currentPlayer.address = pack.address
+        if (currentPlayer.name !== name || currentPlayer.address !== address) {
+          currentPlayer.name = name
+          currentPlayer.address = address
           currentPlayer.network = pack.network
           currentPlayer.device = pack.device
 
-          const recentPlayer = round.players.find(r => r.address === pack.address)
+          const recentPlayer = round.players.find(r => r.address === address)
 
           if (recentPlayer) {
             if ((now - recentPlayer.lastUpdate) < 3000) {
@@ -1354,7 +1392,7 @@ io.on('connection', function(socket) {
 
           addToRecentPlayers(currentPlayer)
       
-          publishEvent('OnSetInfo', currentPlayer.id, pack.name, pack.address, pack.network, pack.device)
+          publishEvent('OnSetInfo', currentPlayer.id, currentPlayer.name, currentPlayer.network, currentPlayer.address, currentPlayer.device)
 
           db.log.push({
             event: 'Connected',
@@ -1369,6 +1407,8 @@ io.on('connection', function(socket) {
     })
 
     socket.on('JoinRoom', function(msg) {
+      log('JoinRoom')
+
       // const pack = decodePayload(msg)
       const now = getTime()
       const recentPlayer = round.players.find(r => r.address === currentPlayer.address)
@@ -1385,9 +1425,7 @@ io.on('connection', function(socket) {
         return
       }
 
-      log('JoinRoom')
-
-      currentPlayer.isDead = false
+      currentPlayer.isJoining = true
       currentPlayer.avatar = config.startAvatar
       currentPlayer.joinedAt = Math.round(getTime() / 1000)
       currentPlayer.speed = (config.baseSpeed * config['avatarSpeedMultiplier' + currentPlayer.avatar])
@@ -1398,7 +1436,7 @@ io.on('connection', function(socket) {
       const roundTimer = (round.startedAt + config.roundLoopSeconds) - Math.round(getTime() / 1000)
       emitDirect(socket, 'OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
       emitDirect(socket, 'OnJoinGame', currentPlayer.id, currentPlayer.name, currentPlayer.avatar, currentPlayer.isMasterClient ? 'true' : 'false', roundTimer, spawnPoint.x, spawnPoint.y)
-      emitDirect(socket, 'OnSetInfo', currentPlayer.id, currentPlayer.name, currentPlayer.address, currentPlayer.network, currentPlayer.device)
+      // emitDirect(socket, 'OnSetInfo', currentPlayer.id, currentPlayer.name, currentPlayer.address, currentPlayer.network, currentPlayer.device)
       emitDirect(socket, 'OnSetRoundInfo', roundTimer + ':' + getRoundInfo().join(':') + '1. Eat sprites to stay alive' + ':' + '2. Avoid bigger dragons' + ':' + '3. Eat smaller dragons')
 
       syncSprites()
@@ -1478,13 +1516,18 @@ io.on('connection', function(socket) {
 
     socket.on('UpdateMyself', function(msg) {
       try {
-        if (currentPlayer.isDead) return
+        if (currentPlayer.isDead && !currentPlayer.isJoining) return
         if (currentPlayer.isSpectating) return
         if (config.isMaintenance && !modList.includes(currentPlayer?.address)) return
 
         const now = getTime()
 
         if (now - currentPlayer.lastUpdate < config.forcedLatency) return
+
+        if (currentPlayer.isJoining) {
+          currentPlayer.isDead = false
+          currentPlayer.isJoining = false
+        }
 
         const pack = decodePayload(msg)
 
@@ -2242,6 +2285,8 @@ function fastGameloop() {
 
     let decay = config.noDecay ? 0 : (client.avatar + 1) / (1 / config.fastLoopSeconds) * ((config['avatarDecayPower' + client.avatar] || 1) * config.decayPower)
 
+    client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
+
     if (client.xp > 100) {
       if (decay > 0) {
         if (client.avatar < (config.maxEvolves - 1)) {
@@ -2249,7 +2294,6 @@ function fastGameloop() {
           client.avatar = Math.max(Math.min(client.avatar + (1 * config.avatarDirection), config.maxEvolves - 1), 0)
           client.evolves += 1
           client.points += config.pointsPerEvolve
-          client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
   
           if (config.leadercap && client.name === lastLeaderName) {
             client.speed = client.speed * 0.9
@@ -2273,7 +2317,6 @@ function fastGameloop() {
           client.avatar = Math.max(Math.min(client.avatar + (1 * config.avatarDirection), config.maxEvolves - 1), 0)
           client.evolves += 1
           client.points += config.pointsPerEvolve
-          client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
   
           if (config.leadercap && client.name === lastLeaderName) {
             client.speed = client.speed * 0.9
@@ -2300,7 +2343,6 @@ function fastGameloop() {
           } else {
             client.xp = 100
             client.avatar = Math.max(Math.min(client.avatar - (1 * config.avatarDirection), config.maxEvolves - 1), 0)
-            client.speed = (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
 
             if (config.leadercap && client.name === lastLeaderName) {
               client.speed = client.speed * 0.9
@@ -2314,7 +2356,6 @@ function fastGameloop() {
           } else {
             client.xp = 100
             client.avatar = Math.max(Math.min(client.avatar - (1 * config.avatarDirection), config.maxEvolves - 1), 0)
-            client.speed = (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
 
             if (config.leadercap && client.name === lastLeaderName) {
               client.speed = client.speed * 0.9
@@ -2766,13 +2807,13 @@ const init = async () => {
     await initRoutes()
 
     https.listen(443, function() {
-      log(`:: Backend ready and listening on *: ${port}`)
+      log(`:: Backend ready and listening on *:443`)
     })
 
     const port = process.env.PORT || 80
 
     http.listen(port, function() {
-      log(`:: Backend ready and listening on *: ${port}`)
+      log(`:: Backend ready and listening on *:${port}`)
     })
   } catch(e) {
     logError(e)
