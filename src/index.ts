@@ -50,7 +50,7 @@ function logError(err) {
   
   jetpack.write(path.resolve('./public/data/errors.json'), JSON.stringify(errorLog, null, 2))
   
-  console.log(err)
+  logError(err)
 }
 
 process
@@ -416,7 +416,7 @@ let roundConfig = {
 let announceReboot = false
 let rebootAfterRound = false
 let totalLegitPlayers = 0
-const debug = true // !(process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10')
+const debug = false // !(process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10')
 const killSameNetworkClients = false
 const sockets = {} // to storage sockets
 const clientLookup = {}
@@ -1359,6 +1359,12 @@ io.on('connection', function(socket) {
 
         if (!name) {
           name = await getUsername(address)
+
+          if (!name) {
+            disconnectPlayer(currentPlayer)
+            return
+          }
+
           log('Username: ' + name)
           addressToUsername[address] = name
         }
