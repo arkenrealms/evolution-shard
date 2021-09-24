@@ -1556,7 +1556,7 @@ io.on('connection', function(socket) {
       }
 
 
-      emitDirect(socket, 'OnSetRoundInfo', roundTimer + ':' + getRoundInfo().join(':') + guide.join(':'))
+      emitDirect(socket, 'OnSetRoundInfo', roundTimer + ':' + getRoundInfo().join(':') + ':' + guide.join(':'))
 
       syncSprites()
 
