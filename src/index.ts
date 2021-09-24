@@ -169,7 +169,7 @@ function reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer) {
 const testMode = false
 
 const baseConfig = {
-  damagePerTouch: 5,
+  damagePerTouch: 2,
   periodicReboots: false,
   rebootSeconds: 12 * 60 * 60,
   startAvatar: 0,
