@@ -48,7 +48,7 @@ function logError(err) {
 
   errorLog.push(err + '')
   
-  jetpack.write(path.resolve('./public/data/errors.json'), JSON.stringify(errorLog, null, 2))
+  jetpack.write(path.resolve('./public/data/errors.json'), JSON.stringify(errorLog, null, 2), { atomic: true })
   
   logError(err)
 }
@@ -97,7 +97,7 @@ function getTime() {
 }
 
 const savePlayerRewards = () => {
-  jetpack.write(path.resolve('./public/data/playerRewards.json'), JSON.stringify(db.playerRewards, null, 2))
+  jetpack.write(path.resolve('./public/data/playerRewards.json'), JSON.stringify(db.playerRewards, null, 2), { atomic: true })
 }
 
 const saveLeaderboardHistory = () => {
@@ -105,31 +105,31 @@ const saveLeaderboardHistory = () => {
     db.leaderboardHistory = db.leaderboardHistory.slice(db.leaderboardHistory.length - 1000, db.leaderboardHistory.length)
   }
 
-  jetpack.write(path.resolve('./public/data/leaderboardHistory.json'), JSON.stringify(db.leaderboardHistory, null, 2))
+  jetpack.write(path.resolve('./public/data/leaderboardHistory.json'), JSON.stringify(db.leaderboardHistory, null, 2), { atomic: true })
 }
 
 const saveRewardHistory = () => {
-  jetpack.write(path.resolve('./public/data/rewardHistory.json'), JSON.stringify(db.rewardHistory, null, 2))
+  jetpack.write(path.resolve('./public/data/rewardHistory.json'), JSON.stringify(db.rewardHistory, null, 2), { atomic: true })
 }
 
 const saveRewards = () => {
-  jetpack.write(path.resolve('./public/data/rewards.json'), JSON.stringify(db.rewards, null, 2))
+  jetpack.write(path.resolve('./public/data/rewards.json'), JSON.stringify(db.rewards, null, 2), { atomic: true })
 }
 
 const saveBanList = () => {
-  jetpack.write(path.resolve('./public/data/banList.json'), JSON.stringify(db.banList, null, 2))
+  jetpack.write(path.resolve('./public/data/banList.json'), JSON.stringify(db.banList, null, 2), { atomic: true })
 }
 
 const saveModList = () => {
-  jetpack.write(path.resolve('./public/data/modList.json'), JSON.stringify(db.modList, null, 2))
+  jetpack.write(path.resolve('./public/data/modList.json'), JSON.stringify(db.modList, null, 2), { atomic: true })
 }
 
 const saveReportList = () => {
-  jetpack.write(path.resolve('./public/data/playerReports.json'), JSON.stringify(db.reportList, null, 2))
+  jetpack.write(path.resolve('./public/data/playerReports.json'), JSON.stringify(db.reportList, null, 2), { atomic: true })
 }
 
 const saveLog = () => {
-  jetpack.write(path.resolve('./public/data/log.json'), JSON.stringify(db.log, null, 2))
+  jetpack.write(path.resolve('./public/data/log.json'), JSON.stringify(db.log, null, 2), { atomic: true })
 }
 
 function reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer) {
@@ -1842,17 +1842,17 @@ function resetLeaderboard() {
     sendLeaderReward(leaders)
   }
 
-  // db.leaderboardHistory.push(JSON.parse(JSON.stringify(round.players)))
+  db.leaderboardHistory.push(JSON.parse(JSON.stringify(round.players)))
 
-  // saveLeaderboardHistory()
-  // savePlayerRewards()
-  // saveRewards()
-  // saveReportList()
-  // saveBanList()
-  // saveLog()
-  // saveModList()
+  saveLeaderboardHistory()
+  savePlayerRewards()
+  saveRewards()
+  saveReportList()
+  saveBanList()
+  saveLog()
+  saveModList()
 
-  jetpack.write(path.resolve(`./public/data/rounds/${round.id}.json`), JSON.stringify(round, null, 2))
+  jetpack.write(path.resolve(`./public/data/rounds/${round.id}.json`), JSON.stringify(round, null, 2), { atomic: true })
 
   if (config.calcRoundRewards) {
     calcRoundRewards()
@@ -1867,7 +1867,7 @@ function resetLeaderboard() {
 
   db.config.roundId = round.id
 
-  jetpack.write(path.resolve(`./public/data/config.json`), JSON.stringify(db.config, null, 2))
+  jetpack.write(path.resolve(`./public/data/config.json`), JSON.stringify(db.config, null, 2), { atomic: true })
 
   for (const client of clients) {
     if (!ranks[client.address]) ranks[client.address] = {}
