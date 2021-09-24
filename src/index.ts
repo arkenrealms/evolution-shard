@@ -1032,7 +1032,7 @@ const registerKill = (winner, loser) => {
   // LV3 vs LV1 = 0.5 * 3 + 0.5 * 2 * 2 = 3.5
   // LV3 vs LV2 = 0.5 * 3 + 0.5 * 1 * 2 = 2.5
   // LV2 vs LV1 = 0.5 * 2 + 0.5 * 1 * 2 = 2
-  loser.xp -= config.damagePerTouch * (winner.avatar + 1) + config.damagePerTouch * (winner.winner - winner.loser) * 2
+  loser.xp -= config.damagePerTouch * (winner.avatar + 1) + config.damagePerTouch * (winner.avatar - loser.avatar) * 2
 
   if (loser.avatar !== 0 || loser.xp > 0) {
     // Can't be killed yet
