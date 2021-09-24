@@ -169,6 +169,7 @@ function reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer) {
 const testMode = false
 
 const baseConfig = {
+  damagePerTouch: 5,
   periodicReboots: false,
   rebootSeconds: 12 * 60 * 60,
   startAvatar: 0,
@@ -1025,6 +1026,13 @@ const registerKill = (winner, loser) => {
   if (config.preventBadKills && !allowKill) {
     loser.phasedUntil = getTime() + 2000
 
+    return
+  }
+
+  loser.xp -= config.damagePerTouch
+
+  if (loser.avatar !== 0 || loser.xp > 0) {
+    // Can't be killed yet
     return
   }
 
