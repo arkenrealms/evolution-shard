@@ -65,8 +65,6 @@ process
   })
 
 
-const modList = ['Botter', 'Bin Zy']
-
 const eventCache: any = {
   'OnUpdateMyself': {},
   'OnUpdatePlayer': {}
@@ -91,7 +89,7 @@ if (!db.modList.length) {
   db.modList.push('0xfE27380E57e5336eB8FFc017371F2147A3268fbE')
   db.modList.push('0x2DF94b980FC880100D93072011675E6659C0ca21')
   db.modList.push('0x37470038C615Def104e1bee33c710bD16a09FdEf')
-  
+  db.modList.push('0x9b229c01eEf692A780d8Fee2558AaEa9873C032f')
 }
 
 function getTime() {
@@ -1198,7 +1196,7 @@ io.on('connection', function(socket) {
         })
 
         if (data.event === 'Ban') {
-          if (!modList.includes(currentPlayer?.address)) return
+          if (!db.modList.includes(currentPlayer?.address)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
           if (!verifySignature(data.signature, currentPlayer?.address)) return
       
@@ -1212,7 +1210,7 @@ io.on('connection', function(socket) {
       
           saveBanList()
         } else if (data.event === 'Unban') {
-          if (!modList.includes(currentPlayer?.address)) return
+          if (!db.modList.includes(currentPlayer?.address)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
           if (!verifySignature(data.signature, currentPlayer?.address)) return
       
@@ -1221,14 +1219,34 @@ io.on('connection', function(socket) {
           db.banList.splice(db.banList.indexOf(offender), 1)
       
           saveBanList()
+        } else if (data.event === 'AddMod') {
+          if (!db.modList.includes(currentPlayer?.address)) return
+          if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+          if (!verifySignature(data.signature, currentPlayer?.address)) return
+      
+          const newMod = data.value
+      
+          db.modList.push(newMod)
+      
+          saveModList()
+        } else if (data.event === 'RemoveMod') {
+          if (!db.modList.includes(currentPlayer?.address)) return
+          if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+          if (!verifySignature(data.signature, currentPlayer?.address)) return
+      
+          const newMod = data.value
+      
+          db.modList.splice(db.modList.indexOf(newMod), 1)
+      
+          saveModList()
         } else if (data.event === 'SetBroadcast') {
-          if (!modList.includes(currentPlayer?.address)) return
+          if (!db.modList.includes(currentPlayer?.address)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
           if (!verifySignature(data.signature, currentPlayer?.address)) return
       
           publishEvent('OnBroadcast', escape(JSON.stringify(data.value)))
         } else if (data.event === 'SetMaintenance') {
-          if (!modList.includes(currentPlayer?.address)) return
+          if (!db.modList.includes(currentPlayer?.address)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
           if (!verifySignature(data.signature, currentPlayer?.address)) return
       
@@ -1237,7 +1255,7 @@ io.on('connection', function(socket) {
       
           publishEvent('OnMaintenance', config.isMaintenance)
         } else if (data.event === 'SetConfig') {
-          if (!modList.includes(currentPlayer?.address)) return
+          if (!db.modList.includes(currentPlayer?.address)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
           if (!verifySignature(data.signature, currentPlayer?.address)) return
 
@@ -1255,13 +1273,13 @@ io.on('connection', function(socket) {
             }
           }
         } else if (data.event === 'SetClaiming') {
-          if (!modList.includes(currentPlayer?.address)) return
+          if (!db.modList.includes(currentPlayer?.address)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
           if (!verifySignature(data.signature, currentPlayer?.address)) return
       
           db.playerRewards[data.value.address].claiming = data.value.value
         } else if (data.event === 'ResetClaiming') {
-          if (!modList.includes(currentPlayer?.address)) return
+          if (!db.modList.includes(currentPlayer?.address)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
           if (!verifySignature(data.signature, currentPlayer?.address)) return
       
@@ -1269,13 +1287,13 @@ io.on('connection', function(socket) {
             db.playerRewards[address].claiming = false
           }
         } else if (data.event === 'SetPreset') {
-          if (!modList.includes(currentPlayer?.address)) return
+          if (!db.modList.includes(currentPlayer?.address)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
           if (!verifySignature(data.signature, currentPlayer?.address)) return
       
           presets[data.value.index] = data.value.config
         } else if (data.event === 'SetGodmode') {
-          if (!modList.includes(currentPlayer?.address)) return
+          if (!db.modList.includes(currentPlayer?.address)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
           if (!verifySignature(data.signature, currentPlayer?.address)) return
       
@@ -1302,7 +1320,7 @@ io.on('connection', function(socket) {
 
     socket.on('Spectate', function() {
       try {
-        if (config.isMaintenance && !modList.includes(currentPlayer?.address)) {
+        if (config.isMaintenance && !db.modList.includes(currentPlayer?.address)) {
           return
         }
 
@@ -1360,7 +1378,7 @@ io.on('connection', function(socket) {
           return
         }
 
-        if (config.isMaintenance && !modList.includes(address)) {
+        if (config.isMaintenance && !db.modList.includes(address)) {
           emitDirect(socket, 'OnMaintenance', true)
           disconnectPlayer(currentPlayer)
           return
@@ -1436,7 +1454,7 @@ io.on('connection', function(socket) {
         return
       }
 
-      if (config.isMaintenance && !modList.includes(currentPlayer?.address)) {
+      if (config.isMaintenance && !db.modList.includes(currentPlayer?.address)) {
         emitDirect(socket, 'OnMaintenance', true)
         disconnectPlayer(currentPlayer)
         return
@@ -1535,7 +1553,7 @@ io.on('connection', function(socket) {
       try {
         if (currentPlayer.isDead && !currentPlayer.isJoining) return
         if (currentPlayer.isSpectating) return
-        if (config.isMaintenance && !modList.includes(currentPlayer?.address)) return
+        if (config.isMaintenance && !db.modList.includes(currentPlayer?.address)) return
 
         const now = getTime()
 
@@ -1592,7 +1610,7 @@ io.on('connection', function(socket) {
         if (currentPlayer.isDead) return
         if (currentPlayer.isSpectating) return
         if (isPhased) return
-        if (config.isMaintenance && !modList.includes(currentPlayer?.address)) return
+        if (config.isMaintenance && !db.modList.includes(currentPlayer?.address)) return
 
         const pack = decodePayload(msg)
 
@@ -1824,14 +1842,15 @@ function resetLeaderboard() {
     sendLeaderReward(leaders)
   }
 
-  db.leaderboardHistory.push(JSON.parse(JSON.stringify(round.players)))
+  // db.leaderboardHistory.push(JSON.parse(JSON.stringify(round.players)))
 
-  saveLeaderboardHistory()
-  savePlayerRewards()
-  saveRewards()
-  saveReportList()
-  saveBanList()
-  saveLog()
+  // saveLeaderboardHistory()
+  // savePlayerRewards()
+  // saveRewards()
+  // saveReportList()
+  // saveBanList()
+  // saveLog()
+  // saveModList()
 
   jetpack.write(path.resolve(`./public/data/rounds/${round.id}.json`), JSON.stringify(round, null, 2))
 
