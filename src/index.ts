@@ -185,7 +185,7 @@ const baseConfig = {
   colliderBuffer: 0.2,
   stickyIslands: false,
   antifeed2: true,
-  antifeed3: true,
+  antifeed3: false,
   antifeed4: true,
   avatarDirection: 1,
   calcRoundRewards: true,
