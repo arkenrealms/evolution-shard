@@ -1487,7 +1487,7 @@ io.on('connection', function(socket) {
       // spawn all connected clients for currentUser client 
       for (const client of clients) {
         if (client.id === currentPlayer.id) continue
-        if (client.isDisconnected || client.isDead || client.isSpectating) continue
+        if (client.isDisconnected || client.isDead || client.isSpectating || client.isJoining) continue
 
         emitDirect(socket, 'OnSpawnPlayer', client.id, client.name, client.speed, client.avatar, client.position.x, client.position.y, client.position.x, client.position.y)
       }
@@ -1503,9 +1503,6 @@ io.on('connection', function(socket) {
       if (currentReward) {
         emitDirect(socket, 'OnSpawnReward', currentReward.id, config.rewardItemType, config.rewardItemName, config.rewardItemAmount, currentReward.position.x, currentReward.position.y)
       }
-
-      // spawn currentPlayer client on clients in broadcast
-      publishEvent('OnSpawnPlayer', currentPlayer.id, currentPlayer.name, currentPlayer.speed, currentPlayer.avatar, currentPlayer.position.x, currentPlayer.position.y, currentPlayer.position.x, currentPlayer.position.y)
 
       currentPlayer.lastUpdate = getTime()
 
@@ -1562,6 +1559,9 @@ io.on('connection', function(socket) {
         if (currentPlayer.isJoining) {
           currentPlayer.isDead = false
           currentPlayer.isJoining = false
+
+          // spawn currentPlayer client on clients in broadcast
+          publishEvent('OnSpawnPlayer', currentPlayer.id, currentPlayer.name, currentPlayer.speed, currentPlayer.avatar, currentPlayer.position.x, currentPlayer.position.y, currentPlayer.position.x, currentPlayer.position.y)
         }
 
         const pack = decodePayload(msg)
