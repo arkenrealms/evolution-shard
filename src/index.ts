@@ -1473,36 +1473,36 @@ io.on('connection', function(socket) {
       emitDirect(socket, 'OnJoinGame', currentPlayer.id, currentPlayer.name, currentPlayer.avatar, currentPlayer.isMasterClient ? 'true' : 'false', roundTimer, spawnPoint.x, spawnPoint.y)
       // emitDirect(socket, 'OnSetInfo', currentPlayer.id, currentPlayer.name, currentPlayer.address, currentPlayer.network, currentPlayer.device)
 
-      let guide = [
-        '1. Eat sprites to stay alive',
-        '2. Avoid bigger dragons',
-        '3. Eat smaller dragons'
-      ]
+      let guide
 
       if (config.gameMode === 'Lets Be Friends') {
         guide = [
+          'Game Mode: Lets Be Friends',
           '-200 Points Per Kill',
-          'No Death Orbs',
-          '3. Eat smaller dragons'
+          'No Death Orbs'
         ]
       } else if (config.gameMode === 'Deathmatch') {
         guide = [
+          'Game Mode: Deathmatch',
           '+300 Points Per Kill (Per Evolution)',
           'No Death Orbs',
           'Faster Decay'
         ]
       } else if (config.gameMode === 'Evolution') {
         guide = [
+          'Game Mode: Evolution',
           '+10 Points Per Evolution'
         ]
       } else if (config.gameMode === 'Orb Master') {
         guide = [
+          'Game Mode: Orb Master',
           '+200 Points Per Orb Pickup',
           'No Points Per Kill, Evolve, etc.',
           'Orbs Last Until End of Round'
         ]
       } else if (config.gameMode === 'Sprite Leader') {
         guide = [
+          'Game Mode: Sprite Leader',
           '+3 Sprites Per Player',
           'No Points Per Kill, Evolve, etc.',
           'No Orbs',
@@ -1511,6 +1511,7 @@ io.on('connection', function(socket) {
         ]
       } else if (config.gameMode === 'Fast Drake') {
         guide = [
+          'Game Mode: Fast Drake',
           '+50% Speed as LV. 3',
           'Faster Decay',
           'Longer Immunity'
@@ -1552,6 +1553,13 @@ io.on('connection', function(socket) {
         guide = [
           'Game Mode: Sticky Mode',
           'Sticky islands'
+        ]
+      } else {
+        guide = [
+          'Game Mode: ' + config.gameMode,
+          'Eat sprites to stay alive',
+          'Avoid bigger dragons',
+          'Eat smaller dragons'
         ]
       }
 
