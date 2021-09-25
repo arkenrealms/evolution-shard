@@ -1940,13 +1940,13 @@ function resetLeaderboard() {
 
   db.leaderboardHistory.push(JSON.parse(JSON.stringify(round.players)))
 
-  // saveLeaderboardHistory()
-  // savePlayerRewards()
-  // saveRewards()
-  // saveReportList()
-  // saveBanList()
-  // saveLog()
-  // saveModList()
+  saveLeaderboardHistory()
+  savePlayerRewards()
+  saveRewards()
+  saveReportList()
+  saveBanList()
+  saveLog()
+  saveModList()
 
   jetpack.write(path.resolve(`./public/data/rounds/${round.id}.json`), JSON.stringify(round, null, 2), { atomic: true })
 
