@@ -129,7 +129,7 @@ const saveReportList = () => {
 }
 
 const saveLog = () => {
-  jetpack.write(path.resolve('./public/data/log.json'), JSON.stringify(db.log, null, 2), { atomic: true })
+  jetpack.writeAsync(path.resolve('./public/data/log.json'), JSON.stringify(db.log, null, 2))
 }
 
 function reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer) {
@@ -1945,7 +1945,7 @@ function resetLeaderboard() {
   saveRewards()
   saveReportList()
   saveBanList()
-  // saveLog()
+  saveLog()
   saveModList()
 
   jetpack.write(path.resolve(`./public/data/rounds/${round.id}.json`), JSON.stringify(round, null, 2), { atomic: true })
