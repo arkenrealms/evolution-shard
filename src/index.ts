@@ -1,4 +1,3 @@
-
 import * as utf8 from 'utf8'
 import * as ethers from 'ethers'
 import * as Web3 from 'web3'
@@ -44,24 +43,25 @@ const io = require('socket.io')(process.env.SUDO_USER === 'dev' || process.env.O
 const shortId = require('shortid')
 
 function logError(err) {
+  console.log(err)
+
   const errorLog = jetpack.read(path.resolve('./public/data/errors.json'), 'json') || []
 
   errorLog.push(err + '')
   
   jetpack.write(path.resolve('./public/data/errors.json'), JSON.stringify(errorLog, null, 2), { atomic: true })
-  
-  logError(err)
 }
+
 
 process
   .on("unhandledRejection", (reason, p) => {
-    console.warn(reason, "Unhandled Rejection at Promise", p);
+    console.log(reason, "Unhandled Rejection at Promise", p);
     logError(reason + ". Unhandled Rejection at Promise:" + p);
   })
   .on("uncaughtException", (err) => {
-    console.warn(err, "Uncaught Exception thrown");
-    logError(err + ". Uncaught Exception thrown" + err.stack);
-    //process.exit(1);
+    console.log(err, "Uncaught Exception thrown");
+    // logError(err + ". Uncaught Exception thrown" + err.stack);
+    process.exit(1);
   })
 
 
@@ -222,7 +222,7 @@ const sharedConfig = {
   checkPositionDistance: 2,
   claimingRewards: false,
   decayPower: 1.4,
-  disconnectPlayerSeconds: testMode ? 999 : 2 * 60,
+  disconnectPlayerSeconds: testMode ? 999 : 30,
   disconnectPositionJumps: true, // TODO: remove
   fastestLoopSeconds: 0.02,
   fastLoopSeconds: 0.02,
@@ -416,6 +416,7 @@ let announceReboot = false
 let rebootAfterRound = false
 let totalLegitPlayers = 0
 const debug = false // !(process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10')
+const debugQueue = false
 const killSameNetworkClients = false
 const sockets = {} // to storage sockets
 const clientLookup = {}
@@ -809,6 +810,7 @@ function distanceBetweenPoints(pos1, pos2) {
 }
 
 function syncSprites() {
+  log('Syncing sprites')
   const playerCount = clients.filter(c => !c.isDead && !c.isSpectating && !c.isInvincible).length
   const length = config.spritesStartCount + playerCount * config.spritesPerPlayerCount
 
@@ -817,9 +819,11 @@ function syncSprites() {
   
     for (let i = 0; i < deletedPoints.length; i++) {
       publishEvent('OnUpdatePickup', 'null', deletedPoints[i].id, 0)
+      // delete powerupLookup[deletedPoints[i].id]
     }
+
   
-    config.spritesTotal = powerups.length
+    config.spritesTotal = length
   } else if (length > powerups.length) {
     spawnSprites(length - powerups.length)
   }
@@ -1441,8 +1445,8 @@ io.on('connection', function(socket) {
       }
     })
 
-    socket.on('JoinRoom', function(msg) {
-      log('JoinRoom')
+    socket.on('JoinRoom', function() {
+      log('JoinRoom', currentPlayer.id)
 
       // const pack = decodePayload(msg)
       const now = getTime()
@@ -2396,123 +2400,128 @@ function fastestGameloop() {
 }
 
 function fastGameloop() {
-  const now = getTime()
+  try {
+    const now = getTime()
 
-  detectCollisions()
+    detectCollisions()
 
-  for (let i = 0; i < clients.length; i++) {
-    const client = clients[i]
+    for (let i = 0; i < clients.length; i++) {
+      const client = clients[i]
 
-    if (client.isDisconnected) continue
-    if (client.isDead) continue
-    if (client.isSpectating) continue
+      if (client.isDisconnected) continue
+      if (client.isDead) continue
+      if (client.isSpectating) continue
 
-    const currentTime = Math.round(now / 1000)
-    const isInvincible = client.isInvincible ? true : ((client.joinedAt >= currentTime - config.immunitySeconds))
-    const isPhased = client.isPhased ? true : now <= client.phasedUntil
+      const currentTime = Math.round(now / 1000)
+      const isInvincible = client.isInvincible ? true : ((client.joinedAt >= currentTime - config.immunitySeconds))
+      const isPhased = client.isPhased ? true : now <= client.phasedUntil
 
-    let decay = config.noDecay ? 0 : (client.avatar + 1) / (1 / config.fastLoopSeconds) * ((config['avatarDecayPower' + client.avatar] || 1) * config.decayPower)
+      let decay = config.noDecay ? 0 : (client.avatar + 1) / (1 / config.fastLoopSeconds) * ((config['avatarDecayPower' + client.avatar] || 1) * config.decayPower)
 
-    client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
+      client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
 
-    if (client.xp > 100) {
-      if (decay > 0) {
-        if (client.avatar < (config.maxEvolves - 1)) {
-          client.xp = client.xp - 100
-          client.avatar = Math.max(Math.min(client.avatar + (1 * config.avatarDirection), config.maxEvolves - 1), 0)
-          client.evolves += 1
-          client.points += config.pointsPerEvolve
-  
-          if (config.leadercap && client.name === lastLeaderName) {
-            client.speed = client.speed * 0.9
+      if (client.xp > 100) {
+        if (decay > 0) {
+          if (client.avatar < (config.maxEvolves - 1)) {
+            client.xp = client.xp - 100
+            client.avatar = Math.max(Math.min(client.avatar + (1 * config.avatarDirection), config.maxEvolves - 1), 0)
+            client.evolves += 1
+            client.points += config.pointsPerEvolve
+    
+            if (config.leadercap && client.name === lastLeaderName) {
+              client.speed = client.speed * 0.9
+            }
+    
+            publishEvent('OnUpdateEvolution', client.id, client.avatar, client.speed)
+          } else {
+            client.xp = 100
           }
-  
-          publishEvent('OnUpdateEvolution', client.id, client.avatar, client.speed)
         } else {
-          client.xp = 100
+          if (client.avatar >= (config.maxEvolves - 1)) {
+            client.xp = 100
+            // const currentTime = Math.round(now / 1000)
+            // const isNew = client.joinedAt >= currentTime - config.immunitySeconds
+              
+            // if (!config.noBoot && !isInvincible && !isNew) {
+            //   disconnectPlayer(client)
+            // }
+          } else {
+            client.xp = client.xp - 100
+            client.avatar = Math.max(Math.min(client.avatar + (1 * config.avatarDirection), config.maxEvolves - 1), 0)
+            client.evolves += 1
+            client.points += config.pointsPerEvolve
+    
+            if (config.leadercap && client.name === lastLeaderName) {
+              client.speed = client.speed * 0.9
+            }
+    
+            publishEvent('OnUpdateEvolution', client.id, client.avatar, client.speed)
+          }
         }
       } else {
-        if (client.avatar >= (config.maxEvolves - 1)) {
-          client.xp = 100
-          // const currentTime = Math.round(now / 1000)
-          // const isNew = client.joinedAt >= currentTime - config.immunitySeconds
-            
-          // if (!config.noBoot && !isInvincible && !isNew) {
-          //   disconnectPlayer(client)
-          // }
-        } else {
-          client.xp = client.xp - 100
-          client.avatar = Math.max(Math.min(client.avatar + (1 * config.avatarDirection), config.maxEvolves - 1), 0)
-          client.evolves += 1
-          client.points += config.pointsPerEvolve
-  
-          if (config.leadercap && client.name === lastLeaderName) {
-            client.speed = client.speed * 0.9
-          }
-  
-          publishEvent('OnUpdateEvolution', client.id, client.avatar, client.speed)
-        }
-      }
-    } else {
-      client.xp -= decay
+        client.xp -= decay
 
-      if (client.xp <= 0) {
-        client.xp = 0
+        if (client.xp <= 0) {
+          client.xp = 0
 
-        if (decay > 0) {
-          if (client.avatar === 0) {
-            const currentTime = Math.round(now / 1000)
-            const isNew = client.joinedAt >= currentTime - config.immunitySeconds
-              
-            if (!config.noBoot && !isInvincible && !isNew) {
-              client.log.ranOutOfHealth += 1
-              disconnectPlayer(client)
+          if (decay > 0) {
+            if (client.avatar === 0) {
+              const currentTime = Math.round(now / 1000)
+              const isNew = client.joinedAt >= currentTime - config.immunitySeconds
+                
+              if (!config.noBoot && !isInvincible && !isNew) {
+                client.log.ranOutOfHealth += 1
+                disconnectPlayer(client)
+              }
+            } else {
+              client.xp = 100
+              client.avatar = Math.max(Math.min(client.avatar - (1 * config.avatarDirection), config.maxEvolves - 1), 0)
+
+              if (config.leadercap && client.name === lastLeaderName) {
+                client.speed = client.speed * 0.9
+              }
+      
+              publishEvent('OnUpdateRegression', client.id, client.avatar, client.speed)
             }
           } else {
-            client.xp = 100
-            client.avatar = Math.max(Math.min(client.avatar - (1 * config.avatarDirection), config.maxEvolves - 1), 0)
+            if (client.avatar === 0) {
+              client.xp = 0
+            } else {
+              client.xp = 100
+              client.avatar = Math.max(Math.min(client.avatar - (1 * config.avatarDirection), config.maxEvolves - 1), 0)
 
-            if (config.leadercap && client.name === lastLeaderName) {
-              client.speed = client.speed * 0.9
+              if (config.leadercap && client.name === lastLeaderName) {
+                client.speed = client.speed * 0.9
+              }
+      
+              publishEvent('OnUpdateRegression', client.id, client.avatar, client.speed)
             }
-    
-            publishEvent('OnUpdateRegression', client.id, client.avatar, client.speed)
-          }
-        } else {
-          if (client.avatar === 0) {
-            client.xp = 0
-          } else {
-            client.xp = 100
-            client.avatar = Math.max(Math.min(client.avatar - (1 * config.avatarDirection), config.maxEvolves - 1), 0)
-
-            if (config.leadercap && client.name === lastLeaderName) {
-              client.speed = client.speed * 0.9
-            }
-    
-            publishEvent('OnUpdateRegression', client.id, client.avatar, client.speed)
           }
         }
       }
+
+      // const cacheKey = client.position.x + client.position.y + isInvincible
+    
+      // if (config.optimization.sendPlayerUpdateWithNoChanges || eventCache['OnUpdatePlayer'][client.id] !== cacheKey) {
+        client.latency = ((now - client.lastReportedTime) / 2)// - (now - lastFastGameloopTime)
+
+        if (Number.isNaN(client.latency)) {
+          client.latency = 0
+        }
+    
+        publishEvent('OnUpdatePlayer', client.id, client.overrideSpeed || client.speed, client.cameraSize, client.position.x, client.position.y, client.target.x, client.target.y, Math.floor(client.xp), now, Math.round(client.latency), isInvincible ? '1': '0', client.isStuck ? '1' : '0', isPhased && !isInvincible ? '1' : '0')
+
+        // eventCache['OnUpdatePlayer'][client.id] = cacheKey
+      // }
     }
 
-    // const cacheKey = client.position.x + client.position.y + isInvincible
-  
-    // if (config.optimization.sendPlayerUpdateWithNoChanges || eventCache['OnUpdatePlayer'][client.id] !== cacheKey) {
-      client.latency = ((now - client.lastReportedTime) / 2)// - (now - lastFastGameloopTime)
+    flushEventQueue()
 
-      if (Number.isNaN(client.latency)) {
-        client.latency = 0
-      }
-  
-      publishEvent('OnUpdatePlayer', client.id, client.overrideSpeed || client.speed, client.cameraSize, client.position.x, client.position.y, client.target.x, client.target.y, Math.floor(client.xp), now, Math.round(client.latency), isInvincible ? '1': '0', client.isStuck ? '1' : '0', isPhased && !isInvincible ? '1' : '0')
-
-      // eventCache['OnUpdatePlayer'][client.id] = cacheKey
-    // }
+    lastFastGameloopTime = now
+  } catch(e) {
+    console.log(e)
+    process.exit(1)
   }
-
-  flushEventQueue()
-
-  lastFastGameloopTime = now
 
   setTimeout(fastGameloop, config.fastLoopSeconds * 1000)
 }
@@ -2523,7 +2532,7 @@ function flushEventQueue() {
   const now = getTime()
 
   if (eventQueue.length) {
-    log('Sending queue', eventQueue)
+    if (debugQueue) log('Sending queue', eventQueue)
 
     let recordDetailed = now - eventFlushedAt > 500
 
