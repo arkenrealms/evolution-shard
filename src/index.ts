@@ -1940,13 +1940,13 @@ function resetLeaderboard() {
 
   db.leaderboardHistory.push(JSON.parse(JSON.stringify(round.players)))
 
-  saveLeaderboardHistory()
-  savePlayerRewards()
-  saveRewards()
-  saveReportList()
-  saveBanList()
-  saveLog()
-  saveModList()
+  // saveLeaderboardHistory()
+  // savePlayerRewards()
+  // saveRewards()
+  // saveReportList()
+  // saveBanList()
+  // saveLog()
+  // saveModList()
 
   jetpack.write(path.resolve(`./public/data/rounds/${round.id}.json`), JSON.stringify(round, null, 2), { atomic: true })
 
@@ -1956,12 +1956,16 @@ function resetLeaderboard() {
 
   randomRoundPreset()
 
-  round.players = []
-  round.events = []
-  round.startedAt = Math.round(getTime() / 1000)
-  round.id++
+  db.config.roundId = round.id + 1
 
-  db.config.roundId = round.id
+  round = null
+  round = {
+    id: db.config.roundId,
+    startedAt: Math.round(getTime() / 1000),
+    players: [],
+    events: [],
+    states: [],
+  }
 
   jetpack.write(path.resolve(`./public/data/config.json`), JSON.stringify(db.config, null, 2), { atomic: true })
 
@@ -2128,6 +2132,7 @@ function detectCollisions() {
 
     if (player.isDead) continue
     if (player.isSpectating) continue
+    if (player.isJoining) continue
 
     if (!Number.isFinite(player.position.x) || !Number.isFinite(player.speed)) { // Not sure what happened
       player.log.speedProblem += 1
@@ -2411,6 +2416,7 @@ function fastGameloop() {
       if (client.isDisconnected) continue
       if (client.isDead) continue
       if (client.isSpectating) continue
+      if (client.isJoining) continue
 
       const currentTime = Math.round(now / 1000)
       const isInvincible = client.isInvincible ? true : ((client.joinedAt >= currentTime - config.immunitySeconds))
@@ -2560,6 +2566,7 @@ function flushEventQueue() {
 
     // round.events = round.events.concat(eventQueue)
   
+    eventQueue = null
     eventQueue = []
   }
 }
