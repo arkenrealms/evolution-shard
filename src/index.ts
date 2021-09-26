@@ -1164,7 +1164,12 @@ io.on('connection', function(socket) {
         connects: 0,
         path: '',
         positions: 0,
-        replay: []
+        replay: [],
+        recentJoinProblem: 0,
+        usernameProblem: 0,
+        maintenanceJoin: 0,
+        signatureProblem: 0,
+        signinProblem: 0,
       }
     }
 
@@ -1174,8 +1179,8 @@ io.on('connection', function(socket) {
       const sameNetworkClients = clients.filter(r => r.hash === currentPlayer.hash && r.id !== currentPlayer.id)
 
       for (const client of sameNetworkClients) {
-        disconnectPlayer(client)
         client.log.sameNetworkDisconnect += 1
+        disconnectPlayer(client)
       }
     }
 
@@ -1365,6 +1370,7 @@ io.on('connection', function(socket) {
         const pack = decodePayload(msg)
 
         if (!pack.signature || !pack.network || !pack.device || !pack.address) {
+          currentPlayer.log.signinProblem += 1
           disconnectPlayer(currentPlayer)
           return
         }
@@ -1372,6 +1378,7 @@ io.on('connection', function(socket) {
         const address = web3.utils.toChecksumAddress(pack.address.trim())
 
         if (!verifySignature({ value: 'evolution', hash: pack.signature.trim() }, address)) {
+          currentPlayer.log.signatureProblem += 1
           disconnectPlayer(currentPlayer)
           return
         }
@@ -1383,6 +1390,7 @@ io.on('connection', function(socket) {
         }
 
         if (config.isMaintenance && !db.modList.includes(address)) {
+          currentPlayer.log.maintenanceJoin += 1
           emitDirect(socket, 'OnMaintenance', true)
           disconnectPlayer(currentPlayer)
           return
@@ -1394,6 +1402,7 @@ io.on('connection', function(socket) {
           name = await getUsername(address)
 
           if (!name) {
+            currentPlayer.log.usernameProblem += 1
             disconnectPlayer(currentPlayer)
             return
           }
@@ -1413,6 +1422,7 @@ io.on('connection', function(socket) {
 
           if (recentPlayer) {
             if ((now - recentPlayer.lastUpdate) < 3000) {
+              currentPlayer.log.recentJoinProblem += 1
               disconnectPlayer(currentPlayer)
               return
             }
@@ -1428,8 +1438,6 @@ io.on('connection', function(socket) {
 
             currentPlayer.log.connects += 1
           }
-
-          addToRecentPlayers(currentPlayer)
       
           publishEvent('OnSetInfo', currentPlayer.id, currentPlayer.name, currentPlayer.network, currentPlayer.address, currentPlayer.device)
 
@@ -1453,8 +1461,8 @@ io.on('connection', function(socket) {
       const recentPlayer = round.players.find(r => r.address === currentPlayer.address)
 
       if (recentPlayer && (now - recentPlayer.lastUpdate) < 3000) {
-        disconnectPlayer(currentPlayer)
         currentPlayer.log.connectedTooSoon += 1
+        disconnectPlayer(currentPlayer)
         return
       }
 
@@ -1629,17 +1637,6 @@ io.on('connection', function(socket) {
           }
         }
       }
-
-      // setTimeout(() => {
-      //   baseConfig.level2open = true
-      //   config.level2open = true
-      //   sharedConfig.spritesStartCount = 100
-      //   config.spritesStartCount = 100
-      //   publishEvent('OnOpenLevel2')
-      // }, 5 * 1000)
-      // setTimeout(() => {
-      //   publishEvent('OnCloseLevel2')
-      // }, 10 * 1000)
     })
 
     socket.on('UpdateMyself', function(msg) {
@@ -1655,6 +1652,8 @@ io.on('connection', function(socket) {
         if (currentPlayer.isJoining) {
           currentPlayer.isDead = false
           currentPlayer.isJoining = false
+
+          addToRecentPlayers(currentPlayer)
 
           // spawn currentPlayer client on clients in broadcast
           publishEvent('OnSpawnPlayer', currentPlayer.id, currentPlayer.name, currentPlayer.speed, currentPlayer.avatar, currentPlayer.position.x, currentPlayer.position.y, currentPlayer.position.x, currentPlayer.position.y)
@@ -1676,23 +1675,15 @@ io.on('connection', function(socket) {
         if (positionY > mapBoundary.y.max) return
       
         if (config.anticheat.disconnectPositionJumps && distanceBetweenPoints(currentPlayer.position, { x: positionY, y: positionY }) > 5) {
-          disconnectPlayer(currentPlayer)
           currentPlayer.log.positionJump += 1
+          disconnectPlayer(currentPlayer)
           return
         }
 
         currentPlayer.clientPosition = { x: positionX, y: positionY }
         currentPlayer.clientTarget = { x: targetX, y: targetY }
         currentPlayer.lastReportedTime = parseFloat(pack.time)
-
-        // const cacheKey = Math.floor(pack.target.split(':')[0])
-
-        // if (eventCache['OnUpdateMyself'][socket.id] !== cacheKey) {
-          currentPlayer.lastUpdate = now
-
-          // publishEvent('OnUpdateMyself', data.id, data.position, data.target)
-        //   eventCache['OnUpdateMyself'][socket.id] = cacheKey
-        // }
+        currentPlayer.lastUpdate = now
       } catch(e) {
         console.log(e)
       }
@@ -1738,18 +1729,11 @@ io.on('connection', function(socket) {
       }
     })
     
-    // socket.on('GetBestKillers', function(pack) {
-    //   const leaderboard = round.players.sort(comparePlayers)
-    //   for (let j = 0; j < leaderboard.length; j++) {
-    //     emitDirect(socket, 'OnUpdateBestKiller', leaderboard[j].name, j, leaderboard[j].points, leaderboard[j].kills, leaderboard[j].deaths, leaderboard[j].powerups, leaderboard[j].evolves, leaderboard[j].rewards, leaderboard[j].isDead ? '-' : Math.round(leaderboard[j].latency), ranks[leaderboard[j].address]?.kills / 5 || 1)
-    //   }
-    // })
-
     socket.on('disconnect', function() {
       log("User has disconnected")
 
-      disconnectPlayer(currentPlayer)
       currentPlayer.log.clientDisconnected += 1
+      disconnectPlayer(currentPlayer)
 
       flushEventQueue()
     })
@@ -1940,15 +1924,15 @@ function resetLeaderboard() {
 
   db.leaderboardHistory.push(JSON.parse(JSON.stringify(round.players)))
 
-  saveLeaderboardHistory()
-  savePlayerRewards()
-  saveRewards()
-  saveReportList()
-  saveBanList()
-  saveLog()
-  saveModList()
+  setTimeout(saveLeaderboardHistory, 100)
+  setTimeout(savePlayerRewards, 100)
+  setTimeout(saveRewards, 100)
+  setTimeout(saveReportList, 100)
+  setTimeout(saveBanList, 100)
+  setTimeout(saveLog, 100)
+  setTimeout(saveModList, 100)
 
-  jetpack.write(path.resolve(`./public/data/rounds/${round.id}.json`), JSON.stringify(round, null, 2), { atomic: true })
+  jetpack.writeAsync(path.resolve(`./public/data/rounds/${round.id}.json`), JSON.stringify(round, null, 2), { atomic: true })
 
   if (config.calcRoundRewards) {
     calcRoundRewards()
@@ -1967,7 +1951,7 @@ function resetLeaderboard() {
     states: [],
   }
 
-  jetpack.write(path.resolve(`./public/data/config.json`), JSON.stringify(db.config, null, 2), { atomic: true })
+  jetpack.writeAsync(path.resolve(`./public/data/config.json`), JSON.stringify(db.config, null, 2), { atomic: true })
 
   for (const client of clients) {
     if (!ranks[client.address]) ranks[client.address] = {}
@@ -2077,8 +2061,8 @@ function checkConnectionLoop() {
       // if (client.isDead) continue
 
       if (client.lastUpdate !== 0 && client.lastUpdate <= oneMinuteAgo) {
-        disconnectPlayer(client)
         client.log.timeoutDisconnect += 1
+        disconnectPlayer(client)
       }
     }
   }
@@ -2506,19 +2490,13 @@ function fastGameloop() {
         }
       }
 
-      // const cacheKey = client.position.x + client.position.y + isInvincible
-    
-      // if (config.optimization.sendPlayerUpdateWithNoChanges || eventCache['OnUpdatePlayer'][client.id] !== cacheKey) {
-        client.latency = ((now - client.lastReportedTime) / 2)// - (now - lastFastGameloopTime)
+      client.latency = ((now - client.lastReportedTime) / 2)// - (now - lastFastGameloopTime)
 
-        if (Number.isNaN(client.latency)) {
-          client.latency = 0
-        }
-    
-        publishEvent('OnUpdatePlayer', client.id, client.overrideSpeed || client.speed, client.cameraSize, client.position.x, client.position.y, client.target.x, client.target.y, Math.floor(client.xp), now, Math.round(client.latency), isInvincible ? '1': '0', client.isStuck ? '1' : '0', isPhased && !isInvincible ? '1' : '0')
-
-        // eventCache['OnUpdatePlayer'][client.id] = cacheKey
-      // }
+      if (Number.isNaN(client.latency)) {
+        client.latency = 0
+      }
+  
+      publishEvent('OnUpdatePlayer', client.id, client.overrideSpeed || client.speed, client.cameraSize, client.position.x, client.position.y, client.target.x, client.target.y, Math.floor(client.xp), now, Math.round(client.latency), isInvincible ? '1': '0', client.isStuck ? '1' : '0', isPhased && !isInvincible ? '1' : '0')
     }
 
     flushEventQueue()
