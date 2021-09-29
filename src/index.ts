@@ -22,7 +22,7 @@ import * as secrets from './secrets'
 
 const path = require('path')
 
-const serverVersion = "1.5.0"
+const serverVersion = "1.6.0"
 
 const server = express()
 const http = require('http').Server(server)
@@ -808,7 +808,6 @@ const claimReward = (currentPlayer, reward) => {
 
   if (config.anticheat.samePlayerCantClaimRewardTwiceInRow && lastReward?.winner.name === currentPlayer.name) return
 
-  reward.winner = currentPlayer
   try {
     if (currentPlayer.address) {
       if (reward.type === 'rune') {
@@ -823,12 +822,14 @@ const claimReward = (currentPlayer, reward) => {
         if (!db.playerRewards[currentPlayer.address]) db.playerRewards[currentPlayer.address] = {}
         if (!db.playerRewards[currentPlayer.address].pendingItems) db.playerRewards[currentPlayer.address].pendingItems = []
 
-        db.playerRewards[currentPlayer.address].pendingItems.push(reward)
+        db.playerRewards[currentPlayer.address].pendingItems.push(JSON.parse(JSON.stringify(reward)))
       }
     }
   } catch(e) {
     console.log(e)
   }
+
+  reward.winner = currentPlayer
 
   publishEvent('OnUpdateReward', currentPlayer.id, reward.id)
 
@@ -1294,6 +1295,7 @@ io.on('connection', function(socket) {
         maintenanceJoin: 0,
         signatureProblem: 0,
         signinProblem: 0,
+        versionProblem: 0,
       }
     }
 
@@ -1495,6 +1497,12 @@ io.on('connection', function(socket) {
 
         if (!pack.signature || !pack.network || !pack.device || !pack.address) {
           currentPlayer.log.signinProblem += 1
+          disconnectPlayer(currentPlayer)
+          return
+        }
+
+        if (pack.version !== serverVersion) {
+          currentPlayer.log.versionProblem += 1
           disconnectPlayer(currentPlayer)
           return
         }
