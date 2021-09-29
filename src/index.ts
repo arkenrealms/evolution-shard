@@ -637,7 +637,7 @@ const spawnRandomReward = () => {
 
   
 
-  if ((now - db.config.drops.guardian) > 10 * 1000) {// 12 * 60 * 60 * 1000) {
+  if ((now - db.config.drops.guardian) > 60 * 1000) {// 12 * 60 * 60 * 1000) {
     currentReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
@@ -662,7 +662,7 @@ const spawnRandomReward = () => {
     config.rewardItemType = sharedConfig.rewardItemType
 
     db.config.drops.guardian = now
-  } else if ((now - db.config.drops.earlyAccess) > 10 * 1000) {//7 * 24 * 60 * 60 * 1000) {
+  } else if ((now - db.config.drops.earlyAccess) > 60 * 1000) {//7 * 24 * 60 * 60 * 1000) {
     currentReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
