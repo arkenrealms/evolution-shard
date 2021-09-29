@@ -326,7 +326,7 @@ const presets = [
   },
   {
     gameMode: 'Sprite Leader',
-    spritesPerPlayerCount: 3,
+    spritesPerPlayerCount: 10,
     // decayPower: 7,
     avatarDecayPower0: 2,
     avatarDecayPower1: 2 * (7 / 1.4),
@@ -342,8 +342,9 @@ const presets = [
     gameMode: 'Fast Drake',
     avatarSpeedMultiplier2: 1.5,
     decayPower: 4,
-    immunitySeconds: 20,
+    immunitySeconds: 10,
     orbOnDeathPercent: 0,
+    spritesPerPlayerCount: 3,
   },
   {
     gameMode: 'Bird Eye',
@@ -364,7 +365,7 @@ const presets = [
     avatarDecayPower1: 3,
     avatarDecayPower2: 2,
     spriteXpMultiplier: -1,
-    spritesPerPlayerCount: 3,
+    spritesPerPlayerCount: 10,
     preventBadKills: false
   },
   {
@@ -377,7 +378,7 @@ const presets = [
     avatarDecayPower0: 4,
     avatarDecayPower1: 3,
     avatarDecayPower2: 2,
-    spriteXpMultiplier: -1,
+    spriteXpMultiplier: -2,
     // avatarDirection: -1
   },
   {
@@ -690,6 +691,11 @@ const claimReward = (currentPlayer) => {
         // } catch(e) {
         //   console.log(e)
         // }
+
+        if (!db.playerRewards[currentPlayer.address]) db.playerRewards[currentPlayer.address] = {}
+        if (!db.playerRewards[currentPlayer.address].pendingItems) db.playerRewards[currentPlayer.address].pendingItems = []
+
+        db.playerRewards[currentPlayer.address].pendingItems.push(currentReward.tokenId)
 
         db.rewards.items = db.rewards.items.filter(i => i.tokenId !== currentReward.tokenId)
       } else if (currentReward.type === 'rune') {
@@ -2835,9 +2841,30 @@ const initRoutes = async () => {
       }
     })
 
+    server.get('/user/:address/details', function(req, res) {
+      if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
+      if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
+      if (!db.playerRewards[req.params.address].pendingItems) db.playerRewards[req.params.address].pendingItems = []
+      if (!db.playerRewards[req.params.address].historyRunes) db.playerRewards[req.params.address].historyRunes = []
+      if (!db.playerRewards[req.params.address].historyItems) db.playerRewards[req.params.address].historyItems = []
+
+      res.json({
+        runes: {
+          pending: db.playerRewards[req.params.address].pending,
+          history: db.playerRewards[req.params.address].historyRunes
+        },
+        items: {
+          pending: db.playerRewards[req.params.address].pendingItems,
+          history: db.playerRewards[req.params.address].historyItems
+        },
+        quests: db.quests.players[req.params.address]
+      })
+    })
+
     server.get('/user/:address', function(req, res) {
       if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
       if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
+      if (!db.playerRewards[req.params.address].pendingItems) db.playerRewards[req.params.address].pendingItems = []
 
       res.json(db.playerRewards[req.params.address].pending)
     })
