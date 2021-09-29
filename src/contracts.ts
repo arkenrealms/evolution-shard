@@ -70,14 +70,6 @@ export default {
     [MAINNET]: '0xFf563822fC039D292aC4909b7cB1302c5b3d3450',
     [TESTNET]: '',
   },
-  barracks: {
-    [MAINNET]: '0x5fE24631136D570D12920C9Fa0FEcaDA84E47673',
-    [TESTNET]: '',
-  },
-  blacksmith: {
-    [MAINNET]: '0xB615023dfa06944B06c4caDB308E6009907E8f4d',
-    [TESTNET]: '0x6bEf093fab1BeE45EA6b8dd60c4C3c3247Dd4E30',
-  },
 
   thulMasterChef: {
     [MAINNET]: '0xcfA857d6EC2F59b050D7296FbcA8a91D061451f3',
