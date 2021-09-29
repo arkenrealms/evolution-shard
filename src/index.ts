@@ -635,7 +635,9 @@ const spawnRandomReward = () => {
   if (!db.config.drops.runeword) db.config.drops.runeword = 0
   if (!db.config.drops.runeToken) db.config.drops.runeToken = 0
 
-  if ((now - db.config.drops.guardian) > 12 * 60 * 60 * 1000) {
+  
+
+  if ((now - db.config.drops.guardian) > 10 * 1000) {// 12 * 60 * 60 * 1000) {
     currentReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
@@ -660,7 +662,7 @@ const spawnRandomReward = () => {
     config.rewardItemType = sharedConfig.rewardItemType
 
     db.config.drops.guardian = now
-  } else if ((now - db.config.drops.earlyAccess) > 7 * 24 * 60 * 60 * 1000) {
+  } else if ((now - db.config.drops.earlyAccess) > 10 * 1000) {//7 * 24 * 60 * 60 * 1000) {
     currentReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
@@ -676,7 +678,7 @@ const spawnRandomReward = () => {
     config.rewardItemType = sharedConfig.rewardItemType
 
     db.config.drops.earlyAccess = now
-  } else if ((now - db.config.drops.trinket) > 12 * 60 * 60 * 1000) {
+  } else if ((now - db.config.drops.trinket) > 10 * 1000) {//12 * 60 * 60 * 1000) {
     currentReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
@@ -701,10 +703,10 @@ const spawnRandomReward = () => {
     config.rewardItemType = sharedConfig.rewardItemType
 
     db.config.drops.trinket = now
-  } else if ((now - db.config.drops.runeword) > 24 * 60 * 60 * 1000) {
+  } else if ((now - db.config.drops.runeword) > 10 * 1000) {//24 * 60 * 60 * 1000) {
     
     db.config.drops.runeword = now
-  } else if ((now - db.config.drops.runeToken) > 7 * 24 * 60 * 60 * 1000) {
+  } else if ((now - db.config.drops.runeToken) > 10 * 1000) {//7 * 24 * 60 * 60 * 1000) {
     currentReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
