@@ -649,7 +649,7 @@ const spawnRandomReward = () => {
     
     if (rand === 1000)
       currentReward.rarity = 'Mythic'
-    else if (rand > 850)
+    else if (rand > 900)
       currentReward.rarity = 'Epic'
     else if (rand > 700)
       currentReward.rarity = 'Rare'
@@ -690,7 +690,7 @@ const spawnRandomReward = () => {
     
     if (rand === 1000)
       currentReward.rarity = 'Mythic'
-    else if (rand > 850)
+    else if (rand > 900)
       currentReward.rarity = 'Epic'
     else if (rand > 700)
       currentReward.rarity = 'Rare'
@@ -718,9 +718,9 @@ const spawnRandomReward = () => {
     
     if (rand === 1000)
       currentReward.quantity = 10
-    else if (rand > 850)
+    else if (rand > 950)
       currentReward.quantity = 3
-    else if (rand > 700)
+    else if (rand > 800)
       currentReward.quantity = 2
 
     sharedConfig.rewardItemName = currentReward.quantity + ' ' + currentReward.name
