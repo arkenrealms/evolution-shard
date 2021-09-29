@@ -11,15 +11,18 @@ import * as morgan from 'morgan'
 import * as crypto from 'crypto'
 import * as jetpack from 'fs-jetpack'
 import axios from 'axios'
+import * as ArcaneItems from './contracts/ArcaneItems.json'
+import * as BEP20Contract from './contracts/BEP20.json'
 import middleware from './middleware'
-import * as database from './db'
 import * as services from './services'
 import { decodeItem } from './decodeItem'
 import Provider from './util/provider'
+import contracts from './contracts'
+import * as secrets from './secrets'
 
 const path = require('path')
 
-const serverVersion = "1.5.0"
+const serverVersion = "1.6.0"
 
 const server = express()
 const http = require('http').Server(server)
@@ -65,10 +68,33 @@ process
   })
 
 
-const eventCache: any = {
-  'OnUpdateMyself': {},
-  'OnUpdatePlayer': {}
+const getRandomProvider = () => {
+  return ethers.getDefaultProvider("https://bsc-dataseed1.ninicoin.io") //"wss://thrumming-still-leaf.bsc.quiknode.pro/b2f8a5b1bd0809dbf061112e1786b4a8e53c9a83/")
+  // return new HDWalletProvider(
+  //   secrets.mnemonic,
+  //   "wss://thrumming-still-leaf.bsc.quiknode.pro/b2f8a5b1bd0809dbf061112e1786b4a8e53c9a83/" //"https://bsc.getblock.io/mainnet/?api_key=3f594a5f-d0ed-48ca-b0e7-a57d04f76332" //networks[Math.floor(Math.random() * networks.length)]
+  // )
 }
+
+export const getAddress = (address) => {
+  const mainNetChainId = 56
+  const chainId = process.env.CHAIN_ID
+  return address[chainId] ? address[chainId] : address[mainNetChainId]
+}
+
+
+export let provider = getRandomProvider()
+
+const gasPrice = 5
+
+// const web3 = new Web3(provider)
+
+// const web3Provider = new ethers.providers.Web3Provider(getRandomProvider())
+// web3Provider.pollingInterval = 15000
+
+const signer = new ethers.Wallet(secrets.key, provider) //web3Provider.getSigner()
+
+const arcaneItemsContract = new ethers.Contract(getAddress(contracts.items), ArcaneItems.abi, signer)
 
 const db: any = {}
 
@@ -326,7 +352,7 @@ const presets = [
   },
   {
     gameMode: 'Sprite Leader',
-    spritesPerPlayerCount: 3,
+    spritesPerPlayerCount: 10,
     // decayPower: 7,
     avatarDecayPower0: 2,
     avatarDecayPower1: 2 * (7 / 1.4),
@@ -342,8 +368,9 @@ const presets = [
     gameMode: 'Fast Drake',
     avatarSpeedMultiplier2: 1.5,
     decayPower: 4,
-    immunitySeconds: 20,
+    immunitySeconds: 10,
     orbOnDeathPercent: 0,
+    spritesPerPlayerCount: 3,
   },
   {
     gameMode: 'Bird Eye',
@@ -364,7 +391,7 @@ const presets = [
     avatarDecayPower1: 3,
     avatarDecayPower2: 2,
     spriteXpMultiplier: -1,
-    spritesPerPlayerCount: 3,
+    spritesPerPlayerCount: 10,
     preventBadKills: false
   },
   {
@@ -377,7 +404,7 @@ const presets = [
     avatarDecayPower0: 4,
     avatarDecayPower1: 3,
     avatarDecayPower2: 2,
-    spriteXpMultiplier: -1,
+    spriteXpMultiplier: -2,
     // avatarDirection: -1
   },
   {
@@ -598,48 +625,149 @@ const spawnRandomReward = () => {
     return
   }
   // if (currentReward) return
-
-  const odds = [
-    'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
-    'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
-    'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
-    'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
-    'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
-    'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
-    'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
-    'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
-    'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
-    'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
-    'items'
-  ]
-
-  const rewardType = db.rewards[odds[random(0, odds.length-1)]]
-
-  if (rewardType.length === 0) return spawnRandomReward()
-
-  const reward = rewardType[random(0, rewardType.length-1)]
-
-  if (reward.type === 'rune' && reward.quantity <= 0) return spawnRandomReward()
-
+  
   const now = getTime()
 
-  currentReward = JSON.parse(JSON.stringify(reward))
-  currentReward.id = shortId.generate()
-  currentReward.position = config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)]
-  currentReward.enabledAt = now
+  if (!db.config.drops) db.config.drops = {}
+  if (!db.config.drops.guardian) db.config.drops.guardian = 0
+  if (!db.config.drops.earlyAccess) db.config.drops.earlyAccess = 0
+  if (!db.config.drops.trinket) db.config.drops.trinket = 0
+  if (!db.config.drops.runeword) db.config.drops.runeword = 0
+  if (!db.config.drops.runeToken) db.config.drops.runeToken = 0
+
+  if ((now - db.config.drops.guardian) > 12 * 60 * 60 * 1000) {
+    currentReward = {
+      id: shortId.generate(),
+      position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
+      enabledAt: now,
+      name: 'Guardian Egg',
+      rarity: 'Magical',
+      quantity: 1
+    }
+
+    const rand = random(0, 1000)
+    
+    if (rand === 1000)
+      currentReward.rarity = 'Mythic'
+    else if (rand > 850)
+      currentReward.rarity = 'Epic'
+    else if (rand > 700)
+      currentReward.rarity = 'Rare'
+
+    sharedConfig.rewardItemName = currentReward.rarity + ' ' + currentReward.name
+    sharedConfig.rewardItemType = 2
+    config.rewardItemName = sharedConfig.rewardItemName
+    config.rewardItemType = sharedConfig.rewardItemType
+
+    db.config.drops.guardian = now
+  } else if ((now - db.config.drops.earlyAccess) > 7 * 24 * 60 * 60 * 1000) {
+    currentReward = {
+      id: shortId.generate(),
+      position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
+      enabledAt: now,
+      name: `Early Access Founder's Cube`,
+      rarity: 'Unique',
+      quantity: 1
+    }
+
+    sharedConfig.rewardItemName = currentReward.name
+    sharedConfig.rewardItemType = 3
+    config.rewardItemName = sharedConfig.rewardItemName
+    config.rewardItemType = sharedConfig.rewardItemType
+
+    db.config.drops.earlyAccess = now
+  } else if ((now - db.config.drops.trinket) > 12 * 60 * 60 * 1000) {
+    currentReward = {
+      id: shortId.generate(),
+      position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
+      enabledAt: now,
+      name: 'Trinket',
+      rarity: 'Magical',
+      quantity: 1
+    }
+
+    const rand = random(0, 1000)
+    
+    if (rand === 1000)
+      currentReward.rarity = 'Mythic'
+    else if (rand > 850)
+      currentReward.rarity = 'Epic'
+    else if (rand > 700)
+      currentReward.rarity = 'Rare'
+
+    sharedConfig.rewardItemName = currentReward.rarity + ' ' + currentReward.name
+    sharedConfig.rewardItemType = 4
+    config.rewardItemName = sharedConfig.rewardItemName
+    config.rewardItemType = sharedConfig.rewardItemType
+
+    db.config.drops.trinket = now
+  } else if ((now - db.config.drops.runeword) > 24 * 60 * 60 * 1000) {
+    
+    db.config.drops.runeword = now
+  } else if ((now - db.config.drops.runeToken) > 7 * 24 * 60 * 60 * 1000) {
+    currentReward = {
+      id: shortId.generate(),
+      position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
+      enabledAt: now,
+      name: 'RUNE',
+      rarity: 'Normal',
+      quantity: 1
+    }
+
+    const rand = random(0, 1000)
+    
+    if (rand === 1000)
+      currentReward.quantity = 10
+    else if (rand > 850)
+      currentReward.quantity = 3
+    else if (rand > 700)
+      currentReward.quantity = 2
+
+    sharedConfig.rewardItemName = currentReward.quantity + ' ' + currentReward.name
+    sharedConfig.rewardItemType = 5
+    config.rewardItemName = sharedConfig.rewardItemName
+    config.rewardItemType = sharedConfig.rewardItemType
+
+    db.config.drops.runeToken = now
+  } else {
+    const odds = [
+      'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
+      'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
+      'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
+      'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
+      'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
+      'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
+      'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
+      'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
+      'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
+      'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes', 'runes',
+      'runes'
+    ]
   
-  if (currentReward.type === 'rune') {
-    sharedConfig.rewardItemType = 0
-    sharedConfig.rewardItemName = currentReward.symbol.toUpperCase()
-    config.rewardItemName = sharedConfig.rewardItemName
-    config.rewardItemType = sharedConfig.rewardItemType
-  } else if (currentReward.type === 'item') {
-    const item = decodeItem(currentReward.tokenId)
-    sharedConfig.rewardItemName = item.name
-    sharedConfig.rewardItemType = 1
-    config.rewardItemName = sharedConfig.rewardItemName
-    config.rewardItemType = sharedConfig.rewardItemType
+    const rewardType = db.rewards[odds[random(0, odds.length-1)]]
+  
+    if (rewardType.length === 0) return spawnRandomReward()
+  
+    const reward = rewardType[random(0, rewardType.length-1)]
+  
+    if (reward.type === 'rune' && reward.quantity <= 0) return spawnRandomReward()
+  
+    const now = getTime()
+  
+    currentReward = JSON.parse(JSON.stringify(reward))
+    currentReward.id = shortId.generate()
+    currentReward.position = config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)]
+    currentReward.enabledAt = now
+    
+    if (currentReward.type === 'rune') {
+      sharedConfig.rewardItemType = 0
+      sharedConfig.rewardItemName = currentReward.symbol.toUpperCase()
+      config.rewardItemName = sharedConfig.rewardItemName
+      config.rewardItemType = sharedConfig.rewardItemType
+    }
   }
+
+  if (!currentReward) return spawnRandomReward()
 
   publishEvent('OnSpawnReward', currentReward.id, config.rewardItemType, config.rewardItemName, config.rewardItemAmount, currentReward.position.x, currentReward.position.y)
 
@@ -647,9 +775,9 @@ const spawnRandomReward = () => {
 
   setTimeout(() => {
     if (!currentReward) return
-    if (currentReward.id === tempReward.id) {
-      removeReward()
-    }
+    if (currentReward.id !== tempReward.id) return
+    
+    removeReward()
   }, 30 * 1000)
 }
 
@@ -671,47 +799,40 @@ function moveVectorTowards(current, target, maxDistanceDelta)
   }
 }
 
-const claimReward = (currentPlayer) => {
-  if (!currentReward) return
+const claimReward = (currentPlayer, reward) => {
+  if (!reward) return
 
   if (config.anticheat.samePlayerCantClaimRewardTwiceInRow && lastReward?.winner.name === currentPlayer.name) return
 
-  currentReward.winner = currentPlayer
   try {
     if (currentPlayer.address) {
-      if (currentReward.type === 'item') {
-        log('Transfer item')
-
-        // try {
-        //   sendItem(currentReward.tokenId, currentPlayer.address).then(tx => {
-        //     newReward.tx = tx
-        //     // saveRewardHistory()
-        //   })
-        // } catch(e) {
-        //   console.log(e)
-        // }
-
-        db.rewards.items = db.rewards.items.filter(i => i.tokenId !== currentReward.tokenId)
-      } else if (currentReward.type === 'rune') {
+      if (reward.type === 'rune') {
         if (!db.playerRewards[currentPlayer.address]) db.playerRewards[currentPlayer.address] = {}
         if (!db.playerRewards[currentPlayer.address].pending) db.playerRewards[currentPlayer.address].pending = {}
-        if (!db.playerRewards[currentPlayer.address].pending[currentReward.symbol]) db.playerRewards[currentPlayer.address].pending[currentReward.symbol] = 0
+        if (!db.playerRewards[currentPlayer.address].pending[reward.symbol]) db.playerRewards[currentPlayer.address].pending[reward.symbol] = 0
 
-        db.playerRewards[currentPlayer.address].pending[currentReward.symbol] = Math.round((db.playerRewards[currentPlayer.address].pending[currentReward.symbol] + config.rewardItemAmount) * 100) / 100
+        db.playerRewards[currentPlayer.address].pending[reward.symbol] = Math.round((db.playerRewards[currentPlayer.address].pending[reward.symbol] + config.rewardItemAmount) * 100) / 100
         
-        db.rewards.runes.find(r => r.symbol === currentReward.symbol).quantity -= config.rewardItemAmount
+        db.rewards.runes.find(r => r.symbol === reward.symbol).quantity -= config.rewardItemAmount
+      } else {
+        if (!db.playerRewards[currentPlayer.address]) db.playerRewards[currentPlayer.address] = {}
+        if (!db.playerRewards[currentPlayer.address].pendingItems) db.playerRewards[currentPlayer.address].pendingItems = []
+
+        db.playerRewards[currentPlayer.address].pendingItems.push(JSON.parse(JSON.stringify(reward)))
       }
     }
   } catch(e) {
     console.log(e)
   }
 
-  publishEvent('OnUpdateReward', currentPlayer.id, currentReward.id)
+  reward.winner = currentPlayer
+
+  publishEvent('OnUpdateReward', currentPlayer.id, reward.id)
 
   currentPlayer.rewards += 1
   currentPlayer.points += config.pointsPerReward
 
-  lastReward = currentReward
+  lastReward = reward
 
   currentReward = null
 }
@@ -1170,6 +1291,7 @@ io.on('connection', function(socket) {
         maintenanceJoin: 0,
         signatureProblem: 0,
         signinProblem: 0,
+        versionProblem: 0,
       }
     }
 
@@ -1371,6 +1493,12 @@ io.on('connection', function(socket) {
 
         if (!pack.signature || !pack.network || !pack.device || !pack.address) {
           currentPlayer.log.signinProblem += 1
+          disconnectPlayer(currentPlayer)
+          return
+        }
+
+        if (pack.version !== serverVersion) {
+          currentPlayer.log.versionProblem += 1
           disconnectPlayer(currentPlayer)
           return
         }
@@ -1689,45 +1817,45 @@ io.on('connection', function(socket) {
       }
     })
 
-    socket.on('Pickup', async function (msg) {
-      try {
-        const now = getTime()
-        const isPhased = currentPlayer.isPhased ? true : now <= currentPlayer.phasedUntil
+    // socket.on('Pickup', async function (msg) {
+    //   try {
+    //     const now = getTime()
+    //     const isPhased = currentPlayer.isPhased ? true : now <= currentPlayer.phasedUntil
 
-        if (currentPlayer.isDead) return
-        if (currentPlayer.isSpectating) return
-        if (isPhased) return
-        if (config.isMaintenance && !db.modList.includes(currentPlayer?.address)) return
+    //     if (currentPlayer.isDead) return
+    //     if (currentPlayer.isSpectating) return
+    //     if (isPhased) return
+    //     if (config.isMaintenance && !db.modList.includes(currentPlayer?.address)) return
 
-        const pack = decodePayload(msg)
+    //     const pack = decodePayload(msg)
 
-        const powerup = powerupLookup[pack.id]
+    //     const powerup = powerupLookup[pack.id]
 
-        log('Pickup', msg, powerup)
+    //     log('Pickup', msg, powerup)
 
-        if (powerup) {
-          removeSprite(pack.id)
+    //     if (powerup) {
+    //       removeSprite(pack.id)
 
-          let value = 0
+    //       let value = 0
 
-          if (powerup.type == 0) value = config.powerupXp0
-          if (powerup.type == 1) value = config.powerupXp1
-          if (powerup.type == 2) value = config.powerupXp2
-          if (powerup.type == 3) value = config.powerupXp3
+    //       if (powerup.type == 0) value = config.powerupXp0
+    //       if (powerup.type == 1) value = config.powerupXp1
+    //       if (powerup.type == 2) value = config.powerupXp2
+    //       if (powerup.type == 3) value = config.powerupXp3
 
-          currentPlayer.powerups += 1
-          currentPlayer.points += config.pointsPerPowerup
-          currentPlayer.xp += (value * config.spriteXpMultiplier)
+    //       currentPlayer.powerups += 1
+    //       currentPlayer.points += config.pointsPerPowerup
+    //       currentPlayer.xp += (value * config.spriteXpMultiplier)
       
-          publishEvent('OnUpdatePickup', currentPlayer.id, pack.id, value)
+    //       publishEvent('OnUpdatePickup', currentPlayer.id, pack.id, value)
 
-          removeSprite(pack.id)
-          spawnSprites(1)
-        }
-      } catch(e) {
-        console.log(e)
-      }
-    })
+    //       removeSprite(pack.id)
+    //       spawnSprites(1)
+    //     }
+    //   } catch(e) {
+    //     console.log(e)
+    //   }
+    // })
     
     socket.on('disconnect', function() {
       log("User has disconnected")
@@ -2370,7 +2498,7 @@ function detectCollisions() {
         // player.rewards += 1
         // player.points += config.pointsPerReward
   
-        claimReward(player)
+        claimReward(player, reward)
   
         // publishEvent('OnUpdatePickup', player.id, reward.id, 0)
   
@@ -2835,9 +2963,30 @@ const initRoutes = async () => {
       }
     })
 
+    server.get('/user/:address/details', function(req, res) {
+      if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
+      if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
+      if (!db.playerRewards[req.params.address].pendingItems) db.playerRewards[req.params.address].pendingItems = []
+      if (!db.playerRewards[req.params.address].historyRunes) db.playerRewards[req.params.address].historyRunes = []
+      if (!db.playerRewards[req.params.address].historyItems) db.playerRewards[req.params.address].historyItems = []
+
+      res.json({
+        runes: {
+          pending: db.playerRewards[req.params.address].pending,
+          history: db.playerRewards[req.params.address].historyRunes
+        },
+        items: {
+          pending: db.playerRewards[req.params.address].pendingItems,
+          history: db.playerRewards[req.params.address].historyItems
+        },
+        quests: db.quests.players[req.params.address]
+      })
+    })
+
     server.get('/user/:address', function(req, res) {
       if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
       if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
+      if (!db.playerRewards[req.params.address].pendingItems) db.playerRewards[req.params.address].pendingItems = []
 
       res.json(db.playerRewards[req.params.address].pending)
     })
