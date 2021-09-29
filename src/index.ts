@@ -635,9 +635,7 @@ const spawnRandomReward = () => {
   if (!db.config.drops.runeword) db.config.drops.runeword = 0
   if (!db.config.drops.runeToken) db.config.drops.runeToken = 0
 
-  
-
-  if ((now - db.config.drops.guardian) > 60 * 1000) {// 12 * 60 * 60 * 1000) {
+  if ((now - db.config.drops.guardian) > 12 * 60 * 60 * 1000) {
     currentReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
@@ -653,7 +651,7 @@ const spawnRandomReward = () => {
       currentReward.rarity = 'Mythic'
     else if (rand > 850)
       currentReward.rarity = 'Epic'
-    else if (rand > 600)
+    else if (rand > 700)
       currentReward.rarity = 'Rare'
 
     sharedConfig.rewardItemName = currentReward.rarity + ' ' + currentReward.name
@@ -662,7 +660,7 @@ const spawnRandomReward = () => {
     config.rewardItemType = sharedConfig.rewardItemType
 
     db.config.drops.guardian = now
-  } else if ((now - db.config.drops.earlyAccess) > 60 * 1000) {//7 * 24 * 60 * 60 * 1000) {
+  } else if ((now - db.config.drops.earlyAccess) > 7 * 24 * 60 * 60 * 1000) {
     currentReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
@@ -678,7 +676,7 @@ const spawnRandomReward = () => {
     config.rewardItemType = sharedConfig.rewardItemType
 
     db.config.drops.earlyAccess = now
-  } else if ((now - db.config.drops.trinket) > 10 * 1000) {//12 * 60 * 60 * 1000) {
+  } else if ((now - db.config.drops.trinket) > 12 * 60 * 60 * 1000) {
     currentReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
@@ -694,7 +692,7 @@ const spawnRandomReward = () => {
       currentReward.rarity = 'Mythic'
     else if (rand > 850)
       currentReward.rarity = 'Epic'
-    else if (rand > 600)
+    else if (rand > 700)
       currentReward.rarity = 'Rare'
 
     sharedConfig.rewardItemName = currentReward.rarity + ' ' + currentReward.name
@@ -703,10 +701,10 @@ const spawnRandomReward = () => {
     config.rewardItemType = sharedConfig.rewardItemType
 
     db.config.drops.trinket = now
-  } else if ((now - db.config.drops.runeword) > 10 * 1000) {//24 * 60 * 60 * 1000) {
+  } else if ((now - db.config.drops.runeword) > 24 * 60 * 60 * 1000) {
     
     db.config.drops.runeword = now
-  } else if ((now - db.config.drops.runeToken) > 10 * 1000) {//7 * 24 * 60 * 60 * 1000) {
+  } else if ((now - db.config.drops.runeToken) > 7 * 24 * 60 * 60 * 1000) {
     currentReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
@@ -718,14 +716,12 @@ const spawnRandomReward = () => {
 
     const rand = random(0, 1000)
     
-    let quantity = 1
-
     if (rand === 1000)
-      quantity = 10
+      currentReward.quantity = 10
     else if (rand > 850)
-      quantity = 3
-    else if (rand > 600)
-      quantity = 2
+      currentReward.quantity = 3
+    else if (rand > 700)
+      currentReward.quantity = 2
 
     sharedConfig.rewardItemName = currentReward.quantity + ' ' + currentReward.name
     sharedConfig.rewardItemType = 5
