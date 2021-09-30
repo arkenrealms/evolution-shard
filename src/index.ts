@@ -629,11 +629,11 @@ const spawnRandomReward = () => {
   const now = getTime()
 
   if (!db.config.drops) db.config.drops = {}
-  if (!db.config.drops.guardian) db.config.drops.guardian = 0
-  if (!db.config.drops.earlyAccess) db.config.drops.earlyAccess = 0
-  if (!db.config.drops.trinket) db.config.drops.trinket = 0
-  if (!db.config.drops.runeword) db.config.drops.runeword = 0
-  if (!db.config.drops.runeToken) db.config.drops.runeToken = 0
+  if (!db.config.drops.guardian) db.config.drops.guardian = 1633043139000
+  if (!db.config.drops.earlyAccess) db.config.drops.earlyAccess = 1633043139000
+  if (!db.config.drops.trinket) db.config.drops.trinket = 1633043139000
+  if (!db.config.drops.runeword) db.config.drops.runeword = 1633043139000
+  if (!db.config.drops.runeToken) db.config.drops.runeToken = 1633043139000
 
   if ((now - db.config.drops.guardian) > 12 * 60 * 60 * 1000) {
     currentReward = {
