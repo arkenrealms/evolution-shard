@@ -22,8 +22,18 @@
     },
     {
       "type": "rune",
-      "symbol": "thul",
+      "symbol": "hel",
       "quantity": 2000
+    },
+    {
+      "type": "rune",
+      "symbol": "ral",
+      "quantity": 2000
+    },
+    {
+      "type": "rune",
+      "symbol": "thul",
+      "quantity": 200
     },
     {
       "type": "rune",
@@ -48,7 +58,7 @@
     {
       "type": "rune",
       "symbol": "dol",
-      "quantity": 2000
+      "quantity": 100
     },
     {
       "type": "rune",
