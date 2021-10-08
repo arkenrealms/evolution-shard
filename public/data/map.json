@@ -1,11 +1,11 @@
 [
   {
-    "Id": "35260",
+    "Id": "151106",
     "Name": "Structures",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "29846",
+      "Parent": "146030",
       "Position": [
         -5.801094,
         -8.908676,
@@ -39,12 +39,12 @@
     "Terrain": null
   },
   {
-    "Id": "29156",
+    "Id": "145386",
     "Name": "Level2Divider",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "35260",
+      "Parent": "151106",
       "Position": [
         -18.1486969,
         -8.970476,
@@ -94,12 +94,12 @@
     "Terrain": null
   },
   {
-    "Id": "32918",
+    "Id": "148912",
     "Name": "Chara01frame01",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "29156",
+      "Parent": "145386",
       "Position": [
         -17.8006973,
         0.9775238,
@@ -149,12 +149,12 @@
     "Terrain": null
   },
   {
-    "Id": "28186",
+    "Id": "144462",
     "Name": "Ground",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "35260",
+      "Parent": "151106",
       "Position": [
         -5.801094,
         -8.908676,
@@ -188,12 +188,12 @@
     "Terrain": null
   },
   {
-    "Id": "33994",
+    "Id": "149888",
     "Name": "LandWCol",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "28186",
+      "Parent": "144462",
       "Position": [
         3.130005,
         -19.5812759,
@@ -243,12 +243,12 @@
     "Terrain": null
   },
   {
-    "Id": "34218",
+    "Id": "150114",
     "Name": "LandWCol",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "28186",
+      "Parent": "144462",
       "Position": [
         -34.73,
         -19.78,
@@ -298,12 +298,12 @@
     "Terrain": null
   },
   {
-    "Id": "29306",
+    "Id": "145520",
     "Name": "LandWCol",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "28186",
+      "Parent": "144462",
       "Position": [
         -30.15,
         -17.31,
@@ -353,12 +353,12 @@
     "Terrain": null
   },
   {
-    "Id": "27188",
+    "Id": "143534",
     "Name": "LandWCol",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "28186",
+      "Parent": "144462",
       "Position": [
         -16.3321953,
         -21.4186764,
@@ -408,12 +408,12 @@
     "Terrain": null
   },
   {
-    "Id": "32588",
+    "Id": "148602",
     "Name": "LandWCol",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "28186",
+      "Parent": "144462",
       "Position": [
         -5.971092,
         -21.383873,
@@ -463,12 +463,12 @@
     "Terrain": null
   },
   {
-    "Id": "29138",
+    "Id": "145368",
     "Name": "LandWCol",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "28186",
+      "Parent": "144462",
       "Position": [
         -11.9710922,
         -20.739975,
@@ -518,12 +518,12 @@
     "Terrain": null
   },
   {
-    "Id": "33886",
+    "Id": "149796",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "28186",
+      "Parent": "144462",
       "Position": [
         -35.3210945,
         -28.4086761,
@@ -557,12 +557,12 @@
     "Terrain": null
   },
   {
-    "Id": "32928",
+    "Id": "148922",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "28186",
+      "Parent": "144462",
       "Position": [
         -29.6693935,
         -24.5986748,
@@ -596,12 +596,12 @@
     "Terrain": null
   },
   {
-    "Id": "32092",
+    "Id": "148128",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "28186",
+      "Parent": "144462",
       "Position": [
         -10.2459946,
         -33.3786774,
@@ -635,12 +635,12 @@
     "Terrain": null
   },
   {
-    "Id": "32432",
+    "Id": "148454",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "28186",
+      "Parent": "144462",
       "Position": [
         -26.0811,
         -23.4486771,
@@ -674,12 +674,12 @@
     "Terrain": null
   },
   {
-    "Id": "33964",
+    "Id": "149858",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "28186",
+      "Parent": "144462",
       "Position": [
         -2.27109528,
         -20.7444763,
@@ -713,12 +713,12 @@
     "Terrain": null
   },
   {
-    "Id": "31740",
+    "Id": "147808",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "28186",
+      "Parent": "144462",
       "Position": [
         -13.2810974,
         -21.4470749,
@@ -752,12 +752,12 @@
     "Terrain": null
   },
   {
-    "Id": "27068",
+    "Id": "143436",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "28186",
+      "Parent": "144462",
       "Position": [
         -9.171097,
         -21.3873749,
@@ -791,12 +791,12 @@
     "Terrain": null
   },
   {
-    "Id": "31984",
+    "Id": "148038",
     "Name": "FloatIslands",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "35260",
+      "Parent": "151106",
       "Position": [
         -5.801094,
         -8.908676,
@@ -830,12 +830,12 @@
     "Terrain": null
   },
   {
-    "Id": "34474",
+    "Id": "150360",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "31984",
+      "Parent": "148038",
       "Position": [
         -26.9199982,
         -5.91,
@@ -885,12 +885,12 @@
     "Terrain": null
   },
   {
-    "Id": "32182",
+    "Id": "148212",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "31984",
+      "Parent": "148038",
       "Position": [
         -31.5510941,
         -10.1886759,
@@ -940,12 +940,12 @@
     "Terrain": null
   },
   {
-    "Id": "26506",
+    "Id": "142934",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "31984",
+      "Parent": "148038",
       "Position": [
         -12.5750885,
         -11.5246735,
@@ -995,12 +995,12 @@
     "Terrain": null
   },
   {
-    "Id": "28874",
+    "Id": "145112",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "31984",
+      "Parent": "148038",
       "Position": [
         -13.7000885,
         -10.037674,
@@ -1050,12 +1050,12 @@
     "Terrain": null
   },
   {
-    "Id": "35314",
+    "Id": "151152",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "31984",
+      "Parent": "148038",
       "Position": [
         -11.1420975,
         -12.0467758,
@@ -1105,12 +1105,12 @@
     "Terrain": null
   },
   {
-    "Id": "30542",
+    "Id": "146714",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "31984",
+      "Parent": "148038",
       "Position": [
         -13.3950958,
         -10.9586792,
@@ -1160,12 +1160,12 @@
     "Terrain": null
   },
   {
-    "Id": "27080",
+    "Id": "143448",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "31984",
+      "Parent": "148038",
       "Position": [
         -13.1190948,
         -9.020279,
@@ -1215,12 +1215,12 @@
     "Terrain": null
   },
   {
-    "Id": "32256",
+    "Id": "148286",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "31984",
+      "Parent": "148038",
       "Position": [
         -23.23,
         -5.24,
@@ -1300,12 +1300,12 @@
     "Terrain": null
   },
   {
-    "Id": "34766",
+    "Id": "150638",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "31984",
+      "Parent": "148038",
       "Position": [
         -12.565094,
         -9.468674,
@@ -1370,12 +1370,12 @@
     "Terrain": null
   },
   {
-    "Id": "27742",
+    "Id": "144038",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "31984",
+      "Parent": "148038",
       "Position": [
         -10.6985931,
         -10.287178,
@@ -1440,12 +1440,12 @@
     "Terrain": null
   },
   {
-    "Id": "28026",
+    "Id": "144314",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "31984",
+      "Parent": "148038",
       "Position": [
         -5.350006,
         -8.26741,
@@ -1495,12 +1495,12 @@
     "Terrain": null
   },
   {
-    "Id": "33244",
+    "Id": "149194",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "31984",
+      "Parent": "148038",
       "Position": [
         -2.94001,
         -8.927406,
@@ -1550,12 +1550,12 @@
     "Terrain": null
   },
   {
-    "Id": "32378",
+    "Id": "148400",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "31984",
+      "Parent": "148038",
       "Position": [
         -8.280006,
         -7.3174057,
@@ -1605,12 +1605,12 @@
     "Terrain": null
   },
   {
-    "Id": "29552",
+    "Id": "145756",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "31984",
+      "Parent": "148038",
       "Position": [
         -11.0500031,
         -5.26741028,
@@ -1660,12 +1660,12 @@
     "Terrain": null
   },
   {
-    "Id": "28526",
+    "Id": "144784",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "31984",
+      "Parent": "148038",
       "Position": [
         -7.140007,
         -13.6074066,
@@ -1715,12 +1715,12 @@
     "Terrain": null
   },
   {
-    "Id": "31234",
+    "Id": "147350",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "31984",
+      "Parent": "148038",
       "Position": [
         -27.0610943,
         -10.0386763,
@@ -1770,12 +1770,12 @@
     "Terrain": null
   },
   {
-    "Id": "34802",
+    "Id": "150674",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "31984",
+      "Parent": "148038",
       "Position": [
         -23.2010937,
         -7.318676,
@@ -1825,12 +1825,12 @@
     "Terrain": null
   },
   {
-    "Id": "35202",
+    "Id": "151058",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "31984",
+      "Parent": "148038",
       "Position": [
         -25.5810947,
         -9.208676,
@@ -1880,12 +1880,12 @@
     "Terrain": null
   },
   {
-    "Id": "34870",
+    "Id": "150734",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "31984",
+      "Parent": "148038",
       "Position": [
         -27.8210945,
         -7.66867638,
@@ -1935,12 +1935,12 @@
     "Terrain": null
   },
   {
-    "Id": "31574",
+    "Id": "147676",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "31984",
+      "Parent": "148038",
       "Position": [
         -24.6010933,
         -11.5586758,
@@ -2000,6 +2000,421 @@
         "Type": 0
       }
     ],
+    "Light": null,
+    "ReflectionProbe": null,
+    "Terrain": null
+  },
+  {
+    "Id": "148494",
+    "Name": "EdgeBarriers",
+    "IsStatic": false,
+    "IsActive": true,
+    "Transform": {
+      "Parent": "151106",
+      "Position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "Rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalPosition": [
+        5.801094,
+        8.908676,
+        0.0
+      ],
+      "LocalRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalScale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "Renderer": null,
+    "Colliders": null,
+    "Light": null,
+    "ReflectionProbe": null,
+    "Terrain": null
+  },
+  {
+    "Id": "149062",
+    "Name": "Collider",
+    "IsStatic": false,
+    "IsActive": true,
+    "Transform": {
+      "Parent": "148494",
+      "Position": [
+        -18.2799988,
+        -28.19,
+        0.0
+      ],
+      "Rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalPosition": [
+        -18.2799988,
+        -28.19,
+        0.0
+      ],
+      "LocalRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalScale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "Renderer": null,
+    "Colliders": [
+      {
+        "Enabled": true,
+        "Min": [
+          -108.888824,
+          -54.4369354,
+          0.0
+        ],
+        "Max": [
+          63.63565,
+          -18.2399826,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      }
+    ],
+    "Light": null,
+    "ReflectionProbe": null,
+    "Terrain": null
+  },
+  {
+    "Id": "146796",
+    "Name": "EdgeSpriteDown",
+    "IsStatic": false,
+    "IsActive": true,
+    "Transform": {
+      "Parent": "149062",
+      "Position": [
+        -18.2799988,
+        -38.4899979,
+        0.0
+      ],
+      "Rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalPosition": [
+        0.0,
+        -10.2999992,
+        0.0
+      ],
+      "LocalRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalScale": [
+        10.0,
+        5.0,
+        1.0
+      ]
+    },
+    "Renderer": null,
+    "Colliders": null,
+    "Light": null,
+    "ReflectionProbe": null,
+    "Terrain": null
+  },
+  {
+    "Id": "150804",
+    "Name": "Collider (1)",
+    "IsStatic": false,
+    "IsActive": true,
+    "Transform": {
+      "Parent": "148494",
+      "Position": [
+        -29.5800018,
+        2.62259674,
+        0.0
+      ],
+      "Rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalPosition": [
+        -29.5800018,
+        2.62259674,
+        0.0
+      ],
+      "LocalRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalScale": [
+        1.0,
+        1.00000012,
+        1.0
+      ]
+    },
+    "Renderer": null,
+    "Colliders": [
+      {
+        "Enabled": true,
+        "Min": [
+          -39.58,
+          0.122596741,
+          0.0
+        ],
+        "Max": [
+          0.419998169,
+          26.0583782,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      }
+    ],
+    "Light": null,
+    "ReflectionProbe": null,
+    "Terrain": null
+  },
+  {
+    "Id": "147218",
+    "Name": "EdgeSpriteUp",
+    "IsStatic": false,
+    "IsActive": true,
+    "Transform": {
+      "Parent": "150804",
+      "Position": [
+        -18.4800014,
+        12.9225979,
+        0.0
+      ],
+      "Rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalPosition": [
+        11.1,
+        10.3,
+        0.0
+      ],
+      "LocalRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalScale": [
+        10.0,
+        5.0,
+        1.0
+      ]
+    },
+    "Renderer": null,
+    "Colliders": null,
+    "Light": null,
+    "ReflectionProbe": null,
+    "Terrain": null
+  },
+  {
+    "Id": "148706",
+    "Name": "Collider (2)",
+    "IsStatic": false,
+    "IsActive": true,
+    "Transform": {
+      "Parent": "148494",
+      "Position": [
+        2.619995,
+        -7.76740265,
+        0.0
+      ],
+      "Rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalPosition": [
+        2.619995,
+        -7.76740265,
+        0.0
+      ],
+      "LocalRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalScale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "Renderer": null,
+    "Colliders": [
+      {
+        "Enabled": true,
+        "Min": [
+          0.119995117,
+          -26.71771,
+          0.0
+        ],
+        "Max": [
+          46.9230156,
+          1.97259712,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      }
+    ],
+    "Light": null,
+    "ReflectionProbe": null,
+    "Terrain": null
+  },
+  {
+    "Id": "149942",
+    "Name": "EdgeSpriteRight",
+    "IsStatic": false,
+    "IsActive": true,
+    "Transform": {
+      "Parent": "148706",
+      "Position": [
+        25.6199951,
+        -7.76740265,
+        0.0
+      ],
+      "Rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalPosition": [
+        23.0,
+        0.0,
+        0.0
+      ],
+      "LocalRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalScale": [
+        10.0,
+        5.0,
+        1.0
+      ]
+    },
+    "Renderer": null,
+    "Colliders": null,
+    "Light": null,
+    "ReflectionProbe": null,
+    "Terrain": null
+  },
+  {
+    "Id": "150844",
+    "Name": "Collider (3)",
+    "IsStatic": false,
+    "IsActive": true,
+    "Transform": {
+      "Parent": "148494",
+      "Position": [
+        -40.2100067,
+        -7.76740265,
+        0.0
+      ],
+      "Rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalPosition": [
+        -40.2100067,
+        -7.76740265,
+        0.0
+      ],
+      "LocalRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalScale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "Renderer": null,
+    "Colliders": [
+      {
+        "Enabled": true,
+        "Min": [
+          -71.1483459,
+          -34.6792,
+          0.0
+        ],
+        "Max": [
+          -37.7100067,
+          1.97259521,
+          0.0
+        ],
+        "Radius": 0.0,
+        "Type": 0
+      }
+    ],
+    "Light": null,
+    "ReflectionProbe": null,
+    "Terrain": null
+  },
+  {
+    "Id": "147148",
+    "Name": "EdgeSpriteLeft",
+    "IsStatic": false,
+    "IsActive": true,
+    "Transform": {
+      "Parent": "150844",
+      "Position": [
+        -63.2100067,
+        -7.76740265,
+        0.0
+      ],
+      "Rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalPosition": [
+        -23.0,
+        0.0,
+        0.0
+      ],
+      "LocalRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "LocalScale": [
+        10.0,
+        5.0,
+        1.0
+      ]
+    },
+    "Renderer": null,
+    "Colliders": null,
     "Light": null,
     "ReflectionProbe": null,
     "Terrain": null
