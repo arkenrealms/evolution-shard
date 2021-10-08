@@ -108,6 +108,7 @@ db.reportList = jetpack.read(path.resolve('./public/data/playerReports.json'), '
 db.playerRewards = jetpack.read(path.resolve('./public/data/playerRewards.json'), 'json')
 db.map = jetpack.read(path.resolve('./public/data/map.json'), 'json')
 db.log = jetpack.read(path.resolve('./public/data/log.json'), 'json')
+db.quests = jetpack.read(path.resolve('./public/data/quests.json'), 'json')
 
 if (!db.modList.length) {
   db.modList.push('0xa987f487639920A3c2eFe58C8FBDedB96253ed9B')
@@ -635,7 +636,12 @@ const spawnRandomReward = () => {
   if (!db.config.drops.runeword) db.config.drops.runeword = 1633043139000
   if (!db.config.drops.runeToken) db.config.drops.runeToken = 1633043139000
 
-  if ((now - db.config.drops.guardian) > 12 * 60 * 60 * 1000) {
+  const timesPerDay = 24 * 60 * 60 / config.rewardSpawnLoopSeconds
+  const randPerDay = random(0, timesPerDay)
+  const timesPerWeek = 7 * 24 * 60 * 60 / config.rewardSpawnLoopSeconds
+  const randPerWeek = random(0, timesPerWeek)
+
+  if ((now - db.config.drops.guardian) > 12 * 60 * 60 * 1000 && randPerDay === timesPerDay / 2) { // (now - db.config.drops.guardian) > 12 * 60 * 60 * 1000) {
     currentReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
@@ -649,9 +655,9 @@ const spawnRandomReward = () => {
     
     if (rand === 1000)
       currentReward.rarity = 'Mythic'
-    else if (rand > 900)
+    else if (rand > 950)
       currentReward.rarity = 'Epic'
-    else if (rand > 700)
+    else if (rand > 850)
       currentReward.rarity = 'Rare'
 
     sharedConfig.rewardItemName = currentReward.rarity + ' ' + currentReward.name
@@ -660,7 +666,7 @@ const spawnRandomReward = () => {
     config.rewardItemType = sharedConfig.rewardItemType
 
     db.config.drops.guardian = now
-  } else if ((now - db.config.drops.earlyAccess) > 7 * 24 * 60 * 60 * 1000) {
+  } else if ((now - db.config.drops.earlyAccess) > 12 * 60 * 60 * 1000 && randPerWeek === timesPerWeek / 2) { // (now - db.config.drops.earlyAccess) > 7 * 24 * 60 * 60 * 1000
     currentReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
@@ -676,7 +682,7 @@ const spawnRandomReward = () => {
     config.rewardItemType = sharedConfig.rewardItemType
 
     db.config.drops.earlyAccess = now
-  } else if ((now - db.config.drops.trinket) > 12 * 60 * 60 * 1000) {
+  } else if ((now - db.config.drops.trinket) > 12 * 60 * 60 * 1000 && randPerDay === timesPerDay / 4) { // (now - db.config.drops.trinket) > 12 * 60 * 60 * 1000
     currentReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
@@ -690,9 +696,9 @@ const spawnRandomReward = () => {
     
     if (rand === 1000)
       currentReward.rarity = 'Mythic'
-    else if (rand > 900)
+    else if (rand > 950)
       currentReward.rarity = 'Epic'
-    else if (rand > 700)
+    else if (rand > 850)
       currentReward.rarity = 'Rare'
 
     sharedConfig.rewardItemName = currentReward.rarity + ' ' + currentReward.name
@@ -701,10 +707,10 @@ const spawnRandomReward = () => {
     config.rewardItemType = sharedConfig.rewardItemType
 
     db.config.drops.trinket = now
-  } else if ((now - db.config.drops.runeword) > 24 * 60 * 60 * 1000) {
+  } else if ((now - db.config.drops.runeword) > 12 * 60 * 60 * 1000 && randPerDay === timesPerDay / 5) { // (now - db.config.drops.runeword) > 24 * 60 * 60 * 1000
     
     db.config.drops.runeword = now
-  } else if ((now - db.config.drops.runeToken) > 7 * 24 * 60 * 60 * 1000) {
+  } else if ((now - db.config.drops.runeToken) > 12 * 60 * 60 * 1000 && randPerWeek === timesPerWeek / 3) { // (now - db.config.drops.runeToken) > 7 * 24 * 60 * 60 * 1000
     currentReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
@@ -720,7 +726,7 @@ const spawnRandomReward = () => {
       currentReward.quantity = 10
     else if (rand > 950)
       currentReward.quantity = 3
-    else if (rand > 800)
+    else if (rand > 850)
       currentReward.quantity = 2
 
     sharedConfig.rewardItemName = currentReward.quantity + ' ' + currentReward.name
@@ -1155,12 +1161,12 @@ const registerKill = (winner, loser) => {
   // LV3 vs LV1 = 0.5 * 3 + 0.5 * 2 * 2 = 3.5
   // LV3 vs LV2 = 0.5 * 3 + 0.5 * 1 * 2 = 2.5
   // LV2 vs LV1 = 0.5 * 2 + 0.5 * 1 * 2 = 2
-  loser.xp -= config.damagePerTouch * (winner.avatar + 1) + config.damagePerTouch * (winner.avatar - loser.avatar) * 2
+  // loser.xp -= config.damagePerTouch * (winner.avatar + 1) + config.damagePerTouch * (winner.avatar - loser.avatar) * 2
 
-  if (loser.avatar !== 0 || loser.xp > 0) {
-    // Can't be killed yet
-    return
-  }
+  // if (loser.avatar !== 0 || loser.xp > 0) {
+  //   // Can't be killed yet
+  //   return
+  // }
 
   winner.kills += 1
   winner.points += config.pointsPerKill * (loser.avatar + 1)
@@ -1760,8 +1766,6 @@ io.on('connection', function(socket) {
             clearSprites()
             spawnSprites(config.spritesStartCount)
             publishEvent('OnCloseLevel2')
-  
-            spawnRandomReward()
           }
         }
       }
@@ -2790,233 +2794,276 @@ const initRoutes = async () => {
       return res.json(config)
     })
 
-    server.get('/buff/binzy', async function(req, res) {
-      db.playerRewards['0xa987f487639920A3c2eFe58C8FBDedB96253ed9B'].pending = {
-        "ral": 1,
-        "tir": 0.9,
-        "amn": 0.9,
-        "thul": 0.9,
-        "zod": 0.9,
-        "sol": 1.1,
-        "tal": 0.9,
-        "ort": 1.2,
-        "shael": 0.9,
-        "nef": 0.9
-      }
+    // server.get('/buff/binzy', async function(req, res) {
+    //   db.playerRewards['0xa987f487639920A3c2eFe58C8FBDedB96253ed9B'].pending = {
+    //     "ral": 1,
+    //     "tir": 0.9,
+    //     "amn": 0.9,
+    //     "thul": 0.9,
+    //     "zod": 0.9,
+    //     "sol": 1.1,
+    //     "tal": 0.9,
+    //     "ort": 1.2,
+    //     "shael": 0.9,
+    //     "nef": 0.9
+    //   }
 
-      config.claimingRewards = false
-      db.playerRewards['0xa987f487639920A3c2eFe58C8FBDedB96253ed9B'].claiming = false
+    //   config.claimingRewards = false
+    //   db.playerRewards['0xa987f487639920A3c2eFe58C8FBDedB96253ed9B'].claiming = false
 
-      savePlayerRewards()
+    //   savePlayerRewards()
     
-      res.json(db.playerRewards['0xa987f487639920A3c2eFe58C8FBDedB96253ed9B'].pending)
-    })
+    //   res.json(db.playerRewards['0xa987f487639920A3c2eFe58C8FBDedB96253ed9B'].pending)
+    // })
 
     server.post('/maintenance', function(req, res) {
-      db.log.push({
-        event: 'Maintenance',
-        caller: req.body.address
-      })
+      try {
+        db.log.push({
+          event: 'Maintenance',
+          caller: req.body.address
+        })
 
-      saveLog()
+        saveLog()
 
-      if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-        sharedConfig.isMaintenance = true
-        config.isMaintenance = true
-    
-        publishEvent('OnMaintenance', config.isMaintenance)
-
-        res.json({ success: 1 })
-      } else {
-        res.json({ success: 0 })
-      }
-    })
-
-    server.post('/unmaintenance', function(req, res) {
-      db.log.push({
-        event: 'Unmaintenance',
-        caller: req.body.address
-      })
-
-      saveLog()
-
-      if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-        sharedConfig.isMaintenance = false
-        config.isMaintenance = false
-    
-        publishEvent('OnMaintenance', config.isMaintenance)
-
-        res.json({ success: 1 })
-      } else {
-        res.json({ success: 0 })
-      }
-    })
-
-    server.post('/report/:address', function(req, res) {
-      db.log.push({
-        event: 'Report',
-        value: req.params.address,
-        caller: req.body.address
-      })
-
-      saveLog()
-
-      const currentPlayer = round.players.find(p => p.address === req.body.address)
-      if (currentPlayer && verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address)) {
-        const reportedPlayer = clients.find(c => c.address === req.params.address)
-
-        if (reportedPlayer) {
-          reportPlayer(clients, currentPlayer, reportedPlayer)
+        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+          sharedConfig.isMaintenance = true
+          config.isMaintenance = true
+      
+          publishEvent('OnMaintenance', config.isMaintenance)
 
           res.json({ success: 1 })
         } else {
           res.json({ success: 0 })
         }
-      } else {
+      } catch (e) {
+        res.json({ success: 0 })
+      }
+    })
+
+    server.post('/unmaintenance', function(req, res) {
+      try {
+        db.log.push({
+          event: 'Unmaintenance',
+          caller: req.body.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+          sharedConfig.isMaintenance = false
+          config.isMaintenance = false
+      
+          publishEvent('OnMaintenance', config.isMaintenance)
+
+          res.json({ success: 1 })
+        } else {
+          res.json({ success: 0 })
+        }
+      } catch (e) {
+        res.json({ success: 0 })
+      }
+    })
+
+    server.post('/report/:address', function(req, res) {
+      try {
+        db.log.push({
+          event: 'Report',
+          value: req.params.address,
+          caller: req.body.address
+        })
+
+        saveLog()
+
+        const currentPlayer = round.players.find(p => p.address === req.body.address)
+        if (currentPlayer && verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address)) {
+          const reportedPlayer = clients.find(c => c.address === req.params.address)
+
+          if (reportedPlayer) {
+            reportPlayer(clients, currentPlayer, reportedPlayer)
+
+            res.json({ success: 1 })
+          } else {
+            res.json({ success: 0 })
+          }
+        } else {
+          res.json({ success: 0 })
+        }
+      } catch (e) {
         res.json({ success: 0 })
       }
     })
 
     server.post('/ban/:address', function(req, res) {
-      db.log.push({
-        event: 'Ban',
-        value: req.params.address,
-        caller: req.body.address
-      })
+      try {
+        db.log.push({
+          event: 'Ban',
+          value: req.params.address,
+          caller: req.body.address
+        })
 
-      saveLog()
+        saveLog()
 
-      if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-        if (!db.banList.includes(req.params.address)) {
-          db.banList.push(req.params.address)
+        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+          if (!db.banList.includes(req.params.address)) {
+            db.banList.push(req.params.address)
+          }
+
+          if (clients.find(c => c.address === req.params.address)) {
+            disconnectPlayer(clients.find(c => c.address === req.params.address))
+          }
+
+          saveBanList()
+      
+          res.json({ success: 1 })
+        } else {
+          res.json({ success: 0 })
         }
-
-        if (clients.find(c => c.address === req.params.address)) {
-          disconnectPlayer(clients.find(c => c.address === req.params.address))
-        }
-
-        saveBanList()
-    
-        res.json({ success: 1 })
-      } else {
+      } catch (e) {
         res.json({ success: 0 })
       }
     })
 
     server.post('/unban/:address', function(req, res) {
-      db.log.push({
-        event: 'Unban',
-        value: req.params.address,
-        caller: req.body.address
-      })
+      try {
+        db.log.push({
+          event: 'Unban',
+          value: req.params.address,
+          caller: req.body.address
+        })
 
-      saveLog()
+        saveLog()
 
-      if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-        db.banList.splice(db.banList.indexOf(req.params.address), 1)
+        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+          db.banList.splice(db.banList.indexOf(req.params.address), 1)
 
-        saveBanList()
-    
-        res.json({ success: 1 })
-      } else {
+          saveBanList()
+      
+          res.json({ success: 1 })
+        } else {
+          res.json({ success: 0 })
+        }
+      } catch (e) {
         res.json({ success: 0 })
       }
     })
 
     server.post('/message/:address', function(req, res) {
-      db.log.push({
-        event: 'Message',
-        value: req.params.address,
-        caller: req.body.address,
-        message: req.body.message
-      })
+      try {
+        db.log.push({
+          event: 'Message',
+          value: req.params.address,
+          caller: req.body.address,
+          message: req.body.message
+        })
 
-      saveLog()
+        saveLog()
 
-      if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-        const socket = sockets[clients.find(c => c.address === req.params.address).id]
+        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+          const socket = sockets[clients.find(c => c.address === req.params.address).id]
 
-        emitDirect(socket, 'OnBroadcast', escape(JSON.stringify(req.body.message)))
-    
-        res.json({ success: 1 })
-      } else {
+          emitDirect(socket, 'OnBroadcast', escape(JSON.stringify(req.body.message)))
+      
+          res.json({ success: 1 })
+        } else {
+          res.json({ success: 0 })
+        }
+      } catch (e) {
         res.json({ success: 0 })
       }
     })
 
     server.post('/broadcast', function(req, res) {
-      db.log.push({
-        event: 'Broadcast',
-        caller: req.body.address,
-        message: req.body.message
-      })
+      try {
+        db.log.push({
+          event: 'Broadcast',
+          caller: req.body.address,
+          message: req.body.message
+        })
 
-      saveLog()
+        saveLog()
 
-      if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
 
-        publishEvent('OnBroadcast', escape(JSON.stringify(req.body.message)))
-    
-        res.json({ success: 1 })
-      } else {
+          publishEvent('OnBroadcast', escape(JSON.stringify(req.body.message)))
+      
+          res.json({ success: 1 })
+        } else {
+          res.json({ success: 0 })
+        }
+      } catch (e) {
         res.json({ success: 0 })
       }
     })
 
     server.get('/user/:address/details', function(req, res) {
-      if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
-      if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
-      if (!db.playerRewards[req.params.address].pendingItems) db.playerRewards[req.params.address].pendingItems = []
-      if (!db.playerRewards[req.params.address].historyRunes) db.playerRewards[req.params.address].historyRunes = []
-      if (!db.playerRewards[req.params.address].historyItems) db.playerRewards[req.params.address].historyItems = []
+      try {
+        if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
+        if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
+        if (!db.playerRewards[req.params.address].pendingItems) db.playerRewards[req.params.address].pendingItems = []
+        if (!db.playerRewards[req.params.address].historyRunes) db.playerRewards[req.params.address].historyRunes = []
+        if (!db.playerRewards[req.params.address].historyItems) db.playerRewards[req.params.address].historyItems = []
 
-      res.json({
-        runes: {
-          pending: db.playerRewards[req.params.address].pending,
-          history: db.playerRewards[req.params.address].historyRunes
-        },
-        items: {
-          pending: db.playerRewards[req.params.address].pendingItems,
-          history: db.playerRewards[req.params.address].historyItems
-        },
-        quests: db.quests.players[req.params.address]
-      })
+        res.json({
+          success: 1,
+          result: {
+            runes: {
+              pending: db.playerRewards[req.params.address].pending,
+              history: db.playerRewards[req.params.address].historyRunes
+            },
+            items: {
+              pending: db.playerRewards[req.params.address].pendingItems,
+              history: db.playerRewards[req.params.address].historyItems
+            },
+            quests: db.quests?.players[req.params.address] || []
+          }
+        })
+      } catch (e) {
+        res.json({ success: 0 })
+      }
     })
 
     server.get('/user/:address', function(req, res) {
-      if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
-      if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
-      if (!db.playerRewards[req.params.address].pendingItems) db.playerRewards[req.params.address].pendingItems = []
+      try {
+        if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
+        if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
+        if (!db.playerRewards[req.params.address].pendingItems) db.playerRewards[req.params.address].pendingItems = []
 
-      res.json(db.playerRewards[req.params.address].pending)
+        res.json(db.playerRewards[req.params.address].pending)
+      } catch (e) {
+        res.json({ success: 0 })
+      }
     })
 
     server.get('/admin/claim/:address/:symbol/:amount/:tx', function(req, res) {
-      if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
-      if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
-      if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending[req.params.symbol] = 0
-      if (!db.playerRewards[req.params.address].tx) db.playerRewards[req.params.address].tx = []
+      try {
+        if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
+        if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
+        if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending[req.params.symbol] = 0
+        if (!db.playerRewards[req.params.address].tx) db.playerRewards[req.params.address].tx = []
 
-      const newReward = {
-        type: "rune",
-        symbol: req.params.symbol,
-        quantity: db.playerRewards[req.params.address].pending[req.params.symbol],
-        winner: {
-          address: req.params.address
-        },
-        tx: req.params.tx
+        const newReward = {
+          type: "rune",
+          symbol: req.params.symbol,
+          quantity: db.playerRewards[req.params.address].pending[req.params.symbol],
+          winner: {
+            address: req.params.address
+          },
+          tx: req.params.tx
+        }
+
+        db.rewardHistory.push(newReward)
+
+        saveRewardHistory()
+
+        db.playerRewards[req.params.address].pending[req.params.symbol] -= parseFloat(req.params.amount)
+        db.playerRewards[req.params.address].tx.push(req.params.tx)
+
+        savePlayerRewards()
+
+        res.json({ success: true })
+      } catch (e) {
+        res.json({ success: 0 })
       }
-
-      db.rewardHistory.push(newReward)
-
-      saveRewardHistory()
-
-      db.playerRewards[req.params.address].pending[req.params.symbol] -= parseFloat(req.params.amount)
-      db.playerRewards[req.params.address].tx.push(req.params.tx)
-
-      savePlayerRewards()
-
-      res.json({ success: true })
     })
 
     server.get('/readiness_check', (req, res) => res.sendStatus(200))
