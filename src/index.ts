@@ -168,27 +168,27 @@ function reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer) {
   if (!db.reportList[reportedPlayer.address].includes(currentPlayer.address))
     db.reportList[reportedPlayer.address].push(currentPlayer.address)
   
-  if (db.reportList[reportedPlayer.address].length >= 6) {
-    db.banList.push(reportedPlayer.address)
+  // if (db.reportList[reportedPlayer.address].length >= 6) {
+  //   db.banList.push(reportedPlayer.address)
 
-    disconnectPlayer(reportedPlayer)
-    // emitDirect(sockets[reportedPlayer.id], 'OnBanned', true)
-    return
-  }
+  //   disconnectPlayer(reportedPlayer)
+  //   // emitDirect(sockets[reportedPlayer.id], 'OnBanned', true)
+  //   return
+  // }
 
-  if (currentGamePlayers.length >= 4) {
-    const reportsFromCurrentGamePlayers = db.reportList[reportedPlayer.address].filter(function(n) {
-      return currentGamePlayers.indexOf(n) !== -1;
-    })
+  // if (currentGamePlayers.length >= 4) {
+  //   const reportsFromCurrentGamePlayers = db.reportList[reportedPlayer.address].filter(function(n) {
+  //     return currentGamePlayers.indexOf(n) !== -1;
+  //   })
 
-    if (reportsFromCurrentGamePlayers.length >= currentGamePlayers.length / 3) {
-      db.banList.push(reportedPlayer.address)
+  //   if (reportsFromCurrentGamePlayers.length >= currentGamePlayers.length / 3) {
+  //     db.banList.push(reportedPlayer.address)
 
-      disconnectPlayer(reportedPlayer)
-      // emitDirect(sockets[reportedPlayer.id], 'OnBanned', true)
-      return
-    }
-  }
+  //     disconnectPlayer(reportedPlayer)
+  //     // emitDirect(sockets[reportedPlayer.id], 'OnBanned', true)
+  //     return
+  //   }
+  // }
 }
 
 const testMode = false
@@ -263,7 +263,7 @@ const sharedConfig = {
   orbCutoffSeconds: testMode? 0 : 60,
   orbOnDeathPercent: 25,
   orbTimeoutSeconds: testMode ? 3 : 10,
-  pickupDistance: 0.2,
+  pickupDistance: 0.3,
   pointsPerEvolve: 1,
   pointsPerKill: 20,
   pointsPerOrb: 1,
@@ -787,8 +787,7 @@ const spawnRandomReward = () => {
   }, 30 * 1000)
 }
 
-function moveVectorTowards(current, target, maxDistanceDelta)
-{
+function moveVectorTowards(current, target, maxDistanceDelta) {
   const a = {
     x: target.x - current.x,
     y: target.y - current.y
@@ -927,8 +926,7 @@ export const getUsername = async (address: string): Promise<string> => {
   
     return username
   } catch (error) {
-    console.log(error)
-    return ''
+    return 'Guest' + Math.floor(Math.random() * 999)
   }
 }
 
@@ -1489,10 +1487,6 @@ io.on('connection', function(socket) {
       }
     })
 
-    socket.on('ping', function() {
-      emitDirect(socket, 'pong')
-    })
-
     socket.on('SetInfo', async function(msg) {
       try {
         const pack = decodePayload(msg)
@@ -1532,7 +1526,7 @@ io.on('connection', function(socket) {
 
         let name = addressToUsername[address]
 
-        if (!name) {
+        if (!name || name.indexOf('Guest') === 0) {
           name = await getUsername(address)
 
           if (!name) {
@@ -1709,7 +1703,6 @@ io.on('connection', function(socket) {
         ]
       }
 
-
       emitDirect(socket, 'OnSetRoundInfo', roundTimer + ':' + getRoundInfo().join(':') + ':' + guide.join(':'))
 
       syncSprites()
@@ -1821,53 +1814,15 @@ io.on('connection', function(socket) {
       }
     })
 
-    // socket.on('Pickup', async function (msg) {
-    //   try {
-    //     const now = getTime()
-    //     const isPhased = currentPlayer.isPhased ? true : now <= currentPlayer.phasedUntil
-
-    //     if (currentPlayer.isDead) return
-    //     if (currentPlayer.isSpectating) return
-    //     if (isPhased) return
-    //     if (config.isMaintenance && !db.modList.includes(currentPlayer?.address)) return
-
-    //     const pack = decodePayload(msg)
-
-    //     const powerup = powerupLookup[pack.id]
-
-    //     log('Pickup', msg, powerup)
-
-    //     if (powerup) {
-    //       removeSprite(pack.id)
-
-    //       let value = 0
-
-    //       if (powerup.type == 0) value = config.powerupXp0
-    //       if (powerup.type == 1) value = config.powerupXp1
-    //       if (powerup.type == 2) value = config.powerupXp2
-    //       if (powerup.type == 3) value = config.powerupXp3
-
-    //       currentPlayer.powerups += 1
-    //       currentPlayer.points += config.pointsPerPowerup
-    //       currentPlayer.xp += (value * config.spriteXpMultiplier)
-      
-    //       publishEvent('OnUpdatePickup', currentPlayer.id, pack.id, value)
-
-    //       removeSprite(pack.id)
-    //       spawnSprites(1)
-    //     }
-    //   } catch(e) {
-    //     console.log(e)
-    //   }
-    // })
-    
     socket.on('disconnect', function() {
       log("User has disconnected")
 
       currentPlayer.log.clientDisconnected += 1
-      disconnectPlayer(currentPlayer)
 
-      flushEventQueue()
+      setTimeout(() => {
+        disconnectPlayer(currentPlayer)
+        flushEventQueue()
+      }, 2 * 1000)
     })
   } catch(e) {
     logError(e)
