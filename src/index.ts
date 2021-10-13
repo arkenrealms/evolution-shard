@@ -1059,7 +1059,7 @@ function getUnobstructedPosition() {
         }
 
         if (config.level2open && gameObject.Name === 'Level2Divider') {
-          const diff = gameObject.Transform.LocalPosition[1] - -16
+          const diff = gameObject.Transform.Position[1] - -16
           collider.minY -= diff
           collider.maxY -= diff
         }
@@ -1786,11 +1786,11 @@ io.on('connection', function(socket) {
 
         const pack = decodePayload(msg)
 
-        const positionX = parseFloat(parseFloat(pack.position.split(':')[0]).toFixed(2))
-        const positionY = parseFloat(parseFloat(pack.position.split(':')[1]).toFixed(2))
+        const positionX = parseFloat(parseFloat(pack.position.split(':')[0]).toFixed(3))
+        const positionY = parseFloat(parseFloat(pack.position.split(':')[1]).toFixed(3))
 
-        const targetX = parseFloat(parseFloat(pack.target.split(':')[0]).toFixed(2))
-        const targetY = parseFloat(parseFloat(pack.target.split(':')[1]).toFixed(2))
+        const targetX = parseFloat(parseFloat(pack.target.split(':')[0]).toFixed(3))
+        const targetY = parseFloat(parseFloat(pack.target.split(':')[1]).toFixed(3))
 
 
         if (!Number.isFinite(positionX) || !Number.isFinite(positionY) || !Number.isFinite(targetX) || !Number.isFinite(targetY)) return
@@ -2274,7 +2274,7 @@ function detectCollisions() {
         }
 
         if (config.level2open && gameObject.Name === 'Level2Divider') {
-          const diff = gameObject.Transform.LocalPosition[1] - -16
+          const diff = gameObject.Transform.Position[1] - -16
           collider.minY -= diff
           collider.maxY -= diff
         }
