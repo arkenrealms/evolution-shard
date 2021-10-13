@@ -1783,8 +1783,9 @@ io.on('connection', function(socket) {
           // spawn currentPlayer client on clients in broadcast
           publishEvent('OnSpawnPlayer', currentPlayer.id, currentPlayer.name, currentPlayer.speed, currentPlayer.avatar, currentPlayer.position.x, currentPlayer.position.y, currentPlayer.position.x, currentPlayer.position.y)
         }
-
+        if (currentPlayer.name == 'Testman') console.log('raw', msg)
         const pack = decodePayload(msg)
+        if (currentPlayer.name == 'Testman') console.log('pack', pack)
 
         const positionX = parseFloat(parseFloat(pack.position.split(':')[0]).toFixed(3))
         const positionY = parseFloat(parseFloat(pack.position.split(':')[1]).toFixed(3))
@@ -1805,7 +1806,7 @@ io.on('connection', function(socket) {
           return
         }
 
-        console.log('position', positionX, positionY)
+        if (currentPlayer.name == 'Testman') console.log('position', positionX, positionY)
         currentPlayer.clientPosition = { x: positionX, y: positionY }
         currentPlayer.clientTarget = { x: targetX, y: targetY }
         currentPlayer.lastReportedTime = parseFloat(pack.time)
