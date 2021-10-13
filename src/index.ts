@@ -1610,7 +1610,7 @@ io.on('connection', function(socket) {
       log("[INFO] Total players: " + Object.keys(clientLookup).length)
       const roundTimer = (round.startedAt + config.roundLoopSeconds) - Math.round(getTime() / 1000)
       emitDirect(socket, 'OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
-      emitDirect(socket, 'OnJoinGame', currentPlayer.id, currentPlayer.name, currentPlayer.avatar, currentPlayer.isMasterClient ? 'true' : 'false', roundTimer, spawnPoint.x, spawnPoint.y)
+      emitDirect(socket, 'OnJoinGame', currentPlayer.id, currentPlayer.name, currentPlayer.avatar, currentPlayer.isMasterClient ? 'true' : 'false', roundTimer, currentPlayer.position.x, currentPlayer.position.y)
       // emitDirect(socket, 'OnSetInfo', currentPlayer.id, currentPlayer.name, currentPlayer.address, currentPlayer.network, currentPlayer.device)
 
       let guide
@@ -2274,7 +2274,7 @@ function detectCollisions() {
         }
 
         if (config.level2open && gameObject.Name === 'Level2Divider') {
-          const diff = gameObject.Transform.Position[1] - -16
+          const diff = -16
           collider.minY -= diff
           collider.maxY -= diff
         }
