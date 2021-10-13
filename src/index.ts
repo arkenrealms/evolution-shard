@@ -1783,17 +1783,16 @@ io.on('connection', function(socket) {
           // spawn currentPlayer client on clients in broadcast
           publishEvent('OnSpawnPlayer', currentPlayer.id, currentPlayer.name, currentPlayer.speed, currentPlayer.avatar, currentPlayer.position.x, currentPlayer.position.y, currentPlayer.position.x, currentPlayer.position.y)
         }
-        if (currentPlayer.name == 'Testman') console.log('raw', msg)
+
         const pack = decodePayload(msg)
-        if (currentPlayer.name == 'Testman') console.log('pack', pack)
 
-        const positionX = parseFloat(parseFloat(pack.position.split(':')[0]).toFixed(3))
-        const positionY = parseFloat(parseFloat(pack.position.split(':')[1]).toFixed(3))
+        const positionX = parseFloat(parseFloat(pack.position.split(':')[0].replace(',', '.')).toFixed(3))
+        const positionY = parseFloat(parseFloat(pack.position.split(':')[1].replace(',', '.')).toFixed(3))
 
-        const targetX = parseFloat(parseFloat(pack.target.split(':')[0]).toFixed(3))
-        const targetY = parseFloat(parseFloat(pack.target.split(':')[1]).toFixed(3))
+        const targetX = parseFloat(parseFloat(pack.target.split(':')[0].replace(',', '.')).toFixed(3))
+        const targetY = parseFloat(parseFloat(pack.target.split(':')[1].replace(',', '.')).toFixed(3))
 
-        if (currentPlayer.name == 'Testman') console.log('target', targetX, targetY)
+
         if (!Number.isFinite(positionX) || !Number.isFinite(positionY) || !Number.isFinite(targetX) || !Number.isFinite(targetY)) return
         if (positionX < mapBoundary.x.min) return
         if (positionX > mapBoundary.x.max) return
@@ -1806,7 +1805,6 @@ io.on('connection', function(socket) {
           return
         }
 
-        if (currentPlayer.name == 'Testman') console.log('position', positionX, positionY)
         currentPlayer.clientPosition = { x: positionX, y: positionY }
         currentPlayer.clientTarget = { x: targetX, y: targetY }
         currentPlayer.lastReportedTime = parseFloat(pack.time)
@@ -2227,7 +2225,7 @@ function detectCollisions() {
       // if (player.lastReportedTime > )
     let position = moveVectorTowards(player.position, player.clientTarget, (player.overrideSpeed || player.speed) * deltaTime) // castVectorTowards(player.position, player.clientTarget, 9999)
     // let target = castVectorTowards(position, player.clientTarget, 100)
-if (player.name == 'Testman') console.log('update', player.clientTarget, position)
+
     let outOfBounds = false
     if (position.x > mapBoundary.x.max) {
       position.x = mapBoundary.x.max
