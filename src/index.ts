@@ -1792,7 +1792,7 @@ io.on('connection', function(socket) {
         const targetX = parseFloat(parseFloat(pack.target.split(':')[0]).toFixed(3))
         const targetY = parseFloat(parseFloat(pack.target.split(':')[1]).toFixed(3))
 
-
+        console.log('target', targetX, targetY)
         if (!Number.isFinite(positionX) || !Number.isFinite(positionY) || !Number.isFinite(targetX) || !Number.isFinite(targetY)) return
         if (positionX < mapBoundary.x.min) return
         if (positionX > mapBoundary.x.max) return
@@ -1805,6 +1805,7 @@ io.on('connection', function(socket) {
           return
         }
 
+        console.log('position', positionX, positionY)
         currentPlayer.clientPosition = { x: positionX, y: positionY }
         currentPlayer.clientTarget = { x: targetX, y: targetY }
         currentPlayer.lastReportedTime = parseFloat(pack.time)
@@ -2225,7 +2226,7 @@ function detectCollisions() {
       // if (player.lastReportedTime > )
     let position = moveVectorTowards(player.position, player.clientTarget, (player.overrideSpeed || player.speed) * deltaTime) // castVectorTowards(player.position, player.clientTarget, 9999)
     // let target = castVectorTowards(position, player.clientTarget, 100)
-
+console.log('update', player.clientTarget, position)
     let outOfBounds = false
     if (position.x > mapBoundary.x.max) {
       position.x = mapBoundary.x.max
