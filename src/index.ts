@@ -10,7 +10,7 @@ import * as bodyParser from 'body-parser'
 import * as morgan from 'morgan'
 import * as crypto from 'crypto'
 import * as jetpack from 'fs-jetpack'
-import * as semver from 'semver'
+import * as semver from 'semver/preload.js'
 import axios from 'axios'
 import * as ArcaneItems from './contracts/ArcaneItems.json'
 import * as BEP20Contract from './contracts/BEP20.json'
@@ -23,7 +23,7 @@ import * as secrets from './secrets'
 
 const path = require('path')
 
-const serverVersion = "1.6.0"
+const serverVersion = "1.6.3"
 
 const server = express()
 const http = require('http').Server(server)
