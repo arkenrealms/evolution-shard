@@ -1500,7 +1500,7 @@ io.on('connection', function(socket) {
           disconnectPlayer(currentPlayer)
           return
         }
-
+console.log(semver.diff(serverVersion, pack.version), serverVersion, pack.version)
         if (semver.diff(serverVersion, pack.version) !== 'patch') {
           currentPlayer.log.versionProblem += 1
           disconnectPlayer(currentPlayer)
