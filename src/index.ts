@@ -10,6 +10,7 @@ import * as bodyParser from 'body-parser'
 import * as morgan from 'morgan'
 import * as crypto from 'crypto'
 import * as jetpack from 'fs-jetpack'
+import semver from 'semver'
 import axios from 'axios'
 import * as ArcaneItems from './contracts/ArcaneItems.json'
 import * as BEP20Contract from './contracts/BEP20.json'
@@ -103,12 +104,12 @@ db.rewardHistory = jetpack.read(path.resolve('./public/data/rewardHistory.json')
 db.rewards = jetpack.read(path.resolve('./public/data/rewards.json'), 'json')
 db.leaderboardHistory = jetpack.read(path.resolve('./public/data/leaderboardHistory.json'), 'json')
 db.modList = jetpack.read(path.resolve('./public/data/modList.json'), 'json') || []
-db.banList = jetpack.read(path.resolve('./public/data/banList.json'), 'json')
-db.reportList = jetpack.read(path.resolve('./public/data/playerReports.json'), 'json')
+db.banList = jetpack.read(path.resolve('./public/data/banList.json'), 'json') || []
+db.reportList = jetpack.read(path.resolve('./public/data/playerReports.json'), 'json') || {}
 db.playerRewards = jetpack.read(path.resolve('./public/data/playerRewards.json'), 'json')
 db.map = jetpack.read(path.resolve('./public/data/map.json'), 'json')
-db.log = jetpack.read(path.resolve('./public/data/log.json'), 'json')
-db.quests = jetpack.read(path.resolve('./public/data/quests.json'), 'json')
+db.log = jetpack.read(path.resolve('./public/data/log.json'), 'json') || []
+db.quests = jetpack.read(path.resolve('./public/data/quests.json'), 'json') || []
 
 if (!db.modList.length) {
   db.modList.push('0xa987f487639920A3c2eFe58C8FBDedB96253ed9B')
@@ -156,7 +157,7 @@ const saveReportList = () => {
 }
 
 const saveLog = () => {
-  jetpack.writeAsync(path.resolve('./public/data/log.json'), JSON.stringify(db.log, null, 2))
+  jetpack.write(path.resolve('./public/data/log.json'), JSON.stringify(db.log, null, 2))
 }
 
 function reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer) {
@@ -221,6 +222,9 @@ const baseConfig = {
   rewardWinnerAmountPerLegitPlayer: 0.08 / 15,
   rewardWinnerAmountMax: 0.08,
   flushEventQueueSeconds: 0.02,
+  log: {
+    connections: false
+  },
   anticheat: {
     enabled: false,
     samePlayerCantClaimRewardTwiceInRow: false,
@@ -1497,7 +1501,7 @@ io.on('connection', function(socket) {
           return
         }
 
-        if (pack.version !== serverVersion) {
+        if (semver.diff(serverVersion, pack.version) !== 'patch') {
           currentPlayer.log.versionProblem += 1
           disconnectPlayer(currentPlayer)
           return
@@ -1569,12 +1573,14 @@ io.on('connection', function(socket) {
       
           publishEvent('OnSetInfo', currentPlayer.id, currentPlayer.name, currentPlayer.network, currentPlayer.address, currentPlayer.device)
 
-          db.log.push({
-            event: 'Connected',
-            ip,
-            address: currentPlayer.address,
-            name: currentPlayer.name
-          })
+          if (config.log.connections) {
+            db.log.push({
+              event: 'Connected',
+              ip,
+              address: currentPlayer.address,
+              name: currentPlayer.name
+            })
+          }
         }
       } catch(e) {
         console.log(e)
@@ -1988,8 +1994,8 @@ function calcRoundRewards() {
     }
   }
 
-  sharedConfig.rewardItemAmount = Math.round(Math.min(totalLegitPlayers * config.rewardItemAmountPerLegitPlayer, config.rewardItemAmountMax) * 1000) / 1000
-  sharedConfig.rewardWinnerAmount = Math.round(Math.min(totalLegitPlayers * config.rewardWinnerAmountPerLegitPlayer, config.rewardWinnerAmountMax) * 1000) / 1000
+  sharedConfig.rewardItemAmount = parseFloat((Math.round(Math.min(totalLegitPlayers * config.rewardItemAmountPerLegitPlayer, config.rewardItemAmountMax) * 1000) / 1000).toFixed(3))
+  sharedConfig.rewardWinnerAmount = parseFloat((Math.round(Math.min(totalLegitPlayers * config.rewardWinnerAmountPerLegitPlayer, config.rewardWinnerAmountMax) * 1000) / 1000).toFixed(3))
 
   config.rewardItemAmount = sharedConfig.rewardItemAmount
   config.rewardWinnerAmount = sharedConfig.rewardWinnerAmount
