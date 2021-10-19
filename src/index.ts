@@ -10,7 +10,7 @@ import * as bodyParser from 'body-parser'
 import * as morgan from 'morgan'
 import * as crypto from 'crypto'
 import * as jetpack from 'fs-jetpack'
-import semver from 'semver'
+import * as semver from 'semver'
 import axios from 'axios'
 import * as ArcaneItems from './contracts/ArcaneItems.json'
 import * as BEP20Contract from './contracts/BEP20.json'
@@ -1500,7 +1500,7 @@ io.on('connection', function(socket) {
           disconnectPlayer(currentPlayer)
           return
         }
-console.log(semver.diff(serverVersion, pack.version), serverVersion, pack.version)
+
         if (semver.diff(serverVersion, pack.version) !== 'patch') {
           currentPlayer.log.versionProblem += 1
           disconnectPlayer(currentPlayer)
