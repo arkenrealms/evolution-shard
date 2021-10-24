@@ -2280,7 +2280,7 @@ function detectCollisions() {
         }
 
         if (config.level2open && gameObject.Name === 'Level2Divider') {
-          const diff = -16
+          const diff = -20
           collider.minY -= diff
           collider.maxY -= diff
         }
