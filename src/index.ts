@@ -10,6 +10,7 @@ import * as bodyParser from 'body-parser'
 import * as morgan from 'morgan'
 import * as crypto from 'crypto'
 import * as jetpack from 'fs-jetpack'
+import * as semver from 'semver/preload.js'
 import axios from 'axios'
 import * as ArcaneItems from './contracts/ArcaneItems.json'
 import * as BEP20Contract from './contracts/BEP20.json'
@@ -22,7 +23,7 @@ import * as secrets from './secrets'
 
 const path = require('path')
 
-const serverVersion = "1.6.0"
+const serverVersion = "1.6.3"
 
 const server = express()
 const http = require('http').Server(server)
@@ -103,12 +104,12 @@ db.rewardHistory = jetpack.read(path.resolve('./public/data/rewardHistory.json')
 db.rewards = jetpack.read(path.resolve('./public/data/rewards.json'), 'json')
 db.leaderboardHistory = jetpack.read(path.resolve('./public/data/leaderboardHistory.json'), 'json')
 db.modList = jetpack.read(path.resolve('./public/data/modList.json'), 'json') || []
-db.banList = jetpack.read(path.resolve('./public/data/banList.json'), 'json')
-db.reportList = jetpack.read(path.resolve('./public/data/playerReports.json'), 'json')
+db.banList = jetpack.read(path.resolve('./public/data/banList.json'), 'json') || []
+db.reportList = jetpack.read(path.resolve('./public/data/playerReports.json'), 'json') || {}
 db.playerRewards = jetpack.read(path.resolve('./public/data/playerRewards.json'), 'json')
 db.map = jetpack.read(path.resolve('./public/data/map.json'), 'json')
-db.log = jetpack.read(path.resolve('./public/data/log.json'), 'json')
-db.quests = jetpack.read(path.resolve('./public/data/quests.json'), 'json')
+db.log = jetpack.read(path.resolve('./public/data/log.json'), 'json') || []
+db.quests = jetpack.read(path.resolve('./public/data/quests.json'), 'json') || []
 
 if (!db.modList.length) {
   db.modList.push('0xa987f487639920A3c2eFe58C8FBDedB96253ed9B')
@@ -156,7 +157,7 @@ const saveReportList = () => {
 }
 
 const saveLog = () => {
-  jetpack.writeAsync(path.resolve('./public/data/log.json'), JSON.stringify(db.log, null, 2))
+  jetpack.write(path.resolve('./public/data/log.json'), JSON.stringify(db.log, null, 2))
 }
 
 function reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer) {
@@ -208,7 +209,7 @@ const baseConfig = {
   decayPowerPerMaxEvolvedPlayers: 0.2,
   pickupCheckPositionDistance: 1,
   playersRequiredForLevel2: 15,
-  preventBadKills: true,
+  preventBadKills: false,
   colliderBuffer: 0.2,
   stickyIslands: false,
   antifeed2: true,
@@ -221,6 +222,9 @@ const baseConfig = {
   rewardWinnerAmountPerLegitPlayer: 0.08 / 15,
   rewardWinnerAmountMax: 0.08,
   flushEventQueueSeconds: 0.02,
+  log: {
+    connections: false
+  },
   anticheat: {
     enabled: false,
     samePlayerCantClaimRewardTwiceInRow: false,
@@ -636,12 +640,14 @@ const spawnRandomReward = () => {
   if (!db.config.drops.runeword) db.config.drops.runeword = 1633043139000
   if (!db.config.drops.runeToken) db.config.drops.runeToken = 1633043139000
 
-  const timesPerDay = 24 * 60 * 60 / config.rewardSpawnLoopSeconds
+  const timesPerDay = 40 * 60 * 60 / config.rewardSpawnLoopSeconds
   const randPerDay = random(0, timesPerDay)
-  const timesPerWeek = 7 * 24 * 60 * 60 / config.rewardSpawnLoopSeconds
+  const timesPerWeek = 10 * 24 * 60 * 60 / config.rewardSpawnLoopSeconds
   const randPerWeek = random(0, timesPerWeek)
+  const timesPerBiweekly = 20 * 24 * 60 * 60 / config.rewardSpawnLoopSeconds
+  const randPerBiweekly = random(0, timesPerBiweekly)
 
-  if ((now - db.config.drops.guardian) > 12 * 60 * 60 * 1000 && randPerDay === timesPerDay / 2) { // (now - db.config.drops.guardian) > 12 * 60 * 60 * 1000) {
+  if ((now - db.config.drops.guardian) > 24 * 60 * 60 * 1000 && randPerDay === timesPerDay / 2) { // (now - db.config.drops.guardian) > 12 * 60 * 60 * 1000) {
     currentReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
@@ -666,7 +672,7 @@ const spawnRandomReward = () => {
     config.rewardItemType = sharedConfig.rewardItemType
 
     db.config.drops.guardian = now
-  } else if ((now - db.config.drops.earlyAccess) > 12 * 60 * 60 * 1000 && randPerWeek === timesPerWeek / 2) { // (now - db.config.drops.earlyAccess) > 7 * 24 * 60 * 60 * 1000
+  } else if ((now - db.config.drops.earlyAccess) > 24 * 60 * 60 * 1000 && randPerWeek === timesPerWeek / 2) { // (now - db.config.drops.earlyAccess) > 7 * 24 * 60 * 60 * 1000
     currentReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
@@ -710,7 +716,7 @@ const spawnRandomReward = () => {
   } else if ((now - db.config.drops.runeword) > 12 * 60 * 60 * 1000 && randPerDay === timesPerDay / 5) { // (now - db.config.drops.runeword) > 24 * 60 * 60 * 1000
     
     db.config.drops.runeword = now
-  } else if ((now - db.config.drops.runeToken) > 12 * 60 * 60 * 1000 && randPerWeek === timesPerWeek / 3) { // (now - db.config.drops.runeToken) > 7 * 24 * 60 * 60 * 1000
+  } else if ((now - db.config.drops.runeToken) > 2 * 24 * 60 * 60 * 1000 && randPerBiweekly === timesPerBiweekly / 3) { // (now - db.config.drops.runeToken) > 7 * 24 * 60 * 60 * 1000
     currentReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
@@ -726,7 +732,7 @@ const spawnRandomReward = () => {
       currentReward.quantity = 10
     else if (rand > 950)
       currentReward.quantity = 3
-    else if (rand > 850)
+    else if (rand > 900)
       currentReward.quantity = 2
 
     sharedConfig.rewardItemName = currentReward.quantity + ' ' + currentReward.name
@@ -1497,7 +1503,7 @@ io.on('connection', function(socket) {
           return
         }
 
-        if (pack.version !== serverVersion) {
+        if (semver.diff(serverVersion, pack.version) !== 'patch') {
           currentPlayer.log.versionProblem += 1
           disconnectPlayer(currentPlayer)
           return
@@ -1569,12 +1575,14 @@ io.on('connection', function(socket) {
       
           publishEvent('OnSetInfo', currentPlayer.id, currentPlayer.name, currentPlayer.network, currentPlayer.address, currentPlayer.device)
 
-          db.log.push({
-            event: 'Connected',
-            ip,
-            address: currentPlayer.address,
-            name: currentPlayer.name
-          })
+          if (config.log.connections) {
+            db.log.push({
+              event: 'Connected',
+              ip,
+              address: currentPlayer.address,
+              name: currentPlayer.name
+            })
+          }
         }
       } catch(e) {
         console.log(e)
@@ -1988,8 +1996,8 @@ function calcRoundRewards() {
     }
   }
 
-  sharedConfig.rewardItemAmount = Math.round(Math.min(totalLegitPlayers * config.rewardItemAmountPerLegitPlayer, config.rewardItemAmountMax) * 1000) / 1000
-  sharedConfig.rewardWinnerAmount = Math.round(Math.min(totalLegitPlayers * config.rewardWinnerAmountPerLegitPlayer, config.rewardWinnerAmountMax) * 1000) / 1000
+  sharedConfig.rewardItemAmount = parseFloat((Math.round(Math.min(totalLegitPlayers * config.rewardItemAmountPerLegitPlayer, config.rewardItemAmountMax) * 1000) / 1000).toFixed(3))
+  sharedConfig.rewardWinnerAmount = parseFloat((Math.round(Math.min(totalLegitPlayers * config.rewardWinnerAmountPerLegitPlayer, config.rewardWinnerAmountMax) * 1000) / 1000).toFixed(3))
 
   config.rewardItemAmount = sharedConfig.rewardItemAmount
   config.rewardWinnerAmount = sharedConfig.rewardWinnerAmount
@@ -2274,7 +2282,7 @@ function detectCollisions() {
         }
 
         if (config.level2open && gameObject.Name === 'Level2Divider') {
-          const diff = -16
+          const diff = -20
           collider.minY -= diff
           collider.maxY -= diff
         }
