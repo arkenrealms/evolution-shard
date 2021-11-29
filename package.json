@@ -4,7 +4,6 @@
   "description": "",
   "main": "build/index.js",
   "dependencies": {
-    "@elastic/elasticsearch": "^7.0.0-rc.1",
     "@typechain/ethers-v4": "^1.0.0",
     "@types/common-tags": "^1.8.0",
     "@types/cors": "^2.8.5",
@@ -14,12 +13,8 @@
     "@types/helmet": "^0.0.43",
     "@types/morgan": "^1.7.35",
     "@types/node": "^13.7.0",
-    "@types/swagger-parser": "^4.0.3",
     "@typescript-eslint/eslint-plugin": "^1.9.0",
     "@typescript-eslint/parser": "^1.9.0",
-    "apollo-cache-inmemory": "^1.6.6",
-    "apollo-client": "^2.6.10",
-    "apollo-link-http": "^1.5.17",
     "axios": "^0.21.4",
     "body-parser": "^1.19.0",
     "chalk": "^4.1.1",
@@ -32,11 +27,8 @@
     "fast-safe-stringify": "^2.0.7",
     "fs-jetpack": "^4.1.0",
     "helmet": "^4.6.0",
-    "hot-shots": "^8.5.1",
-    "lokijs": "^1.5.12",
     "moment": "^2.29.1",
     "morgan": "^1.10.0",
-    "mysql": "^2.18.1",
     "semver": "^7.3.5",
     "shortid": "^2.2.2",
     "socket.io": "^4.1.2",
@@ -66,7 +58,6 @@
     "node": "14.*.*"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "NODE_ENV=development yarn build && PORT=3001 yarn start",
     "inspect": "NODE_ENV=development yarn build && PORT=3001 NODE_ENV=production node --inspect build/index.js",
     "prod": "NODE_ENV=production yarn run nodemon --config nodemon.production.json",
@@ -87,7 +78,5 @@
     "manual": "sudo node --max_semi_space_size=30000 --max-old-space-size=30000 --initial-old-space-size=8000 --optimize-for-size --experimental-modules --experimental-json-modules build/index.js",
     "update": "git checkout europe1 && git merge ptr1 && git push && git checkout europe2 && git merge ptr1 && git push && git checkout europe3 && git merge ptr1 && git push && git checkout asia1 && git merge ptr1 && git push && git checkout asia2 && git merge ptr1 && git push && git checkout asia3 && git merge ptr1 && git push && git checkout asia4 && git merge ptr1 && git push && git checkout na1 && git merge ptr1 && git push && git checkout sa1 && git merge ptr1 && git push && git checkout oceanic1 && git merge ptr1 && git push && git checkout sa1 && git merge ptr1 && git push && git checkout sa2 && git merge ptr1 && git push && git checkout sa3 && git merge ptr1 && git push && git checkout sa4 && git merge ptr1 && git push && git checkout sa5 && git merge ptr1",
     "update2": "sudo pkill -f node && cd /opt/bitnami/projects/rune-evolution-game-server/ && git checkout HEAD -- public/data/rewards.json && git pull && yarn build"
-  },
-  "author": "Binzy",
-  "license": "Unlicensed"
+  }
 }
