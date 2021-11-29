@@ -14,7 +14,6 @@ import * as semver from 'semver/preload.js'
 import axios from 'axios'
 import * as ArcaneItems from './contracts/ArcaneItems.json'
 import * as BEP20Contract from './contracts/BEP20.json'
-import middleware from './middleware'
 import * as services from './services'
 import { decodeItem } from './decodeItem'
 import Provider from './util/provider'
@@ -2675,61 +2674,6 @@ const initWebServer = async () => {
 
 const initRoutes = async () => {
   try {
-    const api = {}
-
-    const routes = [
-      // require('./routes/info/get')
-    ]
-
-    for (const route of routes) {
-      api[route.operationId] = function (options, db, req, res) {
-        return route.run(options, db, req, res).catch((error) => {
-          log(`Route error:`, error.stack)
-
-          res.status(500).json({ message: `Error encountered: ${error}` })
-        })
-      }
-    }
-
-    const notFound = (options, db, req, res) => res.status(404).end()
-    const notImplemented = (options, db, req, res) => res.status(501).end()
-
-    const paths = [
-      // {
-      //   operationId: 'getInfo',
-      //   method: 'get',
-      //   route: '/info',
-      // },
-    ]
-
-    paths.forEach((p: any) => {
-      const runSequence = []
-      const options = {
-        body: p.body || [],
-        parameters: p.parameters || [],
-        responses: p.responses || {},
-        security: p.security || {},
-      }
-
-      let routeRun = notFound
-
-      if (p.operationId) {
-        if (typeof api[p.operationId] === 'function') {
-          routeRun = api[p.operationId]
-        } else {
-          routeRun = notImplemented
-        }
-      }
-
-      for (const item of middleware) {
-        runSequence.push(item.bind(null, options, db))
-      }
-
-      runSequence.push(routeRun.bind(null, options, db))
-
-      server[p.method](p.route, ...runSequence)
-    })
-
     server.get('/info', async function(req, res) {
       return res.json({
         version: serverVersion,
