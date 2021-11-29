@@ -1,20 +1,19 @@
-import * as utf8 from 'utf8'
+import utf8 from 'utf8'
 import * as ethers from 'ethers'
-import * as Web3 from 'web3'
-import * as fs from 'fs'
-import * as express from 'express'
-import * as helmet from 'helmet'
-import * as cors from 'cors'
-import * as RateLimit from 'express-rate-limit'
-import * as bodyParser from 'body-parser'
-import * as morgan from 'morgan'
-import * as crypto from 'crypto'
-import * as jetpack from 'fs-jetpack'
-import * as semver from 'semver/preload.js'
+import Web3 from 'web3'
+import fs from 'fs'
+import express from 'express'
+import helmet from 'helmet'
+import cors from 'cors'
+import RateLimit from 'express-rate-limit'
+import bodyParser from 'body-parser'
+import morgan from 'morgan'
+import crypto from 'crypto'
+import jetpack from 'fs-jetpack'
+import semver from 'semver/preload.js'
 import axios from 'axios'
-import * as ArcaneItems from './contracts/ArcaneItems.json'
-import * as BEP20Contract from './contracts/BEP20.json'
-import * as services from './services'
+import ArcaneItems from './contracts/ArcaneItems.json'
+import BEP20Contract from './contracts/BEP20.json'
 import { decodeItem } from './decodeItem'
 import Provider from './util/provider'
 import contracts from './contracts'
@@ -3008,25 +3007,8 @@ const initGameServer = async () => {
   // setTimeout(flushEventQueue, config.flushEventQueueSeconds * 1000)
 }
 
-const initServices = async () => {
-  // db.initCollections('crawler', {
-  //   config: {
-  //     fromBlock: 10961240,
-  //     lastUpdated: 0
-  //   },
-  // })
-  await services.init(db)
-  await services.crawl(db)
-}
-
 const init = async () => {
   try {
-    // db = await database.init()
-    // db.initCollections('app', {
-    //   leaderHistory: [],
-    // })
-
-    await initServices()
     await initGameServer()
     await initWebServer()
     await initRoutes()
