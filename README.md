@@ -1,3 +1,4 @@
+```
 cd /opt
 mkdir bitnami
 sudo mkdir bitnami
@@ -28,7 +29,7 @@ git pull
 yarn build
 
 sudo nohup forever start forever-config.json &
-
+```
 
 
 Download:
