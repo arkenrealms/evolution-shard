@@ -614,6 +614,13 @@ const publishEvent = (...args) => {
   eventQueue.push(args)
 }
 
+function isNumeric(str) {
+  if (typeof str != "string") return false // we only process strings!  
+  // @ts-ignore
+  return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+         !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
+}
+
 const verifySignature = (signature, address) => {
   log('Verifying', signature, address)
   try {
@@ -2866,6 +2873,34 @@ const initRoutes = async () => {
       
           saveModList()
       
+          res.json({ success: 1 })
+        } else {
+          res.json({ success: 0 })
+        }
+      } catch (e) {
+        res.json({ success: 0 })
+      }
+    })
+
+    server.post('/setConfig/:key/:value', function(req, res) {
+      try {
+        db.log.push({
+          event: 'SetConfig',
+          caller: req.body.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+          const val = isNumeric(req.params.value) ? parseFloat(req.params.value) : req.params.value
+          if (baseConfig.hasOwnProperty(req.params.key)) 
+            baseConfig[req.params.key] = val
+
+          if (sharedConfig.hasOwnProperty(req.params.key)) 
+            sharedConfig[req.params.key] = val
+
+          config[req.params.key] = val
+          
           res.json({ success: 1 })
         } else {
           res.json({ success: 0 })
