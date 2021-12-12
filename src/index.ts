@@ -1798,6 +1798,7 @@ io.on('connection', function(socket) {
         if (now - currentPlayer.lastUpdate < config.forcedLatency) return
 
         if (currentPlayer.isJoining) {
+          console.log(currentPlayer?.address)
           if (config.isBattleRoyale && !db.modList.includes(currentPlayer?.address)) {
             disconnectPlayer(currentPlayer)
             return
