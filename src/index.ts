@@ -213,6 +213,7 @@ const baseConfig = {
   antifeed2: true,
   antifeed3: false,
   antifeed4: true,
+  isBattleRoyale: false,
   avatarDirection: 1,
   calcRoundRewards: true,
   rewardItemAmountPerLegitPlayer: 0.03 / 20,
@@ -1221,6 +1222,29 @@ const registerKill = (winner, loser) => {
   }
 }
 
+function spectate(currentPlayer) {
+  try {
+    if (config.isMaintenance && !db.modList.includes(currentPlayer?.address)) {
+      return
+    }
+
+    currentPlayer.isSpectating = true
+    // currentPlayer.points = 0
+    currentPlayer.xp = 0
+    currentPlayer.avatar = config.startAvatar
+    currentPlayer.speed = 5
+    currentPlayer.overrideSpeed = 5
+    currentPlayer.cameraSize = 6
+    currentPlayer.overrideCameraSize = 6
+
+    syncSprites()
+
+    publishEvent('OnSpectate', currentPlayer.id, currentPlayer.speed, currentPlayer.cameraSize)
+  } catch(e) {
+    console.log(e)
+  }
+}
+
 io.on('connection', function(socket) {
   try {
     const ip = socket.handshake.headers['x-forwarded-for']?.split(',')[0] || socket.conn.remoteAddress?.split(":")[3]
@@ -1458,26 +1482,7 @@ io.on('connection', function(socket) {
     })
 
     socket.on('Spectate', function() {
-      try {
-        if (config.isMaintenance && !db.modList.includes(currentPlayer?.address)) {
-          return
-        }
-
-        currentPlayer.isSpectating = true
-        // currentPlayer.points = 0
-        currentPlayer.xp = 0
-        currentPlayer.avatar = config.startAvatar
-        currentPlayer.speed = 5
-        currentPlayer.overrideSpeed = 5
-        currentPlayer.cameraSize = 6
-        currentPlayer.overrideCameraSize = 6
-
-        syncSprites()
-
-        publishEvent('OnSpectate', currentPlayer.id, currentPlayer.speed, currentPlayer.cameraSize)
-      } catch(e) {
-        console.log(e)
-      }
+      spectate(currentPlayer)
     })
     
     socket.on('Report', function(name) {
@@ -1776,11 +1781,21 @@ io.on('connection', function(socket) {
         if (currentPlayer.isSpectating) return
         if (config.isMaintenance && !db.modList.includes(currentPlayer?.address)) return
 
+        // if (config.isBattleRoyale) {
+        //   spectate(currentPlayer)
+        //   return
+        // }
+
         const now = getTime()
 
         if (now - currentPlayer.lastUpdate < config.forcedLatency) return
 
         if (currentPlayer.isJoining) {
+          if (config.isBattleRoyale && !db.modList.includes(currentPlayer?.address)) {
+            disconnectPlayer(currentPlayer)
+            return
+          }
+  
           currentPlayer.isDead = false
           currentPlayer.isJoining = false
 
@@ -2761,6 +2776,96 @@ const initRoutes = async () => {
       
           publishEvent('OnMaintenance', config.isMaintenance)
 
+          res.json({ success: 1 })
+        } else {
+          res.json({ success: 0 })
+        }
+      } catch (e) {
+        res.json({ success: 0 })
+      }
+    })
+
+    server.post('/startBattleRoyale', function(req, res) {
+      try {
+        db.log.push({
+          event: 'StartBattleRoyale',
+          caller: req.body.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+          baseConfig.isBattleRoyale = true
+          config.isBattleRoyale = true
+      
+          res.json({ success: 1 })
+        } else {
+          res.json({ success: 0 })
+        }
+      } catch (e) {
+        res.json({ success: 0 })
+      }
+    })
+
+    server.post('/stopBattleRoyale', function(req, res) {
+      try {
+        db.log.push({
+          event: 'StopBattleRoyale',
+          caller: req.body.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+          baseConfig.isBattleRoyale = false
+          config.isBattleRoyale = false
+      
+          res.json({ success: 1 })
+        } else {
+          res.json({ success: 0 })
+        }
+      } catch (e) {
+        res.json({ success: 0 })
+      }
+    })
+
+    server.post('/addMod/:address', function(req, res) {
+      try {
+        db.log.push({
+          event: 'AddMod',
+          caller: req.body.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+          db.modList.push(req.params.address)
+      
+          saveModList()
+      
+          res.json({ success: 1 })
+        } else {
+          res.json({ success: 0 })
+        }
+      } catch (e) {
+        res.json({ success: 0 })
+      }
+    })
+
+    server.post('/removeMod/:address', function(req, res) {
+      try {
+        db.log.push({
+          event: 'RemoveMod',
+          caller: req.body.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+          db.modList.splice(db.modList.indexOf(req.params.address), 1)
+      
+          saveModList()
+      
           res.json({ success: 1 })
         } else {
           res.json({ success: 0 })
