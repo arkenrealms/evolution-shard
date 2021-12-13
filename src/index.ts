@@ -1231,6 +1231,8 @@ const registerKill = (winner, loser) => {
 }
 
 function spectate(currentPlayer) {
+  if (currentPlayer.isSpectating) return
+
   try {
     if (config.isMaintenance && !db.modList.includes(currentPlayer?.address)) {
       return
@@ -1801,8 +1803,8 @@ io.on('connection', function(socket) {
 
         if (currentPlayer.isJoining) {
           console.log(currentPlayer?.address)
-          if (config.isBattleRoyale && !db.modList.includes(currentPlayer?.address)) {
-            disconnectPlayer(currentPlayer)
+          if (config.isBattleRoyale && !db.modList.includes(currentPlayer.address)) {
+            spectate(currentPlayer)
             return
           }
   
