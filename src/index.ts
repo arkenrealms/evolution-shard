@@ -1143,6 +1143,7 @@ function sha256(str) {
 const registerKill = (winner, loser) => {
   const now = getTime()
 
+  if (config.isGodParty) return
   if (winner.isInvincible) return
   if (loser.isInvincible) return
   if (config.preventBadKills && (winner.isPhased || now < winner.phasedUntil)) return
@@ -2523,7 +2524,7 @@ function fastGameloop() {
       if (client.isJoining) continue
 
       const currentTime = Math.round(now / 1000)
-      const isInvincible = client.isInvincible ? true : ((client.joinedAt >= currentTime - config.immunitySeconds))
+      const isInvincible = config.isGodParty || (client.isInvincible ? true : ((client.joinedAt >= currentTime - config.immunitySeconds)))
       const isPhased = client.isPhased ? true : now <= client.phasedUntil
 
       let decay = config.noDecay ? 0 : (client.avatar + 1) / (1 / config.fastLoopSeconds) * ((config['avatarDecayPower' + client.avatar] || 1) * config.decayPower)
@@ -2579,7 +2580,7 @@ function fastGameloop() {
               const currentTime = Math.round(now / 1000)
               const isNew = client.joinedAt >= currentTime - config.immunitySeconds
                 
-              if (!config.noBoot && !isInvincible && !isNew) {
+              if (!config.noBoot && !isInvincible && !isNew && !config.isGodParty) {
                 client.log.ranOutOfHealth += 1
                 disconnectPlayer(client)
               }
@@ -2871,12 +2872,6 @@ const initRoutes = async () => {
         if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
           baseConfig.isGodParty = true
           config.isGodParty = true
-
-          for (let i = 0; i < clients.length; i++) {
-            const player = clients[i]
-
-            player.isInvincible = true
-          }
 
           publishEvent('OnBroadcast', `God Party Started`, 0)
       
