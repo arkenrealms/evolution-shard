@@ -1738,6 +1738,7 @@ io.on('connection', function(socket) {
       }
 
       emitDirect(socket, 'OnSetRoundInfo', roundTimer + ':' + getRoundInfo().join(':') + ':' + guide.join(':'))
+      emitDirect(socket, 'OnBroadcast', `Game Mode - ${config.gameMode} (Round ${round.id})`, 0)
 
       syncSprites()
 
@@ -1747,6 +1748,7 @@ io.on('connection', function(socket) {
 
       if (config.level2open) {
         emitDirect(socket, 'OnOpenLevel2')
+        emitDirect(socket, 'OnBroadcast', `Level 2 open!`, 0)
       }
 
       // spawn all connected clients for currentUser client 
@@ -1781,6 +1783,7 @@ io.on('connection', function(socket) {
             clearSprites()
             spawnSprites(config.spritesStartCount)
             publishEvent('OnOpenLevel2')
+            publishEvent('OnBroadcast', `Level 2 open!`, 0)
           }
         }
 
@@ -1793,6 +1796,7 @@ io.on('connection', function(socket) {
             clearSprites()
             spawnSprites(config.spritesStartCount)
             publishEvent('OnCloseLevel2')
+            publishEvent('OnBroadcast', `Level 2 closed!`, 0)
           }
         }
       }
@@ -2154,10 +2158,13 @@ function resetLeaderboard() {
 
   publishEvent('OnClearLeaderboard')
 
+  publishEvent('OnBroadcast', `Game Mode - ${config.gameMode} (Round ${round.id})`, 0)
+
   if (config.hideMap) {
     publishEvent('OnHideMinimap')
   } else {
     publishEvent('OnShowMinimap')
+    publishEvent('OnBroadcast', `Minimap hidden in this mode!`, 2)
   }
 
   if (config.periodicReboots && rebootAfterRound) {
@@ -2169,9 +2176,9 @@ function resetLeaderboard() {
   }
 
   if (config.periodicReboots && announceReboot) {
-    const value = { text: 'Restarting server at end of this round.' }
+    const value = 'Restarting server at end of this round.'
 
-    publishEvent('OnBroadcast', escape(JSON.stringify(value)), 1)
+    publishEvent('OnBroadcast', value, 1)
     
     rebootAfterRound = true
   }
