@@ -1239,6 +1239,7 @@ function spectate(currentPlayer) {
     }
 
     currentPlayer.isSpectating = true
+    currentPlayer.isInvincible = true
     // currentPlayer.points = 0
     currentPlayer.xp = 0
     currentPlayer.avatar = config.startAvatar
@@ -1358,135 +1359,135 @@ io.on('connection', function(socket) {
 
     clients.push(currentPlayer)
 
-    socket.on('Passthrough', function(msg) {
-      try {
-        const pack = decodePayload(msg)
-        const data = JSON.parse(unescape(pack.data))
+    // socket.on('Passthrough', function(msg) {
+    //   try {
+    //     const pack = decodePayload(msg)
+    //     const data = JSON.parse(unescape(pack.data))
 
-        db.log.push({
-          event: data.event,
-          value: data.value,
-          caller: currentPlayer?.address
-        })
+    //     db.log.push({
+    //       event: data.event,
+    //       value: data.value,
+    //       caller: currentPlayer?.address
+    //     })
 
-        if (data.event === 'Ban') {
-          if (!db.modList.includes(currentPlayer?.address)) return
-          if (!(data.signature.value > 0 && data.signature.value < 1000)) return
-          if (!verifySignature(data.signature, currentPlayer?.address)) return
+    //     if (data.event === 'Ban') {
+    //       if (!db.modList.includes(currentPlayer?.address)) return
+    //       if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+    //       if (!verifySignature(data.signature, currentPlayer?.address)) return
       
-          const offender = data.value
+    //       const offender = data.value
       
-          db.banList.push(offender)
+    //       db.banList.push(offender)
 
-          if (clients.find(c => c.address === offender)) {
-            disconnectPlayer(clients.find(c => c.address === offender))
-          }
+    //       if (clients.find(c => c.address === offender)) {
+    //         disconnectPlayer(clients.find(c => c.address === offender))
+    //       }
       
-          saveBanList()
-        } else if (data.event === 'Unban') {
-          if (!db.modList.includes(currentPlayer?.address)) return
-          if (!(data.signature.value > 0 && data.signature.value < 1000)) return
-          if (!verifySignature(data.signature, currentPlayer?.address)) return
+    //       saveBanList()
+    //     } else if (data.event === 'Unban') {
+    //       if (!db.modList.includes(currentPlayer?.address)) return
+    //       if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+    //       if (!verifySignature(data.signature, currentPlayer?.address)) return
       
-          const offender = data.value
+    //       const offender = data.value
       
-          db.banList.splice(db.banList.indexOf(offender), 1)
+    //       db.banList.splice(db.banList.indexOf(offender), 1)
       
-          saveBanList()
-        } else if (data.event === 'AddMod') {
-          if (!db.modList.includes(currentPlayer?.address)) return
-          if (!(data.signature.value > 0 && data.signature.value < 1000)) return
-          if (!verifySignature(data.signature, currentPlayer?.address)) return
+    //       saveBanList()
+    //     } else if (data.event === 'AddMod') {
+    //       if (!db.modList.includes(currentPlayer?.address)) return
+    //       if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+    //       if (!verifySignature(data.signature, currentPlayer?.address)) return
       
-          const newMod = data.value
+    //       const newMod = data.value
       
-          db.modList.push(newMod)
+    //       db.modList.push(newMod)
       
-          saveModList()
-        } else if (data.event === 'RemoveMod') {
-          if (!db.modList.includes(currentPlayer?.address)) return
-          if (!(data.signature.value > 0 && data.signature.value < 1000)) return
-          if (!verifySignature(data.signature, currentPlayer?.address)) return
+    //       saveModList()
+    //     } else if (data.event === 'RemoveMod') {
+    //       if (!db.modList.includes(currentPlayer?.address)) return
+    //       if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+    //       if (!verifySignature(data.signature, currentPlayer?.address)) return
       
-          const newMod = data.value
+    //       const newMod = data.value
       
-          db.modList.splice(db.modList.indexOf(newMod), 1)
+    //       db.modList.splice(db.modList.indexOf(newMod), 1)
       
-          saveModList()
-        } else if (data.event === 'SetBroadcast') {
-          if (!db.modList.includes(currentPlayer?.address)) return
-          if (!(data.signature.value > 0 && data.signature.value < 1000)) return
-          if (!verifySignature(data.signature, currentPlayer?.address)) return
+    //       saveModList()
+    //     } else if (data.event === 'SetBroadcast') {
+    //       if (!db.modList.includes(currentPlayer?.address)) return
+    //       if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+    //       if (!verifySignature(data.signature, currentPlayer?.address)) return
       
-          publishEvent('OnBroadcast', escape(JSON.stringify(data.value)), 1)
-        } else if (data.event === 'SetMaintenance') {
-          if (!db.modList.includes(currentPlayer?.address)) return
-          if (!(data.signature.value > 0 && data.signature.value < 1000)) return
-          if (!verifySignature(data.signature, currentPlayer?.address)) return
+    //       publishEvent('OnBroadcast', escape(JSON.stringify(data.value)), 1)
+    //     } else if (data.event === 'SetMaintenance') {
+    //       if (!db.modList.includes(currentPlayer?.address)) return
+    //       if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+    //       if (!verifySignature(data.signature, currentPlayer?.address)) return
       
-          sharedConfig.isMaintenance = data.value
-          config.isMaintenance = data.value
+    //       sharedConfig.isMaintenance = data.value
+    //       config.isMaintenance = data.value
       
-          publishEvent('OnMaintenance', config.isMaintenance)
-        } else if (data.event === 'SetConfig') {
-          if (!db.modList.includes(currentPlayer?.address)) return
-          if (!(data.signature.value > 0 && data.signature.value < 1000)) return
-          if (!verifySignature(data.signature, currentPlayer?.address)) return
+    //       publishEvent('OnMaintenance', config.isMaintenance)
+    //     } else if (data.event === 'SetConfig') {
+    //       if (!db.modList.includes(currentPlayer?.address)) return
+    //       if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+    //       if (!verifySignature(data.signature, currentPlayer?.address)) return
 
-          for (const item of data.value) {
-            if (item.key in baseConfig)
-              baseConfig[item.key] = item.value
+    //       for (const item of data.value) {
+    //         if (item.key in baseConfig)
+    //           baseConfig[item.key] = item.value
 
-            if (item.key in sharedConfig)
-              sharedConfig[item.key] = item.value
+    //         if (item.key in sharedConfig)
+    //           sharedConfig[item.key] = item.value
             
-            config[item.key] = item.value
+    //         config[item.key] = item.value
         
-            if (item.publish) {
-              publishEvent(item.publish.eventName, ...item.publish.eventArgs)
-            }
-          }
-        } else if (data.event === 'SetClaiming') {
-          if (!db.modList.includes(currentPlayer?.address)) return
-          if (!(data.signature.value > 0 && data.signature.value < 1000)) return
-          if (!verifySignature(data.signature, currentPlayer?.address)) return
+    //         if (item.publish) {
+    //           publishEvent(item.publish.eventName, ...item.publish.eventArgs)
+    //         }
+    //       }
+    //     } else if (data.event === 'SetClaiming') {
+    //       if (!db.modList.includes(currentPlayer?.address)) return
+    //       if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+    //       if (!verifySignature(data.signature, currentPlayer?.address)) return
       
-          db.playerRewards[data.value.address].claiming = data.value.value
-        } else if (data.event === 'ResetClaiming') {
-          if (!db.modList.includes(currentPlayer?.address)) return
-          if (!(data.signature.value > 0 && data.signature.value < 1000)) return
-          if (!verifySignature(data.signature, currentPlayer?.address)) return
+    //       db.playerRewards[data.value.address].claiming = data.value.value
+    //     } else if (data.event === 'ResetClaiming') {
+    //       if (!db.modList.includes(currentPlayer?.address)) return
+    //       if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+    //       if (!verifySignature(data.signature, currentPlayer?.address)) return
       
-          for (const address in db.playerRewards) {
-            db.playerRewards[address].claiming = false
-          }
-        } else if (data.event === 'SetPreset') {
-          if (!db.modList.includes(currentPlayer?.address)) return
-          if (!(data.signature.value > 0 && data.signature.value < 1000)) return
-          if (!verifySignature(data.signature, currentPlayer?.address)) return
+    //       for (const address in db.playerRewards) {
+    //         db.playerRewards[address].claiming = false
+    //       }
+    //     } else if (data.event === 'SetPreset') {
+    //       if (!db.modList.includes(currentPlayer?.address)) return
+    //       if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+    //       if (!verifySignature(data.signature, currentPlayer?.address)) return
       
-          presets[data.value.index] = data.value.config
-        } else if (data.event === 'SetGodmode') {
-          if (!db.modList.includes(currentPlayer?.address)) return
-          if (!(data.signature.value > 0 && data.signature.value < 1000)) return
-          if (!verifySignature(data.signature, currentPlayer?.address)) return
+    //       presets[data.value.index] = data.value.config
+    //     } else if (data.event === 'SetGodmode') {
+    //       if (!db.modList.includes(currentPlayer?.address)) return
+    //       if (!(data.signature.value > 0 && data.signature.value < 1000)) return
+    //       if (!verifySignature(data.signature, currentPlayer?.address)) return
       
-          let client
-          for (let i = 0; i < clients.length; i++) {
-            if (clients[i].name == data.value) {
-              client = clients[i]
-              break;
-            }
-          }
+    //       let client
+    //       for (let i = 0; i < clients.length; i++) {
+    //         if (clients[i].name == data.value) {
+    //           client = clients[i]
+    //           break;
+    //         }
+    //       }
       
-          if (client) {
-            client.isInvincible = true
-          }
-        }
-      } catch(e) {
-        console.log(e)
-      }
-    })
+    //       if (client) {
+    //         client.isInvincible = true
+    //       }
+    //     }
+    //   } catch(e) {
+    //     console.log(e)
+    //   }
+    // })
 
     socket.on('Load', function() {
       emitDirect(socket, 'OnLoaded', 1)
@@ -2616,7 +2617,21 @@ function fastGameloop() {
         client.latency = 0
       }
   
-      publishEvent('OnUpdatePlayer', client.id, client.overrideSpeed || client.speed, client.cameraSize, client.position.x, client.position.y, client.target.x, client.target.y, Math.floor(client.xp), now, Math.round(client.latency), isInvincible ? '1': '0', client.isStuck ? '1' : '0', isPhased && !isInvincible ? '1' : '0')
+      publishEvent('OnUpdatePlayer',
+        client.id, 
+        client.overrideSpeed || client.speed, 
+        client.cameraSize, 
+        client.position.x, 
+        client.position.y, 
+        client.target.x, 
+        client.target.y, 
+        Math.floor(client.xp), 
+        now, 
+        Math.round(client.latency), 
+        isInvincible ? '1' : '0', 
+        client.isStuck ? '1' : '0', 
+        isPhased && !isInvincible ? '1' : '0'
+       )
     }
 
     flushEventQueue()
@@ -2810,7 +2825,7 @@ const initRoutes = async () => {
           baseConfig.isBattleRoyale = true
           config.isBattleRoyale = true
 
-          publishEvent('OnBroadcast', `Battle Royale Started`, 1)
+          publishEvent('OnBroadcast', `Battle Royale Started`, 3)
       
           res.json({ success: 1 })
         } else {
@@ -2834,7 +2849,7 @@ const initRoutes = async () => {
           baseConfig.isBattleRoyale = false
           config.isBattleRoyale = false
 
-          publishEvent('OnBroadcast', `Battle Royale Stopped`, 1)
+          publishEvent('OnBroadcast', `Battle Royale Stopped`, 0)
       
           res.json({ success: 1 })
         } else {
@@ -2864,7 +2879,7 @@ const initRoutes = async () => {
             player.isInvincible = true
           }
 
-          publishEvent('OnBroadcast', `God Party Started`, 1)
+          publishEvent('OnBroadcast', `God Party Started`, 0)
       
           res.json({ success: 1 })
         } else {
@@ -2894,7 +2909,7 @@ const initRoutes = async () => {
             player.isInvincible = false
           }
 
-          publishEvent('OnBroadcast', `God Party Stopped`, 1)
+          publishEvent('OnBroadcast', `God Party Stopped`, 2)
       
           res.json({ success: 1 })
         } else {
@@ -2924,6 +2939,13 @@ const initRoutes = async () => {
           sharedConfig.baseSpeed += 1
           config.baseSpeed += 1
 
+          sharedConfig.checkPositionDistance += 1
+          config.checkPositionDistance += 1
+          
+          sharedConfig.checkInterval += 1
+          config.checkInterval += 1
+
+          publishEvent('OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
           publishEvent('OnBroadcast', `Difficulty Increased!`, 2)
       
           res.json({ success: 1 })
@@ -2954,7 +2976,14 @@ const initRoutes = async () => {
           sharedConfig.baseSpeed -= 1
           config.baseSpeed -= 1
 
-          publishEvent('OnBroadcast', `Difficulty Decreased!`, 1)
+          sharedConfig.checkPositionDistance -= 1
+          config.checkPositionDistance -= 1
+          
+          sharedConfig.checkInterval -= 1
+          config.checkInterval -= 1
+
+          publishEvent('OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
+          publishEvent('OnBroadcast', `Difficulty Decreased!`, 0)
       
           res.json({ success: 1 })
         } else {
