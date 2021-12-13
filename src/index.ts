@@ -214,6 +214,7 @@ const baseConfig = {
   antifeed3: false,
   antifeed4: true,
   isBattleRoyale: false,
+  isGodParty: false,
   avatarDirection: 1,
   calcRoundRewards: true,
   rewardItemAmountPerLegitPlayer: 0.03 / 20,
@@ -1239,10 +1240,10 @@ function spectate(currentPlayer) {
     // currentPlayer.points = 0
     currentPlayer.xp = 0
     currentPlayer.avatar = config.startAvatar
-    currentPlayer.speed = 5
-    currentPlayer.overrideSpeed = 5
-    currentPlayer.cameraSize = 6
-    currentPlayer.overrideCameraSize = 6
+    currentPlayer.speed = 7
+    currentPlayer.overrideSpeed = 7
+    currentPlayer.cameraSize = 8
+    currentPlayer.overrideCameraSize = 8
 
     syncSprites()
 
@@ -1289,6 +1290,7 @@ io.on('connection', function(socket) {
       isJoining: false,
       isSpectating: false,
       isStuck: false,
+      isInvincible: config.isGodParty ? true : false,
       isPhased: false,
       overrideSpeed: null,
       overrideCameraSize: null,
@@ -1414,7 +1416,7 @@ io.on('connection', function(socket) {
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
           if (!verifySignature(data.signature, currentPlayer?.address)) return
       
-          publishEvent('OnBroadcast', escape(JSON.stringify(data.value)))
+          publishEvent('OnBroadcast', escape(JSON.stringify(data.value)), 1)
         } else if (data.event === 'SetMaintenance') {
           if (!db.modList.includes(currentPlayer?.address)) return
           if (!(data.signature.value > 0 && data.signature.value < 1000)) return
@@ -2156,7 +2158,7 @@ function resetLeaderboard() {
   if (config.periodicReboots && announceReboot) {
     const value = { text: 'Restarting server at end of this round.' }
 
-    publishEvent('OnBroadcast', escape(JSON.stringify(value)))
+    publishEvent('OnBroadcast', escape(JSON.stringify(value)), 1)
     
     rebootAfterRound = true
   }
@@ -2805,6 +2807,8 @@ const initRoutes = async () => {
         if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
           baseConfig.isBattleRoyale = true
           config.isBattleRoyale = true
+
+          publishEvent('OnBroadcast', `Battle Royale: Started`, 1)
       
           res.json({ success: 1 })
         } else {
@@ -2827,6 +2831,128 @@ const initRoutes = async () => {
         if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
           baseConfig.isBattleRoyale = false
           config.isBattleRoyale = false
+
+          publishEvent('OnBroadcast', `Battle Royale: Stopped`, 1)
+      
+          res.json({ success: 1 })
+        } else {
+          res.json({ success: 0 })
+        }
+      } catch (e) {
+        res.json({ success: 0 })
+      }
+    })
+
+    server.post('/startGodParty', function(req, res) {
+      try {
+        db.log.push({
+          event: 'StartGodParty',
+          caller: req.body.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+          baseConfig.isGodParty = true
+          config.isGodParty = true
+
+          for (let i = 0; i < clients.length; i++) {
+            const player = clients[i]
+
+            player.isInvincible = true
+          }
+
+          publishEvent('OnBroadcast', `God Party: Started`, 1)
+      
+          res.json({ success: 1 })
+        } else {
+          res.json({ success: 0 })
+        }
+      } catch (e) {
+        res.json({ success: 0 })
+      }
+    })
+
+    server.post('/stopGodParty', function(req, res) {
+      try {
+        db.log.push({
+          event: 'StopGodParty',
+          caller: req.body.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+          baseConfig.isGodParty = false
+          config.isGodParty = false
+
+          for (let i = 0; i < clients.length; i++) {
+            const player = clients[i]
+
+            player.isInvincible = false
+          }
+
+          publishEvent('OnBroadcast', `God Party: Stopped`, 1)
+      
+          res.json({ success: 1 })
+        } else {
+          res.json({ success: 0 })
+        }
+      } catch (e) {
+        res.json({ success: 0 })
+      }
+    })
+
+    server.post('/makeBattleHarder', function(req, res) {
+      try {
+        db.log.push({
+          event: 'MakeBattleHarder',
+          caller: req.body.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+          baseConfig.dynamicDecayPower = false
+          config.dynamicDecayPower = false
+
+          sharedConfig.decayPower += 2
+          config.decayPower += 2
+
+          sharedConfig.baseSpeed += 1
+          config.baseSpeed += 1
+
+          publishEvent('OnBroadcast', `Difficulty Increased!`, 2)
+      
+          res.json({ success: 1 })
+        } else {
+          res.json({ success: 0 })
+        }
+      } catch (e) {
+        res.json({ success: 0 })
+      }
+    })
+
+    server.post('/makeBattleEasier', function(req, res) {
+      try {
+        db.log.push({
+          event: 'MakeBattleEasier',
+          caller: req.body.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+          baseConfig.dynamicDecayPower = false
+          config.dynamicDecayPower = false
+
+          sharedConfig.decayPower -= 2
+          config.decayPower -= 2
+
+          sharedConfig.baseSpeed -= 1
+          config.baseSpeed -= 1
+
+          publishEvent('OnBroadcast', `Difficulty Decreased!`, 1)
       
           res.json({ success: 1 })
         } else {
@@ -2901,6 +3027,8 @@ const initRoutes = async () => {
             sharedConfig[req.params.key] = val
 
           config[req.params.key] = val
+
+          publishEvent('OnBroadcast', `${req.params.key} = ${val}`, 1)
           
           res.json({ success: 1 })
         } else {
@@ -3008,7 +3136,7 @@ const initRoutes = async () => {
         if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
           const socket = sockets[clients.find(c => c.address === req.params.address).id]
 
-          emitDirect(socket, 'OnBroadcast', escape(JSON.stringify(req.body.message)))
+          emitDirect(socket, 'OnBroadcast', escape(JSON.stringify(req.body.message)), 1)
       
           res.json({ success: 1 })
         } else {
@@ -3031,7 +3159,7 @@ const initRoutes = async () => {
 
         if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
 
-          publishEvent('OnBroadcast', escape(JSON.stringify(req.body.message)))
+          publishEvent('OnBroadcast', escape(JSON.stringify(req.body.message)), 1)
       
           res.json({ success: 1 })
         } else {
