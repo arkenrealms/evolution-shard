@@ -1009,7 +1009,7 @@ function disconnectPlayer(player) {
     syncSprites()
 
     if (config.isBattleRoyale && totalAlivePlayers.length === 1) {
-      publishEvent('OnBroadcast', `${totalAlivePlayers[0].name} is the last man standing`, 3)
+      publishEvent('OnBroadcast', `${totalAlivePlayers[0].name} is the last dragon standing`, 3)
     }
   } catch(e) {
     console.log(e)
@@ -1748,6 +1748,7 @@ io.on('connection', function(socket) {
 
       if (config.hideMap) {
         emitDirect(socket, 'OnHideMinimap')
+        emitDirect(socket, 'OnBroadcast', `Minimap hidden in this mode!`, 2)
       }
 
       if (config.level2open) {
@@ -2166,9 +2167,9 @@ function resetLeaderboard() {
 
   if (config.hideMap) {
     publishEvent('OnHideMinimap')
+    publishEvent('OnBroadcast', `Minimap hidden in this mode!`, 2)
   } else {
     publishEvent('OnShowMinimap')
-    publishEvent('OnBroadcast', `Minimap hidden in this mode!`, 2)
   }
 
   if (config.periodicReboots && rebootAfterRound) {
