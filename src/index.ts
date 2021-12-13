@@ -2808,7 +2808,7 @@ const initRoutes = async () => {
           baseConfig.isBattleRoyale = true
           config.isBattleRoyale = true
 
-          publishEvent('OnBroadcast', `Battle Royale: Started`, 1)
+          publishEvent('OnBroadcast', `Battle Royale Started`, 1)
       
           res.json({ success: 1 })
         } else {
@@ -2832,7 +2832,7 @@ const initRoutes = async () => {
           baseConfig.isBattleRoyale = false
           config.isBattleRoyale = false
 
-          publishEvent('OnBroadcast', `Battle Royale: Stopped`, 1)
+          publishEvent('OnBroadcast', `Battle Royale Stopped`, 1)
       
           res.json({ success: 1 })
         } else {
@@ -2862,7 +2862,7 @@ const initRoutes = async () => {
             player.isInvincible = true
           }
 
-          publishEvent('OnBroadcast', `God Party: Started`, 1)
+          publishEvent('OnBroadcast', `God Party Started`, 1)
       
           res.json({ success: 1 })
         } else {
@@ -2892,7 +2892,7 @@ const initRoutes = async () => {
             player.isInvincible = false
           }
 
-          publishEvent('OnBroadcast', `God Party: Stopped`, 1)
+          publishEvent('OnBroadcast', `God Party Stopped`, 1)
       
           res.json({ success: 1 })
         } else {
