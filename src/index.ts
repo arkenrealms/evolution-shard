@@ -3171,7 +3171,7 @@ const initRoutes = async () => {
         if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
           const socket = sockets[clients.find(c => c.address === req.params.address).id]
 
-          emitDirect(socket, 'OnBroadcast', escape(JSON.stringify(req.body.message)), 1)
+          emitDirect(socket, 'OnBroadcast', req.body.message.replace(/:/gi, ''), 0)
       
           res.json({ success: 1 })
         } else {
@@ -3194,7 +3194,7 @@ const initRoutes = async () => {
 
         if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
 
-          publishEvent('OnBroadcast', escape(JSON.stringify(req.body.message)), 1)
+          publishEvent('OnBroadcast', req.body.message.replace(/:/gi, ''), 0)
       
           res.json({ success: 1 })
         } else {
