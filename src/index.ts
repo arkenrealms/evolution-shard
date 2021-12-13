@@ -1781,27 +1781,33 @@ io.on('connection', function(socket) {
       if (config.level2allowed) {
         if (clients.filter(c => !c.isSpectating && !c.isDead).length >= config.playersRequiredForLevel2) {
           if (!config.level2open) {
-            baseConfig.level2open = true
-            config.level2open = true
-            sharedConfig.spritesStartCount = 200
-            config.spritesStartCount = 200
-            clearSprites()
-            spawnSprites(config.spritesStartCount)
-            publishEvent('OnOpenLevel2')
-            publishEvent('OnBroadcast', `Level 2 open!`, 0)
+            publishEvent('OnBroadcast', `Level 2 opening...`, 0)
+
+            setTimeout(() => {
+              baseConfig.level2open = true
+              config.level2open = true
+              sharedConfig.spritesStartCount = 200
+              config.spritesStartCount = 200
+              clearSprites()
+              spawnSprites(config.spritesStartCount)
+              publishEvent('OnOpenLevel2')
+            }, 2 * 1000)
           }
         }
 
         if (clients.filter(c => !c.isSpectating && !c.isDead).length < config.playersRequiredForLevel2 - 5) {
           if (config.level2open) {
-            baseConfig.level2open = false
-            config.level2open = false
-            sharedConfig.spritesStartCount = 50
-            config.spritesStartCount = 50
-            clearSprites()
-            spawnSprites(config.spritesStartCount)
-            publishEvent('OnCloseLevel2')
-            publishEvent('OnBroadcast', `Level 2 closed!`, 0)
+            publishEvent('OnBroadcast', `Level 2 closing...`, 0)
+
+            setTimeout(() => {
+              baseConfig.level2open = false
+              config.level2open = false
+              sharedConfig.spritesStartCount = 50
+              config.spritesStartCount = 50
+              clearSprites()
+              spawnSprites(config.spritesStartCount)
+              publishEvent('OnCloseLevel2')
+            }, 2 * 1000)
           }
         }
       }
