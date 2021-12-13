@@ -980,7 +980,13 @@ function disconnectPlayer(player) {
     player.latency = 0
     publishEvent('OnUserDisconnected', player.id)
 
+    let totalAlivePlayers = []
+
     for (let i = 0; i < clients.length; i++) {
+      if (!clients[i].isSpectating && !clients[i].isDead) {
+        totalAlivePlayers.push(clients[i])
+      }
+
       if (clients[i].id == player.id) {
         clients.splice(i, 1)
       }
@@ -997,6 +1003,10 @@ function disconnectPlayer(player) {
     delete clientLookup[player.id]
 
     syncSprites()
+
+    if (config.isBattleRoyale && totalAlivePlayers.length === 1) {
+      publishEvent('OnBroadcast', `${totalAlivePlayers[0].name} is the last man standing`, 3)
+    }
   } catch(e) {
     console.log(e)
   }
