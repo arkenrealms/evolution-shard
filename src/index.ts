@@ -788,9 +788,13 @@ const spawnRandomReward = () => {
 
   if (!currentReward) return spawnRandomReward()
 
-  publishEvent('OnSpawnReward', currentReward.id, config.rewardItemType, config.rewardItemName, config.rewardItemAmount, currentReward.position.x, currentReward.position.y)
+  publishEvent('OnBroadcast', `Powerful Energy Detected - ${config.rewardItemName}`, 3)
 
   const tempReward = JSON.parse(JSON.stringify(currentReward))
+
+  setTimeout(() => {
+    publishEvent('OnSpawnReward', tempReward.id, config.rewardItemType, config.rewardItemName, config.rewardItemAmount, tempReward.position.x, tempReward.position.y)
+  }, 3 * 1000)
 
   setTimeout(() => {
     if (!currentReward) return
