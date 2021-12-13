@@ -1803,15 +1803,14 @@ io.on('connection', function(socket) {
         if (now - currentPlayer.lastUpdate < config.forcedLatency) return
 
         if (currentPlayer.isJoining) {
-          console.log(currentPlayer?.address)
-          if (config.isBattleRoyale && !db.modList.includes(currentPlayer.address)) {
+          currentPlayer.isDead = false
+          currentPlayer.isJoining = false
+
+          if (config.isBattleRoyale) {
             spectate(currentPlayer)
             return
           }
   
-          currentPlayer.isDead = false
-          currentPlayer.isJoining = false
-
           addToRecentPlayers(currentPlayer)
 
           // spawn currentPlayer client on clients in broadcast
