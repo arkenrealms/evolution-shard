@@ -192,6 +192,8 @@ function reportPlayer(currentGamePlayers, currentPlayer, reportedPlayer) {
 
 const testMode = false
 
+let roundLoopTimeout
+
 const baseConfig = {
   damagePerTouch: 2,
   periodicReboots: false,
@@ -199,6 +201,7 @@ const baseConfig = {
   startAvatar: 0,
   spriteXpMultiplier: 1,
   forcedLatency: 0,
+  isRoundPaused: false,
   level2allowed: true,
   level2open: false,
   level3open: false,
@@ -788,7 +791,9 @@ const spawnRandomReward = () => {
 
   if (!currentReward) return spawnRandomReward()
 
-  publishEvent('OnBroadcast', `Powerful Energy Detected - ${config.rewardItemName}`, 3)
+  if (currentReward.type !== 'rune') {
+    publishEvent('OnBroadcast', `Powerful Energy Detected - ${config.rewardItemName}`, 3)
+  }
 
   const tempReward = JSON.parse(JSON.stringify(currentReward))
 
@@ -1751,6 +1756,10 @@ io.on('connection', function(socket) {
         emitDirect(socket, 'OnBroadcast', `Minimap hidden in this mode!`, 2)
       }
 
+      if (config.isRoundPaused) {
+        emitDirect(socket, 'OnRoundPaused')
+      }
+
       if (config.level2open) {
         emitDirect(socket, 'OnOpenLevel2')
         emitDirect(socket, 'OnBroadcast', `Level 2 open!`, 0)
@@ -2058,7 +2067,7 @@ function calcRoundRewards() {
 let lastFastGameloopTime = getTime()
 let lastFastestGameloopTime = getTime()
 
-function resetLeaderboard() {
+function resetLeaderboard(preset) {
   const fiveSecondsAgo = getTime() - 7000
 
   const leaders = round.players.filter(p => p.lastUpdate >= fiveSecondsAgo).sort((a, b) => b.points - a.points)
@@ -2084,7 +2093,7 @@ function resetLeaderboard() {
     calcRoundRewards()
   }
 
-  randomRoundPreset()
+  if (!preset) randomRoundPreset()
 
   db.config.roundId = round.id + 1
 
@@ -2167,6 +2176,10 @@ function resetLeaderboard() {
 
   publishEvent('OnSetRoundInfo', config.roundLoopSeconds + ':' + getRoundInfo().join(':')  + '1. Eat sprites to stay alive' + ':' + '2. Avoid bigger dragons' + ':' + '3. Eat smaller dragons')
 
+  if (!config.isRoundPaused) {
+    publishEvent('OnRoundUnpaused')
+  }
+
   publishEvent('OnClearLeaderboard')
 
   publishEvent('OnBroadcast', `Game Mode - ${config.gameMode} (Round ${round.id})`, 0)
@@ -2194,7 +2207,7 @@ function resetLeaderboard() {
     rebootAfterRound = true
   }
 
-  setTimeout(resetLeaderboard, config.roundLoopSeconds * 1000)
+  roundLoopTimeout = setTimeout(resetLeaderboard, config.roundLoopSeconds * 1000)
 }
 
 function checkConnectionLoop() {
@@ -2888,6 +2901,54 @@ const initRoutes = async () => {
       }
     })
 
+    server.post('/pauseRound', function(req, res) {
+      try {
+        db.log.push({
+          event: 'PauseRound',
+          caller: req.body.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+          baseConfig.isRoundPaused = true
+          config.isRoundPaused = true
+
+          publishEvent('OnBroadcast', `Round Paused`, 0)
+      
+          res.json({ success: 1 })
+        } else {
+          res.json({ success: 0 })
+        }
+      } catch (e) {
+        res.json({ success: 0 })
+      }
+    })
+
+    server.post('/unpauseRound', function(req, res) {
+      try {
+        db.log.push({
+          event: 'UnpauseRound',
+          caller: req.body.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+          baseConfig.isRoundPaused = false
+          config.isRoundPaused = false
+
+          publishEvent('OnBroadcast', `Round Unpaused`, 0)
+      
+          res.json({ success: 1 })
+        } else {
+          res.json({ success: 0 })
+        }
+      } catch (e) {
+        res.json({ success: 0 })
+      }
+    })
+
     server.post('/startGodParty', function(req, res) {
       try {
         db.log.push({
@@ -3007,6 +3068,29 @@ const initRoutes = async () => {
           publishEvent('OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
           publishEvent('OnBroadcast', `Difficulty Decreased!`, 0)
       
+          res.json({ success: 1 })
+        } else {
+          res.json({ success: 0 })
+        }
+      } catch (e) {
+        res.json({ success: 0 })
+      }
+    })
+
+    server.post('/startRound/:gameMode', function(req, res) {
+      try {
+        db.log.push({
+          event: 'StartRound',
+          caller: req.body.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+          clearTimeout(roundLoopTimeout)
+
+          resetLeaderboard(presets.find(p => p.gameMode === req.params.gameMode))
+
           res.json({ success: 1 })
         } else {
           res.json({ success: 0 })
