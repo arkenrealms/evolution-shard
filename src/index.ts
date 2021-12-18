@@ -2075,6 +2075,10 @@ function resetLeaderboard(preset) {
   if (leaders.length) {
     lastLeaderName = leaders[0].name
     sendLeaderReward(leaders)
+
+    if (config.isBattleRoyale) {
+      publishEvent('OnBroadcast', `Top 5 - ${leaders.slice(0, 5).join(', ')}`, 0)
+    }
   }
 
   db.leaderboardHistory.push(JSON.parse(JSON.stringify(round.players)))
