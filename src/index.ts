@@ -2925,21 +2925,20 @@ const initRoutes = async () => {
       }
     })
 
-    server.post('/unpauseRound', function(req, res) {
+    server.post('/startRound', function(req, res) {
       try {
         db.log.push({
-          event: 'UnpauseRound',
+          event: 'StartRound',
           caller: req.body.address
         })
 
         saveLog()
 
         if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-          baseConfig.isRoundPaused = false
-          config.isRoundPaused = false
+          clearTimeout(roundLoopTimeout)
 
-          publishEvent('OnBroadcast', `Round Unpaused`, 0)
-      
+          resetLeaderboard(presets.find(p => p.gameMode === req.params.gameMode))
+
           res.json({ success: 1 })
         } else {
           res.json({ success: 0 })
@@ -2948,6 +2947,30 @@ const initRoutes = async () => {
         res.json({ success: 0 })
       }
     })
+
+    // server.post('/unpauseRound', function(req, res) {
+    //   try {
+    //     db.log.push({
+    //       event: 'UnpauseRound',
+    //       caller: req.body.address
+    //     })
+
+    //     saveLog()
+
+    //     if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+    //       baseConfig.isRoundPaused = false
+    //       config.isRoundPaused = false
+
+    //       publishEvent('OnBroadcast', `Round Unpaused`, 0)
+      
+    //       res.json({ success: 1 })
+    //     } else {
+    //       res.json({ success: 0 })
+    //     }
+    //   } catch (e) {
+    //     res.json({ success: 0 })
+    //   }
+    // })
 
     server.post('/startGodParty', function(req, res) {
       try {
@@ -3068,29 +3091,6 @@ const initRoutes = async () => {
           publishEvent('OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
           publishEvent('OnBroadcast', `Difficulty Decreased!`, 0)
       
-          res.json({ success: 1 })
-        } else {
-          res.json({ success: 0 })
-        }
-      } catch (e) {
-        res.json({ success: 0 })
-      }
-    })
-
-    server.post('/startRound/:gameMode', function(req, res) {
-      try {
-        db.log.push({
-          event: 'StartRound',
-          caller: req.body.address
-        })
-
-        saveLog()
-
-        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-          clearTimeout(roundLoopTimeout)
-
-          resetLeaderboard(presets.find(p => p.gameMode === req.params.gameMode))
-
           res.json({ success: 1 })
         } else {
           res.json({ success: 0 })
