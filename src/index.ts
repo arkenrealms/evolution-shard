@@ -2937,7 +2937,7 @@ const initRoutes = async () => {
         if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
           clearTimeout(roundLoopTimeout)
 
-          resetLeaderboard(presets.find(p => p.gameMode === req.params.gameMode))
+          resetLeaderboard(presets.find(p => p.gameMode === req.body.gameMode))
 
           res.json({ success: 1 })
         } else {
