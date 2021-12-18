@@ -2835,6 +2835,8 @@ const initRoutes = async () => {
           res.json({ success: 0 })
         }
       } catch (e) {
+        console.log(e)
+        
         res.json({ success: 0 })
       }
     })
@@ -2859,6 +2861,8 @@ const initRoutes = async () => {
           res.json({ success: 0 })
         }
       } catch (e) {
+        console.log(e)
+        
         res.json({ success: 0 })
       }
     })
@@ -2883,6 +2887,8 @@ const initRoutes = async () => {
           res.json({ success: 0 })
         }
       } catch (e) {
+        console.log(e)
+        
         res.json({ success: 0 })
       }
     })
@@ -2907,6 +2913,8 @@ const initRoutes = async () => {
           res.json({ success: 0 })
         }
       } catch (e) {
+        console.log(e)
+        
         res.json({ success: 0 })
       }
     })
@@ -2931,6 +2939,8 @@ const initRoutes = async () => {
           res.json({ success: 0 })
         }
       } catch (e) {
+        console.log(e)
+        
         res.json({ success: 0 })
       }
     })
@@ -2954,6 +2964,8 @@ const initRoutes = async () => {
           res.json({ success: 0 })
         }
       } catch (e) {
+        console.log(e)
+
         res.json({ success: 0 })
       }
     })
@@ -3002,6 +3014,8 @@ const initRoutes = async () => {
           res.json({ success: 0 })
         }
       } catch (e) {
+        console.log(e)
+        
         res.json({ success: 0 })
       }
     })
@@ -3032,6 +3046,8 @@ const initRoutes = async () => {
           res.json({ success: 0 })
         }
       } catch (e) {
+        console.log(e)
+        
         res.json({ success: 0 })
       }
     })
@@ -3069,6 +3085,8 @@ const initRoutes = async () => {
           res.json({ success: 0 })
         }
       } catch (e) {
+        console.log(e)
+        
         res.json({ success: 0 })
       }
     })
@@ -3129,6 +3147,8 @@ const initRoutes = async () => {
           res.json({ success: 0 })
         }
       } catch (e) {
+        console.log(e)
+        
         res.json({ success: 0 })
       }
     })
@@ -3182,6 +3202,8 @@ const initRoutes = async () => {
           res.json({ success: 0 })
         }
       } catch (e) {
+        console.log(e)
+        
         res.json({ success: 0 })
       }
     })
@@ -3211,6 +3233,8 @@ const initRoutes = async () => {
           res.json({ success: 0 })
         }
       } catch (e) {
+        console.log(e)
+        
         res.json({ success: 0 })
       }
     })
@@ -3241,6 +3265,8 @@ const initRoutes = async () => {
           res.json({ success: 0 })
         }
       } catch (e) {
+        console.log(e)
+        
         res.json({ success: 0 })
       }
     })
@@ -3265,6 +3291,8 @@ const initRoutes = async () => {
           res.json({ success: 0 })
         }
       } catch (e) {
+        console.log(e)
+        
         res.json({ success: 0 })
       }
     })
@@ -3313,6 +3341,8 @@ const initRoutes = async () => {
           res.json({ success: 0 })
         }
       } catch (e) {
+        console.log(e)
+        
         res.json({ success: 0 })
       }
     })
@@ -3384,6 +3414,8 @@ const initRoutes = async () => {
 
         res.json({ success: true })
       } catch (e) {
+        console.log(e)
+        
         res.json({ success: 0 })
       }
     })
