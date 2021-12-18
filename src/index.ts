@@ -2093,7 +2093,17 @@ function resetLeaderboard(preset) {
     calcRoundRewards()
   }
 
-  if (!preset) randomRoundPreset()
+  if (preset) {
+    roundConfig = {
+      ...baseConfig,
+      ...sharedConfig,
+      ...preset
+    }
+    config = JSON.parse(JSON.stringify(roundConfig))
+  }
+  else {
+    randomRoundPreset()
+  }
 
   db.config.roundId = round.id + 1
 
