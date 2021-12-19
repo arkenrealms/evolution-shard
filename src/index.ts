@@ -2382,7 +2382,7 @@ function detectCollisions() {
             else if (gameObject.Name.indexOf('Collider') === 0) {
               stuck = true
             }
-            else if (gameObject.Name.indexOf('Divider') === 0) {
+            else if (gameObject.Name.indexOf('Level2Divider') === 0) {
               stuck = true
             }
           }
