@@ -2276,286 +2276,290 @@ function castVectorTowards(position, target, scalar) {
 }
 
 function detectCollisions() {
-  const now = getTime()
-  const currentTime = Math.round(now / 1000)
-  const deltaTime = (now - lastFastestGameloopTime) / 1000
+  try {
+    const now = getTime()
+    const currentTime = Math.round(now / 1000)
+    const deltaTime = (now - lastFastestGameloopTime) / 1000
 
-  const distanceMap = {
-    0: config.avatarTouchDistance0,
-    1: config.avatarTouchDistance0,
-    2: config.avatarTouchDistance0
-  }
-
-  // Update players
-  for (let i = 0; i < clients.length; i++) {
-    const player = clients[i]
-
-    if (player.isDead) continue
-    if (player.isSpectating) continue
-    if (player.isJoining) continue
-
-    if (!Number.isFinite(player.position.x) || !Number.isFinite(player.speed)) { // Not sure what happened
-      player.log.speedProblem += 1
-      disconnectPlayer(player)
-      continue
+    const distanceMap = {
+      0: config.avatarTouchDistance0,
+      1: config.avatarTouchDistance0,
+      2: config.avatarTouchDistance0
     }
 
-    if (distanceBetweenPoints(player.position, player.clientPosition) > 2) {
-      player.phasedUntil = getTime() + 2000
-      player.log.phases += 1
-      player.log.clientDistanceProblem += 1
-    }
+    // Update players
+    for (let i = 0; i < clients.length; i++) {
+      const player = clients[i]
 
-    // if (distanceBetweenPoints(player.position, player.clientPosition) > config.checkPositionDistance) {
-    //   // Do nothing for now
-    //   player.position = moveVectorTowards(player.position, player.clientPosition, player.speed * deltaTime)
-    //   player.log.resetPosition += 1
-    // } else {
-      // if (player.lastReportedTime > )
-    let position = moveVectorTowards(player.position, player.clientTarget, (player.overrideSpeed || player.speed) * deltaTime) // castVectorTowards(player.position, player.clientTarget, 9999)
-    // let target = castVectorTowards(position, player.clientTarget, 100)
+      if (player.isDead) continue
+      if (player.isSpectating) continue
+      if (player.isJoining) continue
 
-    let outOfBounds = false
-    if (position.x > mapBoundary.x.max) {
-      position.x = mapBoundary.x.max
-      outOfBounds = true
-    }
-    if (position.x < mapBoundary.x.min) {
-      position.x = mapBoundary.x.min
-      outOfBounds = true
-    }
-    if (position.y > mapBoundary.y.max) {
-      position.y = mapBoundary.y.max
-      outOfBounds = true
-    }
-    if (position.y < mapBoundary.y.min) {
-      position.y = mapBoundary.y.min
-      outOfBounds = true
-    }
+      if (!Number.isFinite(player.position.x) || !Number.isFinite(player.speed)) { // Not sure what happened
+        player.log.speedProblem += 1
+        disconnectPlayer(player)
+        continue
+      }
 
-    if (outOfBounds) {
-      player.log.outOfBounds += 1
-    }
+      if (distanceBetweenPoints(player.position, player.clientPosition) > 2) {
+        player.phasedUntil = getTime() + 2000
+        player.log.phases += 1
+        player.log.clientDistanceProblem += 1
+      }
 
-    let collided = false
-    let stuck = false
+      // if (distanceBetweenPoints(player.position, player.clientPosition) > config.checkPositionDistance) {
+      //   // Do nothing for now
+      //   player.position = moveVectorTowards(player.position, player.clientPosition, player.speed * deltaTime)
+      //   player.log.resetPosition += 1
+      // } else {
+        // if (player.lastReportedTime > )
+      let position = moveVectorTowards(player.position, player.clientTarget, (player.overrideSpeed || player.speed) * deltaTime) // castVectorTowards(player.position, player.clientTarget, 9999)
+      // let target = castVectorTowards(position, player.clientTarget, 100)
 
-    for (const i in db.map) {
-      const gameObject = db.map[i]
+      let outOfBounds = false
+      if (position.x > mapBoundary.x.max) {
+        position.x = mapBoundary.x.max
+        outOfBounds = true
+      }
+      if (position.x < mapBoundary.x.min) {
+        position.x = mapBoundary.x.min
+        outOfBounds = true
+      }
+      if (position.y > mapBoundary.y.max) {
+        position.y = mapBoundary.y.max
+        outOfBounds = true
+      }
+      if (position.y < mapBoundary.y.min) {
+        position.y = mapBoundary.y.min
+        outOfBounds = true
+      }
 
-      if (!gameObject.Colliders || !gameObject.Colliders.length) continue
+      if (outOfBounds) {
+        player.log.outOfBounds += 1
+      }
 
-      for (const gameCollider of gameObject.Colliders) {
-        let collider
-        
-        if (gameObject.Name.indexOf('Island') !== -1) {
-          collider = {
-            minX: gameCollider.Min[0] + (gameCollider.Max[0] - gameCollider.Min[0]) - config.colliderBuffer,
-            maxX: gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) + config.colliderBuffer,
-            minY: gameCollider.Min[1] + (gameCollider.Max[1] - gameCollider.Min[1]) - config.colliderBuffer,
-            maxY: gameCollider.Max[1] - (gameCollider.Max[1] - gameCollider.Min[1]) + config.colliderBuffer
-          }
-        } else {
-          collider = {
-            minX: gameCollider.Min[0],
-            maxX: gameCollider.Max[0],
-            minY: gameCollider.Min[1],
-            maxY: gameCollider.Max[1]
-          }
-        }
+      let collided = false
+      let stuck = false
 
-        if (config.level2open && gameObject.Name === 'Level2Divider') {
-          const diff = -20
-          collider.minY -= diff
-          collider.maxY -= diff
-        }
+      for (const i in db.map) {
+        const gameObject = db.map[i]
 
-        if (
-          position.x >= collider.minX &&
-          position.x <= collider.maxX &&
-          position.y >= collider.minY &&
-          position.y <= collider.maxY
-        ) {
-          console.log(i, gameObject)
-          if (gameObject.Name.indexOf('Land') !== -1) {
-            stuck = true
-          }
-          else if (gameObject.Name.indexOf('Island') !== -1) {
-            if (config.stickyIslands) {
-              stuck = true
-            } else {
-              collided = true
+        if (!gameObject.Colliders || !gameObject.Colliders.length) continue
+
+        for (const gameCollider of gameObject.Colliders) {
+          let collider
+          
+          if (gameObject.Name.indexOf('Island') !== -1) {
+            collider = {
+              minX: gameCollider.Min[0] + (gameCollider.Max[0] - gameCollider.Min[0]) - config.colliderBuffer,
+              maxX: gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) + config.colliderBuffer,
+              minY: gameCollider.Min[1] + (gameCollider.Max[1] - gameCollider.Min[1]) - config.colliderBuffer,
+              maxY: gameCollider.Max[1] - (gameCollider.Max[1] - gameCollider.Min[1]) + config.colliderBuffer
+            }
+          } else {
+            collider = {
+              minX: gameCollider.Min[0],
+              maxX: gameCollider.Max[0],
+              minY: gameCollider.Min[1],
+              maxY: gameCollider.Max[1]
             }
           }
-          else if (gameObject.Name.indexOf('Collider') !== -1) {
-            stuck = true
+
+          if (config.level2open && gameObject.Name === 'Level2Divider') {
+            const diff = -20
+            collider.minY -= diff
+            collider.maxY -= diff
           }
-          else if (gameObject.Name.indexOf('Divider') !== -1) {
-            stuck = true
+  console.log(position, collider)
+          if (
+            position.x >= collider.minX &&
+            position.x <= collider.maxX &&
+            position.y >= collider.minY &&
+            position.y <= collider.maxY
+          ) {
+            console.log(i, gameObject)
+            if (gameObject.Name.indexOf('Land') !== -1) {
+              stuck = true
+            }
+            else if (gameObject.Name.indexOf('Island') !== -1) {
+              if (config.stickyIslands) {
+                stuck = true
+              } else {
+                collided = true
+              }
+            }
+            else if (gameObject.Name.indexOf('Collider') !== -1) {
+              stuck = true
+            }
+            else if (gameObject.Name.indexOf('Divider') !== -1) {
+              stuck = true
+            }
           }
         }
+
+        if (stuck) break
+        if (collided) break
       }
 
-      if (stuck) break
-      if (collided) break
-    }
+      player.isStuck = false
 
-    player.isStuck = false
-
-    if (collided) {
-      player.position = position
-      player.target = player.clientTarget
-      player.phasedUntil = getTime() + 2000
-      player.log.phases += 1
-      player.log.collided += 1
-      player.overrideSpeed = 0.5
-    } else if (stuck) {
-      player.target = player.clientTarget
-      player.phasedUntil = getTime() + 2000
-      player.log.phases += 1
-      player.log.stuck += 1
-      player.overrideSpeed = 0.5
-      if (config.stickyIslands) {
-        player.isStuck = true
+      if (collided) {
+        player.position = position
+        player.target = player.clientTarget
+        player.phasedUntil = getTime() + 2000
+        player.log.phases += 1
+        player.log.collided += 1
+        player.overrideSpeed = 0.5
+      } else if (stuck) {
+        player.target = player.clientTarget
+        player.phasedUntil = getTime() + 2000
+        player.log.phases += 1
+        player.log.stuck += 1
+        player.overrideSpeed = 0.5
+        if (config.stickyIslands) {
+          player.isStuck = true
+        }
+      } else {
+        player.position = position
+        player.target = player.clientTarget //castVectorTowards(position, player.clientTarget, 9999)
+        player.overrideSpeed = null
       }
-    } else {
-      player.position = position
-      player.target = player.clientTarget //castVectorTowards(position, player.clientTarget, 9999)
-      player.overrideSpeed = null
+
+      const pos = Math.round(player.position.x) + ':' + Math.round(player.position.y)
+      
+      if (player.log.path.indexOf(pos) === -1) {
+        // player.log.path += pos + ','
+        player.log.positions += 1
+      }
     }
 
-    const pos = Math.round(player.position.x) + ':' + Math.round(player.position.y)
+    // Check players
+    for (let i = 0; i < clients.length; i++) {
+      const player1 = clients[i]
+      const isPlayer1Invincible = player1.isInvincible ? true : ((player1.joinedAt >= currentTime - config.immunitySeconds))
+      if (player1.isSpectating) continue
+      if (player1.isDead) continue
+      if (isPlayer1Invincible) continue
+
+      for (let j = 0; j < clients.length; j++) {
+        const player2 = clients[j]
+        const isPlayer2Invincible = player2.isInvincible ? true : ((player2.joinedAt >= currentTime - config.immunitySeconds))
+
+        if (player1.id === player2.id) continue
+        if (player2.isDead) continue
+        if (player2.isSpectating) continue
+        if (isPlayer2Invincible) continue
+        if (player2.avatar === player1.avatar) continue
+
+        // console.log(player1.position, player2.position, distanceBetweenPoints(player1.position.x, player1.position.y, player2.position.x, player2.position.y))
+
+        const distance = distanceMap[player1.avatar] + distanceMap[player2.avatar] //Math.max(distanceMap[player1.avatar], distanceMap[player2.avatar]) + Math.min(distanceMap[player1.avatar], distanceMap[player2.avatar])
+
+        if (distanceBetweenPoints(player1.position, player2.position) > distance) continue
+
+        if (player2.avatar > player1.avatar) {
+          // if (distanceBetweenPoints(player2.position, player2.clientPosition) > config.pickupCheckPositionDistance) continue
+          // playerDamageGiven[currentPlayer.id + pack.id] = now
+          // // console.log('Player Damage Given', currentPlayer.id + pack.id)
+          // if (playerDamageTaken[currentPlayer.id + pack.id] > now - 500) {
+            // if (player1.xp > 5) {
+              // player1.xp -= 1
+            // } else {
+              registerKill(player2, player1)
+            // }
+            break
+          // }
+        } else if (player1.avatar > player2.avatar) {
+          // if (distanceBetweenPoints(player1.position, player1.clientPosition) > config.pickupCheckPositionDistance) continue
+          // playerDamageGiven[pack.id + currentPlayer.id] = now
+          // // console.log('Player Damage Given', pack.id + currentPlayer.id)
+          // if (playerDamageTaken[pack.id + currentPlayer.id] > now - 500) {
+            // if (player2.xp > 5) {
+            //   player2.xp -= 1
+            // } else {
+              registerKill(player1, player2)
+            // }
+            break
+          // }
+        }
+      }
+    }
+
+    // Check pickups
+    for (let i = 0; i < clients.length; i++) {
+      const player = clients[i]
+
+      if (player.isDead) continue
+      if (player.isSpectating) continue
+      if (player.isPhased || now < player.phasedUntil) continue
+      // console.log(player.position, player.clientPosition, distanceBetweenPoints(player.position, player.clientPosition))
+      // console.log(currentReward)
+      // if (distanceBetweenPoints(player.position, player.clientPosition) > config.pickupCheckPositionDistance) continue
+
+      const touchDistance = config.pickupDistance + config['avatarTouchDistance' + player.avatar]
+
+      for (const powerup of powerups) {
+        if (distanceBetweenPoints(player.position, powerup.position) > touchDistance) continue
+
+        let value = 0
+
+        if (powerup.type == 0) value = config.powerupXp0
+        if (powerup.type == 1) value = config.powerupXp1
+        if (powerup.type == 2) value = config.powerupXp2
+        if (powerup.type == 3) value = config.powerupXp3
+
+        player.powerups += 1
+        player.points += config.pointsPerPowerup
+        player.xp += (value * config.spriteXpMultiplier)
     
-    if (player.log.path.indexOf(pos) === -1) {
-      // player.log.path += pos + ','
-      player.log.positions += 1
-    }
-  }
+        publishEvent('OnUpdatePickup', player.id, powerup.id, value)
 
-  // Check players
-  for (let i = 0; i < clients.length; i++) {
-    const player1 = clients[i]
-    const isPlayer1Invincible = player1.isInvincible ? true : ((player1.joinedAt >= currentTime - config.immunitySeconds))
-    if (player1.isSpectating) continue
-    if (player1.isDead) continue
-    if (isPlayer1Invincible) continue
+        removeSprite(powerup.id)
+        spawnSprites(1)
+      }
 
-    for (let j = 0; j < clients.length; j++) {
-      const player2 = clients[j]
-      const isPlayer2Invincible = player2.isInvincible ? true : ((player2.joinedAt >= currentTime - config.immunitySeconds))
+      const currentTime = Math.round(now / 1000)
+      const isNew = player.joinedAt >= currentTime - config.immunitySeconds || player.isInvincible
 
-      if (player1.id === player2.id) continue
-      if (player2.isDead) continue
-      if (player2.isSpectating) continue
-      if (isPlayer2Invincible) continue
-      if (player2.avatar === player1.avatar) continue
+      if (!isNew) {
+        for (const orb of orbs) {
+          if (!orb) continue
+          if (now < orb.enabledAt) continue
+          if (distanceBetweenPoints(player.position, orb.position) > touchDistance) continue
+    
+          player.orbs += 1
+          player.points += orb.points
+          player.points += config.pointsPerOrb
+    
+          publishEvent('OnUpdatePickup', player.id, orb.id, 0)
+    
+          removeOrb(orb.id)
+        }
+    
+        const rewards = [currentReward]
 
-      // console.log(player1.position, player2.position, distanceBetweenPoints(player1.position.x, player1.position.y, player2.position.x, player2.position.y))
-
-      const distance = distanceMap[player1.avatar] + distanceMap[player2.avatar] //Math.max(distanceMap[player1.avatar], distanceMap[player2.avatar]) + Math.min(distanceMap[player1.avatar], distanceMap[player2.avatar])
-
-      if (distanceBetweenPoints(player1.position, player2.position) > distance) continue
-
-      if (player2.avatar > player1.avatar) {
-        // if (distanceBetweenPoints(player2.position, player2.clientPosition) > config.pickupCheckPositionDistance) continue
-        // playerDamageGiven[currentPlayer.id + pack.id] = now
-        // // console.log('Player Damage Given', currentPlayer.id + pack.id)
-        // if (playerDamageTaken[currentPlayer.id + pack.id] > now - 500) {
-          // if (player1.xp > 5) {
-            // player1.xp -= 1
-          // } else {
-            registerKill(player2, player1)
-          // }
-          break
-        // }
-      } else if (player1.avatar > player2.avatar) {
-        // if (distanceBetweenPoints(player1.position, player1.clientPosition) > config.pickupCheckPositionDistance) continue
-        // playerDamageGiven[pack.id + currentPlayer.id] = now
-        // // console.log('Player Damage Given', pack.id + currentPlayer.id)
-        // if (playerDamageTaken[pack.id + currentPlayer.id] > now - 500) {
-          // if (player2.xp > 5) {
-          //   player2.xp -= 1
-          // } else {
-            registerKill(player1, player2)
-          // }
-          break
-        // }
+        for (const reward of rewards) {
+          if (!reward) continue
+          if (now < reward.enabledAt) continue
+          // console.log(distanceBetweenPoints(player.position, reward.position), player.position, reward.position, touchDistance)
+          if (distanceBetweenPoints(player.position, reward.position) > touchDistance) continue
+    
+          // player.rewards += 1
+          // player.points += config.pointsPerReward
+    
+          claimReward(player, reward)
+    
+          // publishEvent('OnUpdatePickup', player.id, reward.id, 0)
+    
+          // removeReward(reward.id)
+        }
       }
     }
+
+    lastFastestGameloopTime = now
+  } catch (e) {
+    console.log(e)
   }
-
-  // Check pickups
-  for (let i = 0; i < clients.length; i++) {
-    const player = clients[i]
-
-    if (player.isDead) continue
-    if (player.isSpectating) continue
-    if (player.isPhased || now < player.phasedUntil) continue
-    // console.log(player.position, player.clientPosition, distanceBetweenPoints(player.position, player.clientPosition))
-    // console.log(currentReward)
-    // if (distanceBetweenPoints(player.position, player.clientPosition) > config.pickupCheckPositionDistance) continue
-
-    const touchDistance = config.pickupDistance + config['avatarTouchDistance' + player.avatar]
-
-    for (const powerup of powerups) {
-      if (distanceBetweenPoints(player.position, powerup.position) > touchDistance) continue
-
-      let value = 0
-
-      if (powerup.type == 0) value = config.powerupXp0
-      if (powerup.type == 1) value = config.powerupXp1
-      if (powerup.type == 2) value = config.powerupXp2
-      if (powerup.type == 3) value = config.powerupXp3
-
-      player.powerups += 1
-      player.points += config.pointsPerPowerup
-      player.xp += (value * config.spriteXpMultiplier)
-  
-      publishEvent('OnUpdatePickup', player.id, powerup.id, value)
-
-      removeSprite(powerup.id)
-      spawnSprites(1)
-    }
-
-    const currentTime = Math.round(now / 1000)
-    const isNew = player.joinedAt >= currentTime - config.immunitySeconds || player.isInvincible
-
-    if (!isNew) {
-      for (const orb of orbs) {
-        if (!orb) continue
-        if (now < orb.enabledAt) continue
-        if (distanceBetweenPoints(player.position, orb.position) > touchDistance) continue
-  
-        player.orbs += 1
-        player.points += orb.points
-        player.points += config.pointsPerOrb
-  
-        publishEvent('OnUpdatePickup', player.id, orb.id, 0)
-  
-        removeOrb(orb.id)
-      }
-  
-      const rewards = [currentReward]
-
-      for (const reward of rewards) {
-        if (!reward) continue
-        if (now < reward.enabledAt) continue
-        // console.log(distanceBetweenPoints(player.position, reward.position), player.position, reward.position, touchDistance)
-        if (distanceBetweenPoints(player.position, reward.position) > touchDistance) continue
-  
-        // player.rewards += 1
-        // player.points += config.pointsPerReward
-  
-        claimReward(player, reward)
-  
-        // publishEvent('OnUpdatePickup', player.id, reward.id, 0)
-  
-        // removeReward(reward.id)
-      }
-    }
-  }
-
-  lastFastestGameloopTime = now
 }
 
 function fastestGameloop() {
