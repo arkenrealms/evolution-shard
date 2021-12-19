@@ -1766,9 +1766,7 @@ io.on('connection', function(socket) {
         ]
       }
 
-      if (config.isRoundPaused) {
-        emitDirect(socket, 'OnRoundPaused')
-      } else {
+      if (!config.isRoundPaused) {
         emitDirect(socket, 'OnSetRoundInfo', roundTimer + ':' + getRoundInfo().join(':') + ':' + guide.join(':'))
         emitDirect(socket, 'OnBroadcast', `Game Mode - ${config.gameMode} (Round ${round.id})`, 0)
       }
@@ -1872,6 +1870,11 @@ io.on('connection', function(socket) {
             return
           }
   
+          if (config.isRoundPaused) {
+            emitDirect(socket, 'OnRoundPaused')
+            return
+          }
+
           addToRecentPlayers(currentPlayer)
 
           // spawn currentPlayer client on clients in broadcast
@@ -2610,85 +2613,87 @@ function fastGameloop() {
       const isInvincible = config.isGodParty || (client.isInvincible ? true : ((client.joinedAt >= currentTime - config.immunitySeconds)))
       const isPhased = client.isPhased ? true : now <= client.phasedUntil
 
-      let decay = config.noDecay ? 0 : (client.avatar + 1) / (1 / config.fastLoopSeconds) * ((config['avatarDecayPower' + client.avatar] || 1) * config.decayPower)
-
       client.speed = client.overrideSpeed || (config.baseSpeed * config['avatarSpeedMultiplier' + client.avatar])
 
-      if (client.xp > 100) {
-        if (decay > 0) {
-          if (client.avatar < (config.maxEvolves - 1)) {
-            client.xp = client.xp - 100
-            client.avatar = Math.max(Math.min(client.avatar + (1 * config.avatarDirection), config.maxEvolves - 1), 0)
-            client.evolves += 1
-            client.points += config.pointsPerEvolve
-    
-            if (config.leadercap && client.name === lastLeaderName) {
-              client.speed = client.speed * 0.9
+      if (!config.isRoundPaused) {
+        let decay = config.noDecay ? 0 : (client.avatar + 1) / (1 / config.fastLoopSeconds) * ((config['avatarDecayPower' + client.avatar] || 1) * config.decayPower)
+  
+        if (client.xp > 100) {
+          if (decay > 0) {
+            if (client.avatar < (config.maxEvolves - 1)) {
+              client.xp = client.xp - 100
+              client.avatar = Math.max(Math.min(client.avatar + (1 * config.avatarDirection), config.maxEvolves - 1), 0)
+              client.evolves += 1
+              client.points += config.pointsPerEvolve
+      
+              if (config.leadercap && client.name === lastLeaderName) {
+                client.speed = client.speed * 0.9
+              }
+      
+              publishEvent('OnUpdateEvolution', client.id, client.avatar, client.speed)
+            } else {
+              client.xp = 100
             }
-    
-            publishEvent('OnUpdateEvolution', client.id, client.avatar, client.speed)
           } else {
-            client.xp = 100
+            if (client.avatar >= (config.maxEvolves - 1)) {
+              client.xp = 100
+              // const currentTime = Math.round(now / 1000)
+              // const isNew = client.joinedAt >= currentTime - config.immunitySeconds
+                
+              // if (!config.noBoot && !isInvincible && !isNew) {
+              //   disconnectPlayer(client)
+              // }
+            } else {
+              client.xp = client.xp - 100
+              client.avatar = Math.max(Math.min(client.avatar + (1 * config.avatarDirection), config.maxEvolves - 1), 0)
+              client.evolves += 1
+              client.points += config.pointsPerEvolve
+      
+              if (config.leadercap && client.name === lastLeaderName) {
+                client.speed = client.speed * 0.9
+              }
+      
+              publishEvent('OnUpdateEvolution', client.id, client.avatar, client.speed)
+            }
           }
         } else {
-          if (client.avatar >= (config.maxEvolves - 1)) {
-            client.xp = 100
-            // const currentTime = Math.round(now / 1000)
-            // const isNew = client.joinedAt >= currentTime - config.immunitySeconds
-              
-            // if (!config.noBoot && !isInvincible && !isNew) {
-            //   disconnectPlayer(client)
-            // }
-          } else {
-            client.xp = client.xp - 100
-            client.avatar = Math.max(Math.min(client.avatar + (1 * config.avatarDirection), config.maxEvolves - 1), 0)
-            client.evolves += 1
-            client.points += config.pointsPerEvolve
-    
-            if (config.leadercap && client.name === lastLeaderName) {
-              client.speed = client.speed * 0.9
-            }
-    
-            publishEvent('OnUpdateEvolution', client.id, client.avatar, client.speed)
-          }
-        }
-      } else {
-        client.xp -= decay
-
-        if (client.xp <= 0) {
-          client.xp = 0
-
-          if (decay > 0) {
-            if (client.avatar === 0) {
-              const currentTime = Math.round(now / 1000)
-              const isNew = client.joinedAt >= currentTime - config.immunitySeconds
-                
-              if (!config.noBoot && !isInvincible && !isNew && !config.isGodParty) {
-                client.log.ranOutOfHealth += 1
-                disconnectPlayer(client)
+          client.xp -= decay
+  
+          if (client.xp <= 0) {
+            client.xp = 0
+  
+            if (decay > 0) {
+              if (client.avatar === 0) {
+                const currentTime = Math.round(now / 1000)
+                const isNew = client.joinedAt >= currentTime - config.immunitySeconds
+                  
+                if (!config.noBoot && !isInvincible && !isNew && !config.isGodParty) {
+                  client.log.ranOutOfHealth += 1
+                  disconnectPlayer(client)
+                }
+              } else {
+                client.xp = 100
+                client.avatar = Math.max(Math.min(client.avatar - (1 * config.avatarDirection), config.maxEvolves - 1), 0)
+  
+                if (config.leadercap && client.name === lastLeaderName) {
+                  client.speed = client.speed * 0.9
+                }
+        
+                publishEvent('OnUpdateRegression', client.id, client.avatar, client.speed)
               }
             } else {
-              client.xp = 100
-              client.avatar = Math.max(Math.min(client.avatar - (1 * config.avatarDirection), config.maxEvolves - 1), 0)
-
-              if (config.leadercap && client.name === lastLeaderName) {
-                client.speed = client.speed * 0.9
+              if (client.avatar === 0) {
+                client.xp = 0
+              } else {
+                client.xp = 100
+                client.avatar = Math.max(Math.min(client.avatar - (1 * config.avatarDirection), config.maxEvolves - 1), 0)
+  
+                if (config.leadercap && client.name === lastLeaderName) {
+                  client.speed = client.speed * 0.9
+                }
+        
+                publishEvent('OnUpdateRegression', client.id, client.avatar, client.speed)
               }
-      
-              publishEvent('OnUpdateRegression', client.id, client.avatar, client.speed)
-            }
-          } else {
-            if (client.avatar === 0) {
-              client.xp = 0
-            } else {
-              client.xp = 100
-              client.avatar = Math.max(Math.min(client.avatar - (1 * config.avatarDirection), config.maxEvolves - 1), 0)
-
-              if (config.leadercap && client.name === lastLeaderName) {
-                client.speed = client.speed * 0.9
-              }
-      
-              publishEvent('OnUpdateRegression', client.id, client.avatar, client.speed)
             }
           }
         }
@@ -2961,6 +2966,8 @@ const initRoutes = async () => {
         saveLog()
 
         if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+          clearTimeout(roundLoopTimeout)
+
           baseConfig.isRoundPaused = true
           config.isRoundPaused = true
 
