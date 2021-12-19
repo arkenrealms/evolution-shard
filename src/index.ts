@@ -2351,10 +2351,10 @@ function detectCollisions() {
           
           if (gameObject.Name.indexOf('Island') === 0) {
             collider = {
-              minX: gameCollider.Min[0] - config.colliderBuffer,
-              maxX: gameCollider.Max[0] + config.colliderBuffer,
-              minY: gameCollider.Min[1] - config.colliderBuffer,
-              maxY: gameCollider.Max[1] + config.colliderBuffer
+              minX: gameCollider.Min[0],
+              maxX: gameCollider.Max[0],
+              minY: gameCollider.Min[1],
+              maxY: gameCollider.Max[1]
             }
           } else {
             collider = {
@@ -2404,6 +2404,7 @@ function detectCollisions() {
       player.isStuck = false
 
       if (collided) {
+        console.log('collided')
         player.position = position
         player.target = player.clientTarget
         player.phasedUntil = getTime() + 2000
@@ -2411,6 +2412,7 @@ function detectCollisions() {
         player.log.collided += 1
         player.overrideSpeed = 0.5
       } else if (stuck) {
+        console.log('stuck')
         player.target = player.clientTarget
         player.phasedUntil = getTime() + 2000
         player.log.phases += 1
