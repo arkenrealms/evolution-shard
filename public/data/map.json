@@ -1,11 +1,11 @@
 [
   {
-    "Id": "53800",
+    "Id": "53810",
     "Name": "Structures",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "51666",
+      "Parent": "51664",
       "Position": [
         0.0,
         0.0,
@@ -39,12 +39,12 @@
     "Terrain": null
   },
   {
-    "Id": "53528",
+    "Id": "53538",
     "Name": "Level2Divider",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53800",
+      "Parent": "53810",
       "Position": [
         -18.1486969,
         -9.273676,
@@ -109,12 +109,12 @@
     "Terrain": null
   },
   {
-    "Id": "51250",
+    "Id": "51246",
     "Name": "Chara01frame01",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53528",
+      "Parent": "53538",
       "Position": [
         -17.8886967,
         0.18632412,
@@ -164,12 +164,12 @@
     "Terrain": null
   },
   {
-    "Id": "50888",
+    "Id": "50884",
     "Name": "Mountain",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53800",
+      "Parent": "53810",
       "Position": [
         -26.0755672,
         -17.7723064,
@@ -203,12 +203,12 @@
     "Terrain": null
   },
   {
-    "Id": "53514",
+    "Id": "53524",
     "Name": "Ground",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53800",
+      "Parent": "53810",
       "Position": [
         0.0,
         0.0,
@@ -242,12 +242,12 @@
     "Terrain": null
   },
   {
-    "Id": "49418",
+    "Id": "49414",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         0.638906,
         -14.6986761,
@@ -312,12 +312,12 @@
     "Terrain": null
   },
   {
-    "Id": "50372",
+    "Id": "50370",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -3.371094,
         -17.1986771,
@@ -367,12 +367,12 @@
     "Terrain": null
   },
   {
-    "Id": "53016",
+    "Id": "53026",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -2.51,
         -14.7186756,
@@ -442,7 +442,7 @@
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -1.49439383,
         -16.7975769,
@@ -492,12 +492,12 @@
     "Terrain": null
   },
   {
-    "Id": "49462",
+    "Id": "49458",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -30.131094,
         -17.8126755,
@@ -577,12 +577,12 @@
     "Terrain": null
   },
   {
-    "Id": "54020",
+    "Id": "54030",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -16.3321953,
         -18.7521763,
@@ -632,12 +632,12 @@
     "Terrain": null
   },
   {
-    "Id": "52862",
+    "Id": "52872",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -5.971092,
         -19.3326759,
@@ -687,12 +687,12 @@
     "Terrain": null
   },
   {
-    "Id": "50626",
+    "Id": "50624",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -11.9710922,
         -20.739975,
@@ -726,12 +726,12 @@
     "Terrain": null
   },
   {
-    "Id": "52074",
+    "Id": "52084",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -35.8047943,
         -25.1188755,
@@ -765,12 +765,12 @@
     "Terrain": null
   },
   {
-    "Id": "51392",
+    "Id": "51390",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -29.6693935,
         -24.5986748,
@@ -804,12 +804,12 @@
     "Terrain": null
   },
   {
-    "Id": "53806",
+    "Id": "53816",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -23.8510933,
         -22.1686764,
@@ -843,12 +843,12 @@
     "Terrain": null
   },
   {
-    "Id": "49342",
+    "Id": "49338",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -1.861094,
         -17.7786751,
@@ -882,12 +882,12 @@
     "Terrain": null
   },
   {
-    "Id": "50908",
+    "Id": "50904",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -13.2810974,
         -20.688076,
@@ -921,12 +921,12 @@
     "Terrain": null
   },
   {
-    "Id": "51614",
+    "Id": "51612",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -9.171097,
         -19.7605762,
@@ -960,12 +960,12 @@
     "Terrain": null
   },
   {
-    "Id": "51696",
+    "Id": "51694",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -12.3910942,
         -17.1286774,
@@ -1030,12 +1030,12 @@
     "Terrain": null
   },
   {
-    "Id": "51056",
+    "Id": "51052",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -8.161094,
         -18.1186752,
@@ -1069,12 +1069,12 @@
     "Terrain": null
   },
   {
-    "Id": "52416",
+    "Id": "52426",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -14.2610941,
         -18.2686768,
@@ -1108,12 +1108,12 @@
     "Terrain": null
   },
   {
-    "Id": "52152",
+    "Id": "52162",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -16.3300934,
         -17.4016762,
@@ -1178,12 +1178,12 @@
     "Terrain": null
   },
   {
-    "Id": "51300",
+    "Id": "51298",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -15.7410936,
         -20.3686752,
@@ -1217,12 +1217,12 @@
     "Terrain": null
   },
   {
-    "Id": "52786",
+    "Id": "52796",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -5.60109425,
         -17.2486763,
@@ -1272,12 +1272,12 @@
     "Terrain": null
   },
   {
-    "Id": "53720",
+    "Id": "53730",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -10.6710939,
         -16.4686756,
@@ -1311,12 +1311,12 @@
     "Terrain": null
   },
   {
-    "Id": "52426",
+    "Id": "52436",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -20.4810944,
         -18.3986759,
@@ -1366,12 +1366,12 @@
     "Terrain": null
   },
   {
-    "Id": "51474",
+    "Id": "51472",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -23.1410942,
         -18.6186752,
@@ -1421,12 +1421,12 @@
     "Terrain": null
   },
   {
-    "Id": "52664",
+    "Id": "52674",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -25.6210938,
         -18.3586769,
@@ -1491,12 +1491,12 @@
     "Terrain": null
   },
   {
-    "Id": "52726",
+    "Id": "52736",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         3.3259058,
         -14.1716766,
@@ -1535,7 +1535,7 @@
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         5.958906,
         -15.0486755,
@@ -1569,12 +1569,12 @@
     "Terrain": null
   },
   {
-    "Id": "52486",
+    "Id": "52496",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         3.43890572,
         -18.0786762,
@@ -1608,12 +1608,12 @@
     "Terrain": null
   },
   {
-    "Id": "53812",
+    "Id": "53822",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -0.701094151,
         -19.5886765,
@@ -1647,12 +1647,12 @@
     "Terrain": null
   },
   {
-    "Id": "50024",
+    "Id": "50020",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -5.531094,
         -20.4386749,
@@ -1686,12 +1686,12 @@
     "Terrain": null
   },
   {
-    "Id": "51594",
+    "Id": "51592",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -12.3010941,
         -22.1986771,
@@ -1725,12 +1725,12 @@
     "Terrain": null
   },
   {
-    "Id": "49314",
+    "Id": "49310",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -9.371094,
         -20.3935776,
@@ -1764,12 +1764,12 @@
     "Terrain": null
   },
   {
-    "Id": "51432",
+    "Id": "51430",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -20.5110931,
         -22.2225761,
@@ -1803,12 +1803,12 @@
     "Terrain": null
   },
   {
-    "Id": "49190",
+    "Id": "49186",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -25.1510944,
         -23.6386757,
@@ -1847,7 +1847,7 @@
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -29.2410946,
         -21.7986755,
@@ -1875,34 +1875,18 @@
       ]
     },
     "Renderer": null,
-    "Colliders": [
-      {
-        "Enabled": true,
-        "Min": [
-          -37.7665024,
-          -25.26905,
-          0.0
-        ],
-        "Max": [
-          -24.558094,
-          -18.6064949,
-          0.0
-        ],
-        "Radius": 0.0,
-        "Type": 0
-      }
-    ],
+    "Colliders": null,
     "Light": null,
     "ReflectionProbe": null,
     "Terrain": null
   },
   {
-    "Id": "50360",
+    "Id": "50358",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -28.3010941,
         -26.0986767,
@@ -1936,12 +1920,12 @@
     "Terrain": null
   },
   {
-    "Id": "50296",
+    "Id": "50292",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         8.858906,
         -15.318676,
@@ -1980,7 +1964,7 @@
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         5.87890625,
         -18.9886761,
@@ -2014,12 +1998,12 @@
     "Terrain": null
   },
   {
-    "Id": "53268",
+    "Id": "53278",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         8.848906,
         -18.4386749,
@@ -2053,12 +2037,12 @@
     "Terrain": null
   },
   {
-    "Id": "51028",
+    "Id": "51024",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -26.9110947,
         -19.5386772,
@@ -2108,12 +2092,12 @@
     "Terrain": null
   },
   {
-    "Id": "49368",
+    "Id": "49364",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -33.841095,
         -20.1086769,
@@ -2141,34 +2125,18 @@
       ]
     },
     "Renderer": null,
-    "Colliders": [
-      {
-        "Enabled": true,
-        "Min": [
-          -35.7025375,
-          -21.4128265,
-          0.0
-        ],
-        "Max": [
-          -31.8910923,
-          -17.9568863,
-          0.0
-        ],
-        "Radius": 0.0,
-        "Type": 0
-      }
-    ],
+    "Colliders": null,
     "Light": null,
     "ReflectionProbe": null,
     "Terrain": null
   },
   {
-    "Id": "50330",
+    "Id": "50328",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -21.7410946,
         -27.1286774,
@@ -2202,12 +2170,12 @@
     "Terrain": null
   },
   {
-    "Id": "53752",
+    "Id": "53762",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -25.8310947,
         -25.2886772,
@@ -2235,34 +2203,18 @@
       ]
     },
     "Renderer": null,
-    "Colliders": [
-      {
-        "Enabled": true,
-        "Min": [
-          -34.3565025,
-          -28.7590523,
-          0.0
-        ],
-        "Max": [
-          -21.1480942,
-          -22.0964966,
-          0.0
-        ],
-        "Radius": 0.0,
-        "Type": 0
-      }
-    ],
+    "Colliders": null,
     "Light": null,
     "ReflectionProbe": null,
     "Terrain": null
   },
   {
-    "Id": "52332",
+    "Id": "52342",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -24.8910942,
         -29.5886784,
@@ -2296,12 +2248,12 @@
     "Terrain": null
   },
   {
-    "Id": "54098",
+    "Id": "54108",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         9.288906,
         -22.4786777,
@@ -2335,12 +2287,12 @@
     "Terrain": null
   },
   {
-    "Id": "49846",
+    "Id": "49842",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -23.5010948,
         -23.0286789,
@@ -2368,34 +2320,18 @@
       ]
     },
     "Renderer": null,
-    "Colliders": [
-      {
-        "Enabled": true,
-        "Min": [
-          -24.4958458,
-          -23.87497,
-          0.0
-        ],
-        "Max": [
-          -22.6075554,
-          -20.9425583,
-          0.0
-        ],
-        "Radius": 0.0,
-        "Type": 0
-      }
-    ],
+    "Colliders": null,
     "Light": null,
     "ReflectionProbe": null,
     "Terrain": null
   },
   {
-    "Id": "50232",
+    "Id": "50228",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -13.9710941,
         -23.6486759,
@@ -2423,34 +2359,18 @@
       ]
     },
     "Renderer": null,
-    "Colliders": [
-      {
-        "Enabled": true,
-        "Min": [
-          -15.8325357,
-          -24.9528275,
-          0.0
-        ],
-        "Max": [
-          -12.0210943,
-          -21.4968872,
-          0.0
-        ],
-        "Radius": 0.0,
-        "Type": 0
-      }
-    ],
+    "Colliders": null,
     "Light": null,
     "ReflectionProbe": null,
     "Terrain": null
   },
   {
-    "Id": "54374",
+    "Id": "54384",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -16.4510937,
         -23.3886776,
@@ -2478,49 +2398,18 @@
       ]
     },
     "Renderer": null,
-    "Colliders": [
-      {
-        "Enabled": true,
-        "Min": [
-          -16.6049252,
-          -24.122263,
-          0.0
-        ],
-        "Max": [
-          -15.3231068,
-          -21.69359,
-          0.0
-        ],
-        "Radius": 0.0,
-        "Type": 0
-      },
-      {
-        "Enabled": true,
-        "Min": [
-          -17.5031719,
-          -24.122263,
-          0.0
-        ],
-        "Max": [
-          -15.84181,
-          -22.0478268,
-          0.0
-        ],
-        "Radius": 0.0,
-        "Type": 0
-      }
-    ],
+    "Colliders": null,
     "Light": null,
     "ReflectionProbe": null,
     "Terrain": null
   },
   {
-    "Id": "51404",
+    "Id": "51402",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         12.4959049,
         -19.2016773,
@@ -2554,12 +2443,12 @@
     "Terrain": null
   },
   {
-    "Id": "51482",
+    "Id": "51480",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         8.468906,
         -24.6186771,
@@ -2593,12 +2482,12 @@
     "Terrain": null
   },
   {
-    "Id": "52506",
+    "Id": "52516",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -31.4110947,
         -28.0886745,
@@ -2626,34 +2515,18 @@
       ]
     },
     "Renderer": null,
-    "Colliders": [
-      {
-        "Enabled": true,
-        "Min": [
-          -33.2725372,
-          -29.3928261,
-          0.0
-        ],
-        "Max": [
-          -29.4610939,
-          -25.9368858,
-          0.0
-        ],
-        "Radius": 0.0,
-        "Type": 0
-      }
-    ],
+    "Colliders": null,
     "Light": null,
     "ReflectionProbe": null,
     "Terrain": null
   },
   {
-    "Id": "52344",
+    "Id": "52354",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -33.8910942,
         -27.8286762,
@@ -2681,49 +2554,18 @@
       ]
     },
     "Renderer": null,
-    "Colliders": [
-      {
-        "Enabled": true,
-        "Min": [
-          -34.04492,
-          -28.5622616,
-          0.0
-        ],
-        "Max": [
-          -32.7631073,
-          -26.1335888,
-          0.0
-        ],
-        "Radius": 0.0,
-        "Type": 0
-      },
-      {
-        "Enabled": true,
-        "Min": [
-          -34.9431725,
-          -28.5622616,
-          0.0
-        ],
-        "Max": [
-          -33.28181,
-          -26.4878254,
-          0.0
-        ],
-        "Radius": 0.0,
-        "Type": 0
-      }
-    ],
+    "Colliders": null,
     "Light": null,
     "ReflectionProbe": null,
     "Terrain": null
   },
   {
-    "Id": "51398",
+    "Id": "51396",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -4.94409561,
         -23.6416759,
@@ -2757,12 +2599,12 @@
     "Terrain": null
   },
   {
-    "Id": "50454",
+    "Id": "50452",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -2.31109428,
         -24.5186749,
@@ -2796,12 +2638,12 @@
     "Terrain": null
   },
   {
-    "Id": "50226",
+    "Id": "50222",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -4.83109474,
         -27.5486755,
@@ -2835,12 +2677,12 @@
     "Terrain": null
   },
   {
-    "Id": "50316",
+    "Id": "50314",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -8.971094,
         -27.9573765,
@@ -2874,12 +2716,12 @@
     "Terrain": null
   },
   {
-    "Id": "54238",
+    "Id": "54248",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -12.7110939,
         -28.1086769,
@@ -2913,12 +2755,12 @@
     "Terrain": null
   },
   {
-    "Id": "53298",
+    "Id": "53308",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -20.091095,
         -27.9573765,
@@ -2952,12 +2794,12 @@
     "Terrain": null
   },
   {
-    "Id": "49978",
+    "Id": "49974",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -14.4010944,
         -30.568676,
@@ -2991,12 +2833,12 @@
     "Terrain": null
   },
   {
-    "Id": "51210",
+    "Id": "51206",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -7.721094,
         -24.4686775,
@@ -3030,12 +2872,12 @@
     "Terrain": null
   },
   {
-    "Id": "50748",
+    "Id": "50744",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -6.251094,
         -27.6286755,
@@ -3069,12 +2911,12 @@
     "Terrain": null
   },
   {
-    "Id": "50742",
+    "Id": "50738",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -1.631094,
         -28.068676,
@@ -3108,12 +2950,12 @@
     "Terrain": null
   },
   {
-    "Id": "54120",
+    "Id": "54130",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -2.801094,
         -22.3386765,
@@ -3147,12 +2989,12 @@
     "Terrain": null
   },
   {
-    "Id": "49768",
+    "Id": "49764",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         0.9389057,
         -24.5386772,
@@ -3186,12 +3028,12 @@
     "Terrain": null
   },
   {
-    "Id": "50220",
+    "Id": "50216",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         1.81890583,
         -28.1786766,
@@ -3225,12 +3067,12 @@
     "Terrain": null
   },
   {
-    "Id": "53010",
+    "Id": "53020",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         3.06890583,
         -21.7186775,
@@ -3264,12 +3106,12 @@
     "Terrain": null
   },
   {
-    "Id": "53902",
+    "Id": "53912",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         4.868906,
         -25.0986767,
@@ -3303,12 +3145,12 @@
     "Terrain": null
   },
   {
-    "Id": "50970",
+    "Id": "50966",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         5.37890625,
         -29.2086754,
@@ -3342,12 +3184,12 @@
     "Terrain": null
   },
   {
-    "Id": "49538",
+    "Id": "49534",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         9.198906,
         -28.068676,
@@ -3381,12 +3223,12 @@
     "Terrain": null
   },
   {
-    "Id": "50100",
+    "Id": "50096",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         6.62890625,
         -21.6786766,
@@ -3420,12 +3262,12 @@
     "Terrain": null
   },
   {
-    "Id": "50282",
+    "Id": "50278",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -41.7910957,
         -23.1486759,
@@ -3459,12 +3301,12 @@
     "Terrain": null
   },
   {
-    "Id": "54288",
+    "Id": "54298",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -42.1210938,
         -15.1686764,
@@ -3498,12 +3340,12 @@
     "Terrain": null
   },
   {
-    "Id": "52096",
+    "Id": "52106",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -42.0410957,
         -18.9286766,
@@ -3537,12 +3379,12 @@
     "Terrain": null
   },
   {
-    "Id": "49938",
+    "Id": "49934",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -39.7310944,
         -18.6186752,
@@ -3570,34 +3412,18 @@
       ]
     },
     "Renderer": null,
-    "Colliders": [
-      {
-        "Enabled": true,
-        "Min": [
-          -41.5925369,
-          -19.9228249,
-          0.0
-        ],
-        "Max": [
-          -37.78109,
-          -16.4668846,
-          0.0
-        ],
-        "Radius": 0.0,
-        "Type": 0
-      }
-    ],
+    "Colliders": null,
     "Light": null,
     "ReflectionProbe": null,
     "Terrain": null
   },
   {
-    "Id": "49300",
+    "Id": "49296",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -39.5010948,
         -21.6086769,
@@ -3631,12 +3457,12 @@
     "Terrain": null
   },
   {
-    "Id": "49808",
+    "Id": "49804",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -43.3010941,
         -19.3886757,
@@ -3664,49 +3490,18 @@
       ]
     },
     "Renderer": null,
-    "Colliders": [
-      {
-        "Enabled": true,
-        "Min": [
-          -45.150135,
-          -20.9786758,
-          0.0
-        ],
-        "Max": [
-          -41.3510933,
-          -17.6598587,
-          0.0
-        ],
-        "Radius": 0.0,
-        "Type": 0
-      },
-      {
-        "Enabled": true,
-        "Min": [
-          -44.98608,
-          -20.9786758,
-          0.0
-        ],
-        "Max": [
-          -41.07346,
-          -17.2686462,
-          0.0
-        ],
-        "Radius": 0.0,
-        "Type": 0
-      }
-    ],
+    "Colliders": null,
     "Light": null,
     "ReflectionProbe": null,
     "Terrain": null
   },
   {
-    "Id": "53696",
+    "Id": "53706",
     "Name": "Land",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53514",
+      "Parent": "53524",
       "Position": [
         -44.6910934,
         -21.2186775,
@@ -3734,38 +3529,7 @@
       ]
     },
     "Renderer": null,
-    "Colliders": [
-      {
-        "Enabled": true,
-        "Min": [
-          -46.5401344,
-          -22.8086777,
-          0.0
-        ],
-        "Max": [
-          -42.7410927,
-          -19.48986,
-          0.0
-        ],
-        "Radius": 0.0,
-        "Type": 0
-      },
-      {
-        "Enabled": true,
-        "Min": [
-          -46.37608,
-          -22.8086777,
-          0.0
-        ],
-        "Max": [
-          -42.46346,
-          -19.0986481,
-          0.0
-        ],
-        "Radius": 0.0,
-        "Type": 0
-      }
-    ],
+    "Colliders": null,
     "Light": null,
     "ReflectionProbe": null,
     "Terrain": null
@@ -3776,7 +3540,7 @@
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53800",
+      "Parent": "53810",
       "Position": [
         0.0,
         0.0,
@@ -3810,7 +3574,7 @@
     "Terrain": null
   },
   {
-    "Id": "54452",
+    "Id": "54462",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
@@ -3895,7 +3659,7 @@
     "Terrain": null
   },
   {
-    "Id": "51180",
+    "Id": "51176",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
@@ -3980,7 +3744,7 @@
     "Terrain": null
   },
   {
-    "Id": "50494",
+    "Id": "50492",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
@@ -4035,7 +3799,7 @@
     "Terrain": null
   },
   {
-    "Id": "52896",
+    "Id": "52906",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
@@ -4105,7 +3869,7 @@
     "Terrain": null
   },
   {
-    "Id": "51112",
+    "Id": "51108",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
@@ -4175,7 +3939,7 @@
     "Terrain": null
   },
   {
-    "Id": "53110",
+    "Id": "53120",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
@@ -4245,7 +4009,7 @@
     "Terrain": null
   },
   {
-    "Id": "51636",
+    "Id": "51634",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
@@ -4300,7 +4064,7 @@
     "Terrain": null
   },
   {
-    "Id": "52674",
+    "Id": "52684",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
@@ -4385,7 +4149,7 @@
     "Terrain": null
   },
   {
-    "Id": "51164",
+    "Id": "51160",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
@@ -4455,7 +4219,7 @@
     "Terrain": null
   },
   {
-    "Id": "53276",
+    "Id": "53286",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
@@ -4525,7 +4289,7 @@
     "Terrain": null
   },
   {
-    "Id": "49628",
+    "Id": "49624",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
@@ -4595,7 +4359,7 @@
     "Terrain": null
   },
   {
-    "Id": "54000",
+    "Id": "54010",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
@@ -4650,7 +4414,7 @@
     "Terrain": null
   },
   {
-    "Id": "52478",
+    "Id": "52488",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
@@ -4720,7 +4484,7 @@
     "Terrain": null
   },
   {
-    "Id": "53076",
+    "Id": "53086",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
@@ -4790,7 +4554,7 @@
     "Terrain": null
   },
   {
-    "Id": "51346",
+    "Id": "51344",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
@@ -4845,7 +4609,7 @@
     "Terrain": null
   },
   {
-    "Id": "49544",
+    "Id": "49540",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
@@ -4915,7 +4679,7 @@
     "Terrain": null
   },
   {
-    "Id": "52278",
+    "Id": "52288",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
@@ -4970,7 +4734,7 @@
     "Terrain": null
   },
   {
-    "Id": "50588",
+    "Id": "50586",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
@@ -5055,7 +4819,7 @@
     "Terrain": null
   },
   {
-    "Id": "49244",
+    "Id": "49240",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
@@ -5140,7 +4904,7 @@
     "Terrain": null
   },
   {
-    "Id": "49438",
+    "Id": "49434",
     "Name": "Island",
     "IsStatic": false,
     "IsActive": true,
@@ -5210,12 +4974,12 @@
     "Terrain": null
   },
   {
-    "Id": "49358",
+    "Id": "49354",
     "Name": "EdgeBarriers",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "53800",
+      "Parent": "53810",
       "Position": [
         0.0,
         0.0,
@@ -5249,12 +5013,12 @@
     "Terrain": null
   },
   {
-    "Id": "52936",
+    "Id": "52946",
     "Name": "Collider",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "49358",
+      "Parent": "49354",
       "Position": [
         -18.2799988,
         -28.19,
@@ -5304,12 +5068,12 @@
     "Terrain": null
   },
   {
-    "Id": "53922",
+    "Id": "53932",
     "Name": "EdgeSpriteDown",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "52936",
+      "Parent": "52946",
       "Position": [
         -18.56,
         -58.2903,
@@ -5343,12 +5107,12 @@
     "Terrain": null
   },
   {
-    "Id": "49884",
-    "Name": "Collider (1)",
+    "Id": "49880",
+    "Name": "Collider",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "49358",
+      "Parent": "49354",
       "Position": [
         -29.5800018,
         2.62259674,
@@ -5398,12 +5162,12 @@
     "Terrain": null
   },
   {
-    "Id": "53508",
+    "Id": "53518",
     "Name": "EdgeSpriteUp",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "49884",
+      "Parent": "49880",
       "Position": [
         -18.4800014,
         22.2742977,
@@ -5437,12 +5201,12 @@
     "Terrain": null
   },
   {
-    "Id": "51322",
-    "Name": "Collider (2)",
+    "Id": "51320",
+    "Name": "Collider",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "49358",
+      "Parent": "49354",
       "Position": [
         2.619995,
         -7.76740265,
@@ -5492,12 +5256,12 @@
     "Terrain": null
   },
   {
-    "Id": "51042",
+    "Id": "51038",
     "Name": "EdgeSpriteRight",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "51322",
+      "Parent": "51320",
       "Position": [
         23.6516953,
         -18.2514038,
@@ -5532,11 +5296,11 @@
   },
   {
     "Id": "51978",
-    "Name": "Collider (3)",
+    "Name": "Collider",
     "IsStatic": false,
     "IsActive": true,
     "Transform": {
-      "Parent": "49358",
+      "Parent": "49354",
       "Position": [
         -40.2100067,
         -7.76740265,
@@ -5586,7 +5350,7 @@
     "Terrain": null
   },
   {
-    "Id": "52978",
+    "Id": "52988",
     "Name": "EdgeSpriteLeft",
     "IsStatic": false,
     "IsActive": true,
