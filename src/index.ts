@@ -1266,7 +1266,7 @@ function spectate(currentPlayer) {
       currentPlayer.isInvincible = false
       currentPlayer.isJoining = true
       currentPlayer.points = 0
-      currentPlayer.xp = 0
+      currentPlayer.xp = 100
       currentPlayer.avatar = config.startAvatar
       currentPlayer.speed = config.baseSpeed * config.avatarSpeedMultiplier0
       currentPlayer.overrideSpeed = null
@@ -1805,40 +1805,6 @@ io.on('connection', function(socket) {
       }
 
       currentPlayer.lastUpdate = getTime()
-
-      if (config.level2allowed) {
-        if (config.level2forced || clients.filter(c => !c.isSpectating && !c.isDead).length >= config.playersRequiredForLevel2) {
-          if (!config.level2open) {
-            publishEvent('OnBroadcast', `Level 2 opening...`, 0)
-
-            setTimeout(() => {
-              baseConfig.level2open = true
-              config.level2open = true
-              sharedConfig.spritesStartCount = 200
-              config.spritesStartCount = 200
-              clearSprites()
-              spawnSprites(config.spritesStartCount)
-              publishEvent('OnOpenLevel2')
-            }, 2 * 1000)
-          }
-        }
-
-        if (!config.level2forced && clients.filter(c => !c.isSpectating && !c.isDead).length < config.playersRequiredForLevel2 - 7) {
-          if (config.level2open) {
-            publishEvent('OnBroadcast', `Level 2 closing...`, 0)
-
-            setTimeout(() => {
-              baseConfig.level2open = false
-              config.level2open = false
-              sharedConfig.spritesStartCount = 50
-              config.spritesStartCount = 50
-              clearSprites()
-              spawnSprites(config.spritesStartCount)
-              publishEvent('OnCloseLevel2')
-            }, 2 * 1000)
-          }
-        }
-      }
     })
 
     socket.on('UpdateMyself', function(msg) {
@@ -2402,7 +2368,6 @@ function detectCollisions() {
             position.y >= collider.minY &&
             position.y <= collider.maxY
           ) {
-            console.log(i, gameObject)
             if (gameObject.Name.indexOf('Land') === 0) {
               stuck = true
             }
@@ -2429,7 +2394,6 @@ function detectCollisions() {
       player.isStuck = false
 
       if (collided) {
-        console.log('collided')
         player.position = position
         player.target = player.clientTarget
         player.phasedUntil = getTime() + 2000
@@ -2437,7 +2401,6 @@ function detectCollisions() {
         player.log.collided += 1
         player.overrideSpeed = 0.5
       } else if (stuck) {
-        console.log('stuck')
         player.target = player.clientTarget
         player.phasedUntil = getTime() + 2000
         player.log.phases += 1
@@ -2457,6 +2420,42 @@ function detectCollisions() {
       if (player.log.path.indexOf(pos) === -1) {
         // player.log.path += pos + ','
         player.log.positions += 1
+      }
+    }
+
+    if (config.level2allowed) {
+      if (config.level2forced || clients.filter(c => !c.isSpectating && !c.isDead).length >= config.playersRequiredForLevel2) {
+        if (!config.level2open) {
+          baseConfig.level2open = true
+          config.level2open = true
+
+          publishEvent('OnBroadcast', `Level 2 opening...`, 0)
+
+          setTimeout(() => {
+            sharedConfig.spritesStartCount = 200
+            config.spritesStartCount = 200
+            clearSprites()
+            spawnSprites(config.spritesStartCount)
+            publishEvent('OnOpenLevel2')
+          }, 2 * 1000)
+        }
+      }
+
+      if (!config.level2forced && clients.filter(c => !c.isSpectating && !c.isDead).length < config.playersRequiredForLevel2 - 7) {
+        if (config.level2open) {
+          baseConfig.level2open = false
+          config.level2open = false
+
+          publishEvent('OnBroadcast', `Level 2 closing...`, 0)
+
+          setTimeout(() => {
+            sharedConfig.spritesStartCount = 50
+            config.spritesStartCount = 50
+            clearSprites()
+            spawnSprites(config.spritesStartCount)
+            publishEvent('OnCloseLevel2')
+          }, 2 * 1000)
+        }
       }
     }
 
