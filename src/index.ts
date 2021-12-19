@@ -1252,26 +1252,45 @@ const registerKill = (winner, loser) => {
 }
 
 function spectate(currentPlayer) {
-  if (currentPlayer.isSpectating) return
-
   try {
     if (config.isMaintenance && !db.modList.includes(currentPlayer?.address)) {
       return
     }
 
-    currentPlayer.isSpectating = true
-    currentPlayer.isInvincible = true
-    // currentPlayer.points = 0
-    currentPlayer.xp = 0
-    currentPlayer.avatar = config.startAvatar
-    currentPlayer.speed = 7
-    currentPlayer.overrideSpeed = 7
-    currentPlayer.cameraSize = 8
-    currentPlayer.overrideCameraSize = 8
-
-    syncSprites()
-
-    publishEvent('OnSpectate', currentPlayer.id, currentPlayer.speed, currentPlayer.cameraSize)
+    if (currentPlayer.isSpectating) {
+      if (config.isMaintenance && !db.modList.includes(currentPlayer?.address)) {
+        return
+      }
+  
+      currentPlayer.isSpectating = false
+      currentPlayer.isInvincible = false
+      currentPlayer.isJoining = true
+      currentPlayer.points = 0
+      currentPlayer.xp = 0
+      currentPlayer.avatar = config.startAvatar
+      currentPlayer.speed = config.baseSpeed * config.avatarSpeedMultiplier0
+      currentPlayer.overrideSpeed = null
+      currentPlayer.cameraSize = client.overrideCameraSize || config.cameraSize
+      currentPlayer.overrideCameraSize = null
+  
+      syncSprites()
+  
+      publishEvent('OnUnspectate', currentPlayer.id, currentPlayer.speed, currentPlayer.cameraSize)
+    } else {
+      currentPlayer.isSpectating = true
+      currentPlayer.isInvincible = true
+      currentPlayer.points = 0
+      currentPlayer.xp = 0
+      currentPlayer.avatar = config.startAvatar
+      currentPlayer.speed = 7
+      currentPlayer.overrideSpeed = 7
+      currentPlayer.cameraSize = 8
+      currentPlayer.overrideCameraSize = 8
+  
+      syncSprites()
+  
+      publishEvent('OnSpectate', currentPlayer.id, currentPlayer.speed, currentPlayer.cameraSize)
+    }
   } catch(e) {
     console.log(e)
   }
@@ -1828,7 +1847,12 @@ io.on('connection', function(socket) {
       try {
         if (currentPlayer.isDead && !currentPlayer.isJoining) return
         if (currentPlayer.isSpectating) return
-        if (config.isMaintenance && !db.modList.includes(currentPlayer?.address)) return
+
+        if (config.isMaintenance && !db.modList.includes(currentPlayer?.address)) {
+          emitDirect(socket, 'OnMaintenance', true)
+          disconnectPlayer(currentPlayer)
+          return
+        }
 
         // if (config.isBattleRoyale) {
         //   spectate(currentPlayer)
