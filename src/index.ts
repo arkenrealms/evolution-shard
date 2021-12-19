@@ -3051,8 +3051,8 @@ const initRoutes = async () => {
         saveLog()
 
         if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-          baseConfig.level2forced = true
-          config.level2forced = true
+          baseConfig.level2forced = false
+          config.level2forced = false
 
           res.json({ success: 1 })
         } else {
