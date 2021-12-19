@@ -211,7 +211,7 @@ const baseConfig = {
   pickupCheckPositionDistance: 1,
   playersRequiredForLevel2: 15,
   preventBadKills: false,
-  colliderBuffer: 0.2,
+  colliderBuffer: 0.1,
   stickyIslands: false,
   antifeed2: true,
   antifeed3: false,
@@ -2350,10 +2350,10 @@ function detectCollisions() {
         
         if (gameObject.Name.indexOf('Island') !== -1) {
           collider = {
-            minX: gameCollider.Min[0] + (gameCollider.Max[0] - gameCollider.Min[0]) * config.colliderBuffer,
-            maxX: gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) * config.colliderBuffer,
-            minY: gameCollider.Min[1] + (gameCollider.Max[1] - gameCollider.Min[1]) * config.colliderBuffer,
-            maxY: gameCollider.Max[1] - (gameCollider.Max[1] - gameCollider.Min[1]) * config.colliderBuffer
+            minX: gameCollider.Min[0] + (gameCollider.Max[0] - gameCollider.Min[0]) + config.colliderBuffer,
+            maxX: gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) + config.colliderBuffer,
+            minY: gameCollider.Min[1] + (gameCollider.Max[1] - gameCollider.Min[1]) + config.colliderBuffer,
+            maxY: gameCollider.Max[1] - (gameCollider.Max[1] - gameCollider.Min[1]) + config.colliderBuffer
           }
         } else {
           collider = {
