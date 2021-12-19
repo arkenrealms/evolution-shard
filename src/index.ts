@@ -2340,7 +2340,9 @@ function detectCollisions() {
     let collided = false
     let stuck = false
 
-    for (const gameObject of db.map) {
+    for (const i in db.map) {
+      const gameObject = db.map[i]
+
       if (!gameObject.Colliders || !gameObject.Colliders.length) continue
 
       for (const gameCollider of gameObject.Colliders) {
@@ -2374,7 +2376,7 @@ function detectCollisions() {
           position.y >= collider.minY &&
           position.y <= collider.maxY
         ) {
-
+          console.log(i, gameObject)
           if (gameObject.Name.indexOf('Land') !== -1) {
             stuck = true
           }
