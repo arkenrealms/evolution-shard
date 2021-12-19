@@ -2306,11 +2306,6 @@ function detectCollisions() {
     const currentTime = Math.round(now / 1000)
     const deltaTime = (now - lastFastestGameloopTime) / 1000
 
-    if (config.isRoundPaused) {
-      lastFastestGameloopTime = now
-      return
-    }
-
     const distanceMap = {
       0: config.avatarTouchDistance0,
       1: config.avatarTouchDistance0,
@@ -2465,125 +2460,127 @@ function detectCollisions() {
       }
     }
 
-    // Check players
-    for (let i = 0; i < clients.length; i++) {
-      const player1 = clients[i]
-      const isPlayer1Invincible = player1.isInvincible ? true : ((player1.joinedAt >= currentTime - config.immunitySeconds))
-      if (player1.isSpectating) continue
-      if (player1.isDead) continue
-      if (isPlayer1Invincible) continue
+    if (!config.isRoundPaused) {
+      // Check kills
+      for (let i = 0; i < clients.length; i++) {
+        const player1 = clients[i]
+        const isPlayer1Invincible = player1.isInvincible ? true : ((player1.joinedAt >= currentTime - config.immunitySeconds))
+        if (player1.isSpectating) continue
+        if (player1.isDead) continue
+        if (isPlayer1Invincible) continue
 
-      for (let j = 0; j < clients.length; j++) {
-        const player2 = clients[j]
-        const isPlayer2Invincible = player2.isInvincible ? true : ((player2.joinedAt >= currentTime - config.immunitySeconds))
+        for (let j = 0; j < clients.length; j++) {
+          const player2 = clients[j]
+          const isPlayer2Invincible = player2.isInvincible ? true : ((player2.joinedAt >= currentTime - config.immunitySeconds))
 
-        if (player1.id === player2.id) continue
-        if (player2.isDead) continue
-        if (player2.isSpectating) continue
-        if (isPlayer2Invincible) continue
-        if (player2.avatar === player1.avatar) continue
+          if (player1.id === player2.id) continue
+          if (player2.isDead) continue
+          if (player2.isSpectating) continue
+          if (isPlayer2Invincible) continue
+          if (player2.avatar === player1.avatar) continue
 
-        // console.log(player1.position, player2.position, distanceBetweenPoints(player1.position.x, player1.position.y, player2.position.x, player2.position.y))
+          // console.log(player1.position, player2.position, distanceBetweenPoints(player1.position.x, player1.position.y, player2.position.x, player2.position.y))
 
-        const distance = distanceMap[player1.avatar] + distanceMap[player2.avatar] //Math.max(distanceMap[player1.avatar], distanceMap[player2.avatar]) + Math.min(distanceMap[player1.avatar], distanceMap[player2.avatar])
+          const distance = distanceMap[player1.avatar] + distanceMap[player2.avatar] //Math.max(distanceMap[player1.avatar], distanceMap[player2.avatar]) + Math.min(distanceMap[player1.avatar], distanceMap[player2.avatar])
 
-        if (distanceBetweenPoints(player1.position, player2.position) > distance) continue
+          if (distanceBetweenPoints(player1.position, player2.position) > distance) continue
 
-        if (player2.avatar > player1.avatar) {
-          // if (distanceBetweenPoints(player2.position, player2.clientPosition) > config.pickupCheckPositionDistance) continue
-          // playerDamageGiven[currentPlayer.id + pack.id] = now
-          // // console.log('Player Damage Given', currentPlayer.id + pack.id)
-          // if (playerDamageTaken[currentPlayer.id + pack.id] > now - 500) {
-            // if (player1.xp > 5) {
-              // player1.xp -= 1
-            // } else {
-              registerKill(player2, player1)
+          if (player2.avatar > player1.avatar) {
+            // if (distanceBetweenPoints(player2.position, player2.clientPosition) > config.pickupCheckPositionDistance) continue
+            // playerDamageGiven[currentPlayer.id + pack.id] = now
+            // // console.log('Player Damage Given', currentPlayer.id + pack.id)
+            // if (playerDamageTaken[currentPlayer.id + pack.id] > now - 500) {
+              // if (player1.xp > 5) {
+                // player1.xp -= 1
+              // } else {
+                registerKill(player2, player1)
+              // }
+              break
             // }
-            break
-          // }
-        } else if (player1.avatar > player2.avatar) {
-          // if (distanceBetweenPoints(player1.position, player1.clientPosition) > config.pickupCheckPositionDistance) continue
-          // playerDamageGiven[pack.id + currentPlayer.id] = now
-          // // console.log('Player Damage Given', pack.id + currentPlayer.id)
-          // if (playerDamageTaken[pack.id + currentPlayer.id] > now - 500) {
-            // if (player2.xp > 5) {
-            //   player2.xp -= 1
-            // } else {
-              registerKill(player1, player2)
+          } else if (player1.avatar > player2.avatar) {
+            // if (distanceBetweenPoints(player1.position, player1.clientPosition) > config.pickupCheckPositionDistance) continue
+            // playerDamageGiven[pack.id + currentPlayer.id] = now
+            // // console.log('Player Damage Given', pack.id + currentPlayer.id)
+            // if (playerDamageTaken[pack.id + currentPlayer.id] > now - 500) {
+              // if (player2.xp > 5) {
+              //   player2.xp -= 1
+              // } else {
+                registerKill(player1, player2)
+              // }
+              break
             // }
-            break
-          // }
+          }
         }
       }
-    }
 
-    // Check pickups
-    for (let i = 0; i < clients.length; i++) {
-      const player = clients[i]
+      // Check pickups
+      for (let i = 0; i < clients.length; i++) {
+        const player = clients[i]
 
-      if (player.isDead) continue
-      if (player.isSpectating) continue
-      if (player.isPhased || now < player.phasedUntil) continue
-      // console.log(player.position, player.clientPosition, distanceBetweenPoints(player.position, player.clientPosition))
-      // console.log(currentReward)
-      // if (distanceBetweenPoints(player.position, player.clientPosition) > config.pickupCheckPositionDistance) continue
+        if (player.isDead) continue
+        if (player.isSpectating) continue
+        if (player.isPhased || now < player.phasedUntil) continue
+        // console.log(player.position, player.clientPosition, distanceBetweenPoints(player.position, player.clientPosition))
+        // console.log(currentReward)
+        // if (distanceBetweenPoints(player.position, player.clientPosition) > config.pickupCheckPositionDistance) continue
 
-      const touchDistance = config.pickupDistance + config['avatarTouchDistance' + player.avatar]
+        const touchDistance = config.pickupDistance + config['avatarTouchDistance' + player.avatar]
 
-      for (const powerup of powerups) {
-        if (distanceBetweenPoints(player.position, powerup.position) > touchDistance) continue
+        for (const powerup of powerups) {
+          if (distanceBetweenPoints(player.position, powerup.position) > touchDistance) continue
 
-        let value = 0
+          let value = 0
 
-        if (powerup.type == 0) value = config.powerupXp0
-        if (powerup.type == 1) value = config.powerupXp1
-        if (powerup.type == 2) value = config.powerupXp2
-        if (powerup.type == 3) value = config.powerupXp3
+          if (powerup.type == 0) value = config.powerupXp0
+          if (powerup.type == 1) value = config.powerupXp1
+          if (powerup.type == 2) value = config.powerupXp2
+          if (powerup.type == 3) value = config.powerupXp3
 
-        player.powerups += 1
-        player.points += config.pointsPerPowerup
-        player.xp += (value * config.spriteXpMultiplier)
-    
-        publishEvent('OnUpdatePickup', player.id, powerup.id, value)
+          player.powerups += 1
+          player.points += config.pointsPerPowerup
+          player.xp += (value * config.spriteXpMultiplier)
+      
+          publishEvent('OnUpdatePickup', player.id, powerup.id, value)
 
-        removeSprite(powerup.id)
-        spawnSprites(1)
-      }
-
-      const currentTime = Math.round(now / 1000)
-      const isNew = player.joinedAt >= currentTime - config.immunitySeconds || player.isInvincible
-
-      if (!isNew) {
-        for (const orb of orbs) {
-          if (!orb) continue
-          if (now < orb.enabledAt) continue
-          if (distanceBetweenPoints(player.position, orb.position) > touchDistance) continue
-    
-          player.orbs += 1
-          player.points += orb.points
-          player.points += config.pointsPerOrb
-    
-          publishEvent('OnUpdatePickup', player.id, orb.id, 0)
-    
-          removeOrb(orb.id)
+          removeSprite(powerup.id)
+          spawnSprites(1)
         }
-    
-        const rewards = [currentReward]
 
-        for (const reward of rewards) {
-          if (!reward) continue
-          if (now < reward.enabledAt) continue
-          // console.log(distanceBetweenPoints(player.position, reward.position), player.position, reward.position, touchDistance)
-          if (distanceBetweenPoints(player.position, reward.position) > touchDistance) continue
-    
-          // player.rewards += 1
-          // player.points += config.pointsPerReward
-    
-          claimReward(player, reward)
-    
-          // publishEvent('OnUpdatePickup', player.id, reward.id, 0)
-    
-          // removeReward(reward.id)
+        const currentTime = Math.round(now / 1000)
+        const isNew = player.joinedAt >= currentTime - config.immunitySeconds || player.isInvincible
+
+        if (!isNew) {
+          for (const orb of orbs) {
+            if (!orb) continue
+            if (now < orb.enabledAt) continue
+            if (distanceBetweenPoints(player.position, orb.position) > touchDistance) continue
+      
+            player.orbs += 1
+            player.points += orb.points
+            player.points += config.pointsPerOrb
+      
+            publishEvent('OnUpdatePickup', player.id, orb.id, 0)
+      
+            removeOrb(orb.id)
+          }
+      
+          const rewards = [currentReward]
+
+          for (const reward of rewards) {
+            if (!reward) continue
+            if (now < reward.enabledAt) continue
+            // console.log(distanceBetweenPoints(player.position, reward.position), player.position, reward.position, touchDistance)
+            if (distanceBetweenPoints(player.position, reward.position) > touchDistance) continue
+      
+            // player.rewards += 1
+            // player.points += config.pointsPerReward
+      
+            claimReward(player, reward)
+      
+            // publishEvent('OnUpdatePickup', player.id, reward.id, 0)
+      
+            // removeReward(reward.id)
+          }
         }
       }
     }
