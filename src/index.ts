@@ -1747,18 +1747,19 @@ io.on('connection', function(socket) {
         ]
       }
 
-      emitDirect(socket, 'OnSetRoundInfo', roundTimer + ':' + getRoundInfo().join(':') + ':' + guide.join(':'))
-      emitDirect(socket, 'OnBroadcast', `Game Mode - ${config.gameMode} (Round ${round.id})`, 0)
+      if (config.isRoundPaused) {
+        emitDirect(socket, 'OnRoundPaused')
+      } else {
+        emitDirect(socket, 'OnSetRoundInfo', roundTimer + ':' + getRoundInfo().join(':') + ':' + guide.join(':'))
+        emitDirect(socket, 'OnBroadcast', `Game Mode - ${config.gameMode} (Round ${round.id})`, 0)
+      }
+
 
       syncSprites()
 
       if (config.hideMap) {
         emitDirect(socket, 'OnHideMinimap')
         emitDirect(socket, 'OnBroadcast', `Minimap hidden in this mode!`, 2)
-      }
-
-      if (config.isRoundPaused) {
-        emitDirect(socket, 'OnRoundPaused')
       }
 
       if (config.level2open) {
@@ -2190,10 +2191,6 @@ function resetLeaderboard(preset) {
   syncSprites()
 
   publishEvent('OnSetRoundInfo', config.roundLoopSeconds + ':' + getRoundInfo().join(':')  + '1. Eat sprites to stay alive' + ':' + '2. Avoid bigger dragons' + ':' + '3. Eat smaller dragons')
-
-  if (!config.isRoundPaused) {
-    publishEvent('OnRoundUnpaused')
-  }
 
   publishEvent('OnClearLeaderboard')
 
@@ -2943,6 +2940,7 @@ const initRoutes = async () => {
           baseConfig.isRoundPaused = true
           config.isRoundPaused = true
 
+          publishEvent('OnRoundPaused')
           publishEvent('OnBroadcast', `Round Paused`, 0)
       
           res.json({ success: 1 })
@@ -2967,6 +2965,11 @@ const initRoutes = async () => {
 
         if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
           clearTimeout(roundLoopTimeout)
+
+          if (config.isRoundPaused) {
+            baseConfig.isRoundPaused = false
+            config.isRoundPaused = false
+          }
 
           resetLeaderboard(presets.find(p => p.gameMode === req.body.gameMode))
 
