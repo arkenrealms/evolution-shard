@@ -2306,6 +2306,11 @@ function detectCollisions() {
     const currentTime = Math.round(now / 1000)
     const deltaTime = (now - lastFastestGameloopTime) / 1000
 
+    if (config.isRoundPaused) {
+      lastFastestGameloopTime = now
+      return
+    }
+
     const distanceMap = {
       0: config.avatarTouchDistance0,
       1: config.avatarTouchDistance0,
