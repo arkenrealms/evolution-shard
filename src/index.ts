@@ -3225,6 +3225,43 @@ const initRoutes = async () => {
       }
     })
 
+    server.post('/resetBattleDifficulty', function(req, res) {
+      try {
+        db.log.push({
+          event: 'ResetBattleDifficulty',
+          caller: req.body.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+          baseConfig.dynamicDecayPower = true
+          config.dynamicDecayPower = true
+
+          sharedConfig.decayPower = 1.4
+          config.decayPower = 1.4
+
+          sharedConfig.baseSpeed = 3
+          config.baseSpeed = 3
+
+          sharedConfig.checkPositionDistance = 2
+          config.checkPositionDistance = 2
+          
+          sharedConfig.checkInterval = 1
+          config.checkInterval = 1
+
+          publishEvent('OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
+          publishEvent('OnBroadcast', `Difficulty Reset!`, 0)
+      
+          res.json({ success: 1 })
+        } else {
+          res.json({ success: 0 })
+        }
+      } catch (e) {
+        res.json({ success: 0 })
+      }
+    })
+
     server.post('/addMod/:address', function(req, res) {
       try {
         db.log.push({
