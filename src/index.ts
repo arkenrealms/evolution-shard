@@ -2250,7 +2250,7 @@ function resetLeaderboard(preset) {
 }
 
 function checkConnectionLoop() {
-  if (!config.noBoot) {
+  if (!config.noBoot && !config.isRoundPaused) {
     const oneMinuteAgo = getTime() - (config.disconnectPlayerSeconds * 1000)
     // const oneMinuteAgo = Math.round(getTime() / 1000) - config.disconnectPlayerSeconds
 
