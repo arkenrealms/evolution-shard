@@ -211,7 +211,7 @@ const baseConfig = {
   pickupCheckPositionDistance: 1,
   playersRequiredForLevel2: 15,
   preventBadKills: false,
-  colliderBuffer: 0.1,
+  colliderBuffer: 0.05,
   stickyIslands: false,
   antifeed2: true,
   antifeed3: false,
@@ -1091,7 +1091,7 @@ function getUnobstructedPosition() {
         }
 
         if (config.level2open && gameObject.Name === 'Level2Divider') {
-          const diff = gameObject.Transform.Position[1] - -16
+          const diff = gameObject.Transform.Position[1] - -9
           collider.minY -= diff
           collider.maxY -= diff
         }
