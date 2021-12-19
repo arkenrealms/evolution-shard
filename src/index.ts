@@ -3004,7 +3004,7 @@ const initRoutes = async () => {
             config.isRoundPaused = false
           }
 
-          resetLeaderboard(presets.find(p => p.gameMode === req.body.gameMode))
+          roundLoopTimeout = resetLeaderboard(presets.find(p => p.gameMode === req.body.gameMode))
 
           res.json({ success: 1 })
         } else {
@@ -3547,7 +3547,7 @@ const initGameServer = async () => {
   setTimeout(sendUpdates, config.sendUpdateLoopSeconds * 1000)
   setTimeout(spawnRewards, config.rewardSpawnLoopSeconds * 1000)
   setTimeout(checkConnectionLoop, config.checkConnectionLoopSeconds * 1000)
-  setTimeout(resetLeaderboard, config.roundLoopSeconds * 1000)
+  roundLoopTimeout = setTimeout(resetLeaderboard, config.roundLoopSeconds * 1000)
   setTimeout(periodicReboot, config.rebootSeconds * 1000)
   // setTimeout(flushEventQueue, config.flushEventQueueSeconds * 1000)
 }
