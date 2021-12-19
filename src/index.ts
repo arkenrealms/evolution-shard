@@ -1258,9 +1258,10 @@ function spectate(currentPlayer) {
     }
 
     if (currentPlayer.isSpectating) {
-      if (config.isMaintenance && !db.modList.includes(currentPlayer?.address)) {
+      // if (!db.modList.includes(currentPlayer?.address)) {
+        disconnectPlayer(currentPlayer)
         return
-      }
+      // }
   
       currentPlayer.isSpectating = false
       currentPlayer.isInvincible = false
