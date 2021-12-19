@@ -2370,7 +2370,7 @@ function detectCollisions() {
             collider.minY -= diff
             collider.maxY -= diff
           }
-  console.log(position, collider)
+  console.log(position, collider, gameCollider.Id)
           if (
             position.x >= collider.minX &&
             position.x <= collider.maxX &&
