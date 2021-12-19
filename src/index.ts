@@ -2349,7 +2349,7 @@ function detectCollisions() {
         for (const gameCollider of gameObject.Colliders) {
           let collider
           
-          if (gameObject.Name.indexOf('Island') !== -1) {
+          if (gameObject.Name.indexOf('Island') === 0) {
             collider = {
               minX: gameCollider.Min[0] + (gameCollider.Max[0] - gameCollider.Min[0]) - config.colliderBuffer,
               maxX: gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) + config.colliderBuffer,
@@ -2378,20 +2378,20 @@ function detectCollisions() {
             position.y <= collider.maxY
           ) {
             console.log(i, gameObject)
-            if (gameObject.Name.indexOf('Land') !== -1) {
+            if (gameObject.Name.indexOf('Land') === 0) {
               stuck = true
             }
-            else if (gameObject.Name.indexOf('Island') !== -1) {
+            else if (gameObject.Name.indexOf('Island') === 0) {
               if (config.stickyIslands) {
                 stuck = true
               } else {
                 collided = true
               }
             }
-            else if (gameObject.Name.indexOf('Collider') !== -1) {
+            else if (gameObject.Name.indexOf('Collider') === 0) {
               stuck = true
             }
-            else if (gameObject.Name.indexOf('Divider') !== -1) {
+            else if (gameObject.Name.indexOf('Divider') === 0) {
               stuck = true
             }
           }
