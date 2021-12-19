@@ -2351,10 +2351,10 @@ function detectCollisions() {
           
           if (gameObject.Name.indexOf('Island') === 0) {
             collider = {
-              minX: gameCollider.Min[0] + (gameCollider.Max[0] - gameCollider.Min[0]) - config.colliderBuffer,
-              maxX: gameCollider.Max[0] - (gameCollider.Max[0] - gameCollider.Min[0]) + config.colliderBuffer,
-              minY: gameCollider.Min[1] + (gameCollider.Max[1] - gameCollider.Min[1]) - config.colliderBuffer,
-              maxY: gameCollider.Max[1] - (gameCollider.Max[1] - gameCollider.Min[1]) + config.colliderBuffer
+              minX: gameCollider.Min[0] - config.colliderBuffer,
+              maxX: gameCollider.Max[0] + config.colliderBuffer,
+              minY: gameCollider.Min[1] - config.colliderBuffer,
+              maxY: gameCollider.Max[1] + config.colliderBuffer
             }
           } else {
             collider = {
@@ -2370,7 +2370,7 @@ function detectCollisions() {
             collider.minY -= diff
             collider.maxY -= diff
           }
-  console.log(position, collider, gameObject.Id)
+
           if (
             position.x >= collider.minX &&
             position.x <= collider.maxX &&
