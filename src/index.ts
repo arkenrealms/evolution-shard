@@ -1270,7 +1270,7 @@ function spectate(currentPlayer) {
       currentPlayer.avatar = config.startAvatar
       currentPlayer.speed = config.baseSpeed * config.avatarSpeedMultiplier0
       currentPlayer.overrideSpeed = null
-      currentPlayer.cameraSize = client.overrideCameraSize || config.cameraSize
+      currentPlayer.cameraSize = config.cameraSize
       currentPlayer.overrideCameraSize = null
   
       syncSprites()
