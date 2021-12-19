@@ -202,6 +202,7 @@ const baseConfig = {
   spriteXpMultiplier: 1,
   forcedLatency: 0,
   isRoundPaused: false,
+  level2forced: false,
   level2allowed: true,
   level2open: false,
   level3open: false,
@@ -1091,7 +1092,7 @@ function getUnobstructedPosition() {
         }
 
         if (config.level2open && gameObject.Name === 'Level2Divider') {
-          const diff = -20
+          const diff = -16
           collider.minY -= diff
           collider.maxY -= diff
         }
@@ -1788,7 +1789,7 @@ io.on('connection', function(socket) {
       currentPlayer.lastUpdate = getTime()
 
       if (config.level2allowed) {
-        if (clients.filter(c => !c.isSpectating && !c.isDead).length >= config.playersRequiredForLevel2) {
+        if (config.level2forced || clients.filter(c => !c.isSpectating && !c.isDead).length >= config.playersRequiredForLevel2) {
           if (!config.level2open) {
             publishEvent('OnBroadcast', `Level 2 opening...`, 0)
 
@@ -1804,7 +1805,7 @@ io.on('connection', function(socket) {
           }
         }
 
-        if (clients.filter(c => !c.isSpectating && !c.isDead).length < config.playersRequiredForLevel2 - 5) {
+        if (!config.level2forced && clients.filter(c => !c.isSpectating && !c.isDead).length < config.playersRequiredForLevel2 - 7) {
           if (config.level2open) {
             publishEvent('OnBroadcast', `Level 2 closing...`, 0)
 
@@ -2366,7 +2367,7 @@ function detectCollisions() {
           }
 
           if (config.level2open && gameObject.Name === 'Level2Divider') {
-            const diff = -20
+            const diff = -16
             collider.minY -= diff
             collider.maxY -= diff
           }
@@ -2979,6 +2980,56 @@ const initRoutes = async () => {
         res.json({ success: 0 })
       }
     })
+
+    server.post('/enableForceLevel2', function(req, res) {
+      try {
+        db.log.push({
+          event: 'EnableForceLevel2',
+          caller: req.body.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+          baseConfig.level2forced = true
+          config.level2forced = true
+
+          res.json({ success: 1 })
+        } else {
+          res.json({ success: 0 })
+        }
+      } catch (e) {
+        console.log(e)
+
+        res.json({ success: 0 })
+      }
+    })
+
+    server.post('/disableForceLevel2', function(req, res) {
+      try {
+        db.log.push({
+          event: 'DisableForceLevel2',
+          caller: req.body.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
+          baseConfig.level2forced = true
+          config.level2forced = true
+
+          res.json({ success: 1 })
+        } else {
+          res.json({ success: 0 })
+        }
+      } catch (e) {
+        console.log(e)
+
+        res.json({ success: 0 })
+      }
+    })
+
+    
 
     // server.post('/unpauseRound', function(req, res) {
     //   try {
