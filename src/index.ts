@@ -1091,7 +1091,7 @@ function getUnobstructedPosition() {
         }
 
         if (config.level2open && gameObject.Name === 'Level2Divider') {
-          const diff = gameObject.Transform.Position[1] - -9
+          const diff = -20
           collider.minY -= diff
           collider.maxY -= diff
         }
@@ -2393,8 +2393,6 @@ function detectCollisions() {
           else if (gameObject.Name.indexOf('Divider') !== -1) {
             stuck = true
           }
-
-          break
         }
       }
 
