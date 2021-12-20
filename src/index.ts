@@ -2073,7 +2073,7 @@ function resetLeaderboard(preset) {
     sendLeaderReward(leaders)
 
     if (config.isBattleRoyale) {
-      publishEvent('OnBroadcast', `Top 5 - ${leaders.slice(0, 5).join(', ')}`, 0)
+      publishEvent('OnBroadcast', `Top 5 - ${leaders.slice(0, 5).map(l => l.name).join(', ')}`, 0)
     }
   }
 
