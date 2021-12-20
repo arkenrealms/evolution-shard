@@ -660,8 +660,10 @@ const spawnRandomReward = () => {
   const timesPerBiweekly = 20 * 24 * 60 * 60 / config.rewardSpawnLoopSeconds
   const randPerBiweekly = random(0, timesPerBiweekly)
 
+  let tempReward
+
   if ((now - db.config.drops.guardian) > 24 * 60 * 60 * 1000 && randPerDay === timesPerDay / 2) { // (now - db.config.drops.guardian) > 12 * 60 * 60 * 1000) {
-    currentReward = {
+    tempReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
       enabledAt: now,
@@ -673,20 +675,20 @@ const spawnRandomReward = () => {
     const rand = random(0, 1000)
     
     if (rand === 1000)
-      currentReward.rarity = 'Mythic'
+      tempReward.rarity = 'Mythic'
     else if (rand > 950)
-      currentReward.rarity = 'Epic'
+      tempReward.rarity = 'Epic'
     else if (rand > 850)
-      currentReward.rarity = 'Rare'
+      tempReward.rarity = 'Rare'
 
-    sharedConfig.rewardItemName = currentReward.rarity + ' ' + currentReward.name
+    sharedConfig.rewardItemName = tempReward.rarity + ' ' + tempReward.name
     sharedConfig.rewardItemType = 2
     config.rewardItemName = sharedConfig.rewardItemName
     config.rewardItemType = sharedConfig.rewardItemType
 
     db.config.drops.guardian = now
   } else if ((now - db.config.drops.earlyAccess) > 24 * 60 * 60 * 1000 && randPerWeek === timesPerWeek / 2) { // (now - db.config.drops.earlyAccess) > 7 * 24 * 60 * 60 * 1000
-    currentReward = {
+    tempReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
       enabledAt: now,
@@ -695,14 +697,14 @@ const spawnRandomReward = () => {
       quantity: 1
     }
 
-    sharedConfig.rewardItemName = currentReward.name
+    sharedConfig.rewardItemName = tempReward.name
     sharedConfig.rewardItemType = 3
     config.rewardItemName = sharedConfig.rewardItemName
     config.rewardItemType = sharedConfig.rewardItemType
 
     db.config.drops.earlyAccess = now
   } else if ((now - db.config.drops.trinket) > 12 * 60 * 60 * 1000 && randPerDay === timesPerDay / 4) { // (now - db.config.drops.trinket) > 12 * 60 * 60 * 1000
-    currentReward = {
+    tempReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
       enabledAt: now,
@@ -714,13 +716,13 @@ const spawnRandomReward = () => {
     const rand = random(0, 1000)
     
     if (rand === 1000)
-      currentReward.rarity = 'Mythic'
+      tempReward.rarity = 'Mythic'
     else if (rand > 950)
-      currentReward.rarity = 'Epic'
+      tempReward.rarity = 'Epic'
     else if (rand > 850)
-      currentReward.rarity = 'Rare'
+      tempReward.rarity = 'Rare'
 
-    sharedConfig.rewardItemName = currentReward.rarity + ' ' + currentReward.name
+    sharedConfig.rewardItemName = tempReward.rarity + ' ' + tempReward.name
     sharedConfig.rewardItemType = 4
     config.rewardItemName = sharedConfig.rewardItemName
     config.rewardItemType = sharedConfig.rewardItemType
@@ -730,7 +732,7 @@ const spawnRandomReward = () => {
     
     db.config.drops.runeword = now
   } else if ((now - db.config.drops.runeToken) > 2 * 24 * 60 * 60 * 1000 && randPerBiweekly === timesPerBiweekly / 3) { // (now - db.config.drops.runeToken) > 7 * 24 * 60 * 60 * 1000
-    currentReward = {
+    tempReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
       enabledAt: now,
@@ -742,13 +744,13 @@ const spawnRandomReward = () => {
     const rand = random(0, 1000)
     
     if (rand === 1000)
-      currentReward.quantity = 10
+      tempReward.quantity = 10
     else if (rand > 950)
-      currentReward.quantity = 3
+      tempReward.quantity = 3
     else if (rand > 900)
-      currentReward.quantity = 2
+      tempReward.quantity = 2
 
-    sharedConfig.rewardItemName = currentReward.quantity + ' ' + currentReward.name
+    sharedConfig.rewardItemName = tempReward.quantity + ' ' + tempReward.name
     sharedConfig.rewardItemType = 5
     config.rewardItemName = sharedConfig.rewardItemName
     config.rewardItemType = sharedConfig.rewardItemType
@@ -779,28 +781,29 @@ const spawnRandomReward = () => {
   
     const now = getTime()
   
-    currentReward = JSON.parse(JSON.stringify(reward))
-    currentReward.id = shortId.generate()
-    currentReward.position = config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)]
-    currentReward.enabledAt = now
+    tempReward = JSON.parse(JSON.stringify(reward))
+    tempReward.id = shortId.generate()
+    tempReward.position = config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)]
+    tempReward.enabledAt = now
     
-    if (currentReward.type === 'rune') {
+    if (tempReward.type === 'rune') {
       sharedConfig.rewardItemType = 0
-      sharedConfig.rewardItemName = currentReward.symbol.toUpperCase()
+      sharedConfig.rewardItemName = tempReward.symbol.toUpperCase()
       config.rewardItemName = sharedConfig.rewardItemName
       config.rewardItemType = sharedConfig.rewardItemType
     }
   }
 
-  if (!currentReward) return spawnRandomReward()
+  if (!tempReward) return spawnRandomReward()
 
-  if (currentReward.type !== 'rune') {
+  if (tempReward.type !== 'rune') {
     publishEvent('OnBroadcast', `Powerful Energy Detected - ${config.rewardItemName}`, 3)
   }
 
-  const tempReward = JSON.parse(JSON.stringify(currentReward))
+  // const tempReward = JSON.parse(JSON.stringify(tempReward))
 
   setTimeout(() => {
+    currentReward = JSON.parse(JSON.stringify(tempReward))
     publishEvent('OnSpawnReward', tempReward.id, config.rewardItemType, config.rewardItemName, config.rewardItemAmount, tempReward.position.x, tempReward.position.y)
 
     setTimeout(() => {
@@ -841,7 +844,7 @@ const claimReward = (currentPlayer, reward) => {
         if (!db.playerRewards[currentPlayer.address].pending) db.playerRewards[currentPlayer.address].pending = {}
         if (!db.playerRewards[currentPlayer.address].pending[reward.symbol]) db.playerRewards[currentPlayer.address].pending[reward.symbol] = 0
 
-        db.playerRewards[currentPlayer.address].pending[reward.symbol] = Math.round((db.playerRewards[currentPlayer.address].pending[reward.symbol] + config.rewardItemAmount) * 100) / 100
+        db.playerRewards[currentPlayer.address].pending[reward.symbol] = Math.round((db.playerRewards[currentPlayer.address].pending[reward.symbol] + config.rewardItemAmount) * 1000) / 1000
         
         db.rewards.runes.find(r => r.symbol === reward.symbol).quantity -= config.rewardItemAmount
       } else {
