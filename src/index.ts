@@ -792,6 +792,8 @@ const spawnRandomReward = () => {
 
   if (!currentReward) return spawnRandomReward()
 
+  removeReward()
+
   if (currentReward.type !== 'rune') {
     publishEvent('OnBroadcast', `Powerful Energy Detected - ${config.rewardItemName}`, 3)
   }
@@ -800,14 +802,14 @@ const spawnRandomReward = () => {
 
   setTimeout(() => {
     publishEvent('OnSpawnReward', tempReward.id, config.rewardItemType, config.rewardItemName, config.rewardItemAmount, tempReward.position.x, tempReward.position.y)
-  }, 3 * 1000)
 
-  setTimeout(() => {
-    if (!currentReward) return
-    if (currentReward.id !== tempReward.id) return
-    
-    removeReward()
-  }, 30 * 1000)
+    setTimeout(() => {
+      if (!currentReward) return
+      if (currentReward.id !== tempReward.id) return
+      
+      removeReward()
+    }, 30 * 1000)
+  }, 3 * 1000)
 }
 
 function moveVectorTowards(current, target, maxDistanceDelta) {
@@ -2576,10 +2578,7 @@ function detectCollisions() {
             // player.points += config.pointsPerReward
       
             claimReward(player, reward)
-      
-            // publishEvent('OnUpdatePickup', player.id, reward.id, 0)
-      
-            // removeReward(reward.id)
+            removeReward()
           }
         }
       }
