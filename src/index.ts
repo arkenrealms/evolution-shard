@@ -642,6 +642,8 @@ const spawnRandomReward = () => {
   }
   // if (currentReward) return
   
+  removeReward()
+
   const now = getTime()
 
   if (!db.config.drops) db.config.drops = {}
@@ -791,8 +793,6 @@ const spawnRandomReward = () => {
   }
 
   if (!currentReward) return spawnRandomReward()
-
-  removeReward()
 
   if (currentReward.type !== 'rune') {
     publishEvent('OnBroadcast', `Powerful Energy Detected - ${config.rewardItemName}`, 3)
