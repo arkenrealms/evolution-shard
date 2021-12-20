@@ -659,10 +659,12 @@ const spawnRandomReward = () => {
   const randPerWeek = random(0, timesPerWeek)
   const timesPerBiweekly = 20 * 24 * 60 * 60 / config.rewardSpawnLoopSeconds
   const randPerBiweekly = random(0, timesPerBiweekly)
+  const timesPerMonth = 31 * 24 * 60 * 60 / config.rewardSpawnLoopSeconds
+  const randPerMonth = random(0, timesPerMonth)
 
   let tempReward
 
-  if ((now - db.config.drops.guardian) > 24 * 60 * 60 * 1000 && randPerDay === timesPerDay / 2) { // (now - db.config.drops.guardian) > 12 * 60 * 60 * 1000) {
+  if ((now - db.config.drops.guardian) > 48 * 60 * 60 * 1000 && randPerDay === timesPerDay / 2) { // (now - db.config.drops.guardian) > 12 * 60 * 60 * 1000) {
     tempReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
@@ -687,7 +689,7 @@ const spawnRandomReward = () => {
     config.rewardItemType = sharedConfig.rewardItemType
 
     db.config.drops.guardian = now
-  } else if ((now - db.config.drops.earlyAccess) > 24 * 60 * 60 * 1000 && randPerWeek === timesPerWeek / 2) { // (now - db.config.drops.earlyAccess) > 7 * 24 * 60 * 60 * 1000
+  } else if ((now - db.config.drops.earlyAccess) > 30 * 24 * 60 * 60 * 1000 && randPerMonth === timesPerMonth / 2) { // (now - db.config.drops.earlyAccess) > 7 * 24 * 60 * 60 * 1000
     tempReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
@@ -703,7 +705,7 @@ const spawnRandomReward = () => {
     config.rewardItemType = sharedConfig.rewardItemType
 
     db.config.drops.earlyAccess = now
-  } else if ((now - db.config.drops.trinket) > 12 * 60 * 60 * 1000 && randPerDay === timesPerDay / 4) { // (now - db.config.drops.trinket) > 12 * 60 * 60 * 1000
+  } else if ((now - db.config.drops.trinket) > 24 * 60 * 60 * 1000 && randPerDay === timesPerDay / 4) { // (now - db.config.drops.trinket) > 12 * 60 * 60 * 1000
     tempReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
@@ -731,7 +733,7 @@ const spawnRandomReward = () => {
   } else if ((now - db.config.drops.runeword) > 12 * 60 * 60 * 1000 && randPerDay === timesPerDay / 5) { // (now - db.config.drops.runeword) > 24 * 60 * 60 * 1000
     
     db.config.drops.runeword = now
-  } else if ((now - db.config.drops.runeToken) > 2 * 24 * 60 * 60 * 1000 && randPerBiweekly === timesPerBiweekly / 3) { // (now - db.config.drops.runeToken) > 7 * 24 * 60 * 60 * 1000
+  } else if ((now - db.config.drops.runeToken) > 31 * 24 * 60 * 60 * 1000 && randPerMonth === timesPerMonth / 3) { // (now - db.config.drops.runeToken) > 7 * 24 * 60 * 60 * 1000
     tempReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
@@ -744,11 +746,11 @@ const spawnRandomReward = () => {
     const rand = random(0, 1000)
     
     if (rand === 1000)
-      tempReward.quantity = 10
+      currentReward.quantity = 10
+    else if (rand > 990)
+      currentReward.quantity = 3
     else if (rand > 950)
-      tempReward.quantity = 3
-    else if (rand > 900)
-      tempReward.quantity = 2
+      currentReward.quantity = 2
 
     sharedConfig.rewardItemName = tempReward.quantity + ' ' + tempReward.name
     sharedConfig.rewardItemType = 5
