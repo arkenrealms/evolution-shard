@@ -650,9 +650,12 @@ const spawnRandomReward = () => {
   if (!db.config.drops.guardian) db.config.drops.guardian = 1633043139000
   if (!db.config.drops.earlyAccess) db.config.drops.earlyAccess = 1633043139000
   if (!db.config.drops.trinket) db.config.drops.trinket = 1633043139000
+  if (!db.config.drops.santa) db.config.drops.santa = 1633043139000
   if (!db.config.drops.runeword) db.config.drops.runeword = 1633043139000
   if (!db.config.drops.runeToken) db.config.drops.runeToken = 1633043139000
 
+  const timesPer10Mins = 10 * 60 * 0.001 / config.rewardSpawnLoopSeconds
+  const randPer10Mins = random(0, timesPer10Mins)
   const timesPerDay = 40 * 60 * 60 / config.rewardSpawnLoopSeconds
   const randPerDay = random(0, timesPerDay)
   const timesPerWeek = 10 * 24 * 60 * 60 / config.rewardSpawnLoopSeconds
@@ -705,6 +708,22 @@ const spawnRandomReward = () => {
     config.rewardItemType = sharedConfig.rewardItemType
 
     db.config.drops.earlyAccess = now
+  } else if (randPer10Mins === timesPer10Mins / 2) { // (now - db.config.drops.earlyAccess) > 7 * 24 * 60 * 60 * 1000
+    tempReward = {
+      id: shortId.generate(),
+      position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
+      enabledAt: now,
+      name: `Santa Christmas 2021 Ticket`,
+      rarity: 'Normal',
+      quantity: 1
+    }
+
+    sharedConfig.rewardItemName = tempReward.name
+    sharedConfig.rewardItemType = 6
+    config.rewardItemName = sharedConfig.rewardItemName
+    config.rewardItemType = sharedConfig.rewardItemType
+
+    db.config.drops.santa = now
   } else if ((now - db.config.drops.trinket) > 24 * 60 * 60 * 1000 && randPerDay === timesPerDay / 4) { // (now - db.config.drops.trinket) > 12 * 60 * 60 * 1000
     tempReward = {
       id: shortId.generate(),
