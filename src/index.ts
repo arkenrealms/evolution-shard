@@ -993,7 +993,7 @@ function disconnectPlayer(player) {
 
     player.isDisconnected = true
     player.isDead = true
-    player.joinedAt = null
+    player.joinedAt = 0
     player.latency = 0
     publishEvent('OnUserDisconnected', player.id)
 
@@ -1347,7 +1347,7 @@ io.on('connection', function(socket) {
       overrideCameraSize: null,
       cameraSize: config.cameraSize,
       speed: config.baseSpeed * config.avatarSpeedMultiplier0,
-      joinedAt: null,
+      joinedAt: 0,
       hash: hash.slice(hash.length - 10, hash.length - 1),
       lastReportedTime: getTime(),
       lastUpdate: 0,
@@ -1673,7 +1673,6 @@ io.on('connection', function(socket) {
 
       currentPlayer.isJoining = true
       currentPlayer.avatar = config.startAvatar
-      currentPlayer.joinedAt = Math.round(getTime() / 1000)
       currentPlayer.speed = (config.baseSpeed * config['avatarSpeedMultiplier' + currentPlayer.avatar])
 
       log("[INFO] player " + currentPlayer.id + ": logged!")
@@ -1695,7 +1694,7 @@ io.on('connection', function(socket) {
       } else if (config.gameMode === 'Deathmatch') {
         guide = [
           'Game Mode - Deathmatch',
-          '+300 Points Per Kill (Per Evolution)',
+          '+300 Points Per Kill (Per Evolve)',
           'No Death Orbs',
           'Faster Decay'
         ]
@@ -1723,7 +1722,7 @@ io.on('connection', function(socket) {
       } else if (config.gameMode === 'Fast Drake') {
         guide = [
           'Game Mode - Fast Drake',
-          '+50% Speed as LV. 3',
+          '+50% Speed as Black Drake',
           'Faster Decay',
           'Longer Immunity'
         ]
@@ -1736,7 +1735,7 @@ io.on('connection', function(socket) {
       } else if (config.gameMode === 'Friendly Reverse') {
         guide = [
           'Game Mode - Friendly Reverse',
-          '-200 Points Per Kill',
+          '-200 Points Per Kill (Per Evolve)',
           '+25 Points Per Evolve',
           'Reverse Evolution',
           'No Orbs'
@@ -1838,6 +1837,7 @@ io.on('connection', function(socket) {
         if (currentPlayer.isJoining) {
           currentPlayer.isDead = false
           currentPlayer.isJoining = false
+          currentPlayer.joinedAt = Math.round(getTime() / 1000)
 
           if (config.isBattleRoyale) {
             spectate(currentPlayer)
