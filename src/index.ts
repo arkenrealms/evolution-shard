@@ -3008,7 +3008,7 @@ const initRoutes = async () => {
             config.isRoundPaused = false
           }
 
-          roundLoopTimeout = resetLeaderboard(presets.find(p => p.gameMode === req.body.gameMode))
+          resetLeaderboard(presets.find(p => p.gameMode === req.body.gameMode))
 
           res.json({ success: 1 })
         } else {
