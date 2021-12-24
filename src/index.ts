@@ -654,15 +654,15 @@ const spawnRandomReward = () => {
   if (!db.config.drops.runeword) db.config.drops.runeword = 1633043139000
   if (!db.config.drops.runeToken) db.config.drops.runeToken = 1633043139000
 
-  const timesPer10Mins = 20 / config.rewardSpawnLoopSeconds
+  const timesPer10Mins = Math.round(20 / config.rewardSpawnLoopSeconds)
   const randPer10Mins = random(0, timesPer10Mins)
-  const timesPerDay = 40 * 60 * 60 / config.rewardSpawnLoopSeconds
+  const timesPerDay = Math.round(40 * 60 * 60 / config.rewardSpawnLoopSeconds)
   const randPerDay = random(0, timesPerDay)
-  const timesPerWeek = 10 * 24 * 60 * 60 / config.rewardSpawnLoopSeconds
+  const timesPerWeek = Math.round(10 * 24 * 60 * 60 / config.rewardSpawnLoopSeconds)
   const randPerWeek = random(0, timesPerWeek)
-  const timesPerBiweekly = 20 * 24 * 60 * 60 / config.rewardSpawnLoopSeconds
+  const timesPerBiweekly = Math.round(20 * 24 * 60 * 60 / config.rewardSpawnLoopSeconds)
   const randPerBiweekly = random(0, timesPerBiweekly)
-  const timesPerMonth = 31 * 24 * 60 * 60 / config.rewardSpawnLoopSeconds
+  const timesPerMonth = Math.round(31 * 24 * 60 * 60 / config.rewardSpawnLoopSeconds)
   const randPerMonth = random(0, timesPerMonth)
 
   let tempReward
