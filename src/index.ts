@@ -654,7 +654,7 @@ const spawnRandomReward = () => {
   if (!db.config.drops.runeword) db.config.drops.runeword = 1633043139000
   if (!db.config.drops.runeToken) db.config.drops.runeToken = 1633043139000
 
-  const timesPer10Mins = 10 * 60 * 0.001 / config.rewardSpawnLoopSeconds
+  const timesPer10Mins = 20 / config.rewardSpawnLoopSeconds
   const randPer10Mins = random(0, timesPer10Mins)
   const timesPerDay = 40 * 60 * 60 / config.rewardSpawnLoopSeconds
   const randPerDay = random(0, timesPerDay)
