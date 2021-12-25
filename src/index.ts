@@ -667,7 +667,7 @@ const spawnRandomReward = () => {
 
   let tempReward
 
-  if ((now - db.config.drops.guardian) > 48 * 60 * 60 * 1000 && randPerDay === Math.round(timesPerDay / 2) { // (now - db.config.drops.guardian) > 12 * 60 * 60 * 1000) {
+  if ((now - db.config.drops.guardian) > 48 * 60 * 60 * 1000 && randPerDay === Math.round(timesPerDay / 2)) { // (now - db.config.drops.guardian) > 12 * 60 * 60 * 1000) {
     tempReward = {
       id: shortId.generate(),
       position: config.level2open ? rewardSpawnPoints2[random(0, rewardSpawnPoints2.length-1)] : rewardSpawnPoints[random(0, rewardSpawnPoints.length-1)],
