@@ -1,0 +1,716 @@
+{
+  "id": 238,
+  "startedAt": 1641360062,
+  "players": [],
+  "events": [
+    {
+      "type": "emitDirect",
+      "player": "3RtK4YxOEFbbXZkDAAAD",
+      "name": "OnObserverRoundFinished",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnUpdateRegression",
+      "args": [
+        "3RtK4YxOEFbbXZkDAAAD",
+        0,
+        3
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSetRoundInfo",
+      "args": [
+        "300:true:1.5:2.5:3:1:1:0.85:0.175:0.21:0.24499999999999997:3:3:2:1:2:false:1.4:30:true:0.02:0.02:Mix Game 2:5:false:false:3:false:false:60:25:10:0.3:10:200:1:1:20:8:16:2:4:3.1:0:TIR:0:9:0:ZOD:300:3:1:1:50:501. Eat sprites to stay alive:2. Avoid bigger dragons:3. Eat smaller dragons"
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnBroadcast",
+      "args": [
+        "Game Mode - Mix Game 2 (Round 238)",
+        0
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnShowMinimap",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnUpdateReward",
+      "args": [
+        "null",
+        "5F5sFqWZ0"
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnReward",
+      "args": [
+        "6V2UtufS7",
+        0,
+        "ITH",
+        0,
+        -12.66,
+        -1.527404
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnUpdateReward",
+      "args": [
+        "null",
+        "6V2UtufS7"
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnReward",
+      "args": [
+        "DvZeBm1tM",
+        0,
+        "TIR",
+        0,
+        -16.32,
+        -15.7774
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnUpdateReward",
+      "args": [
+        "null",
+        "DvZeBm1tM"
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnReward",
+      "args": [
+        "9U9yinp0A",
+        0,
+        "THUL",
+        0,
+        -12.66,
+        -1.527404
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnUpdateReward",
+      "args": [
+        "null",
+        "9U9yinp0A"
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnReward",
+      "args": [
+        "V3ZHQcGY8",
+        0,
+        "SOL",
+        0,
+        -9.420004,
+        -6.517404
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnUpdateReward",
+      "args": [
+        "null",
+        "V3ZHQcGY8"
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnReward",
+      "args": [
+        "dEVTeNzEd",
+        0,
+        "HEL",
+        0,
+        -16.09,
+        -2.867404
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnUpdateReward",
+      "args": [
+        "null",
+        "dEVTeNzEd"
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnReward",
+      "args": [
+        "GfVxdINLW",
+        0,
+        "AMN",
+        0,
+        -5.39,
+        -3.76
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnUpdateReward",
+      "args": [
+        "null",
+        "GfVxdINLW"
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnReward",
+      "args": [
+        "RpxIWrC_a",
+        0,
+        "AMN",
+        0,
+        -13.46,
+        -13.92
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnUpdateReward",
+      "args": [
+        "null",
+        "RpxIWrC_a"
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnReward",
+      "args": [
+        "xRTLt3bFI",
+        0,
+        "TIR",
+        0,
+        -3.130003,
+        -7.537404
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnUpdateReward",
+      "args": [
+        "null",
+        "xRTLt3bFI"
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    }
+  ],
+  "states": []
+}

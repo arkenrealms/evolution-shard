@@ -26,9 +26,10 @@ const serverVersion = "1.6.3"
 const server = express()
 const http = require('http').Server(server)
 const https = require('https').createServer({ 
-  key: fs.readFileSync(path.resolve('./privkey.pem')),
-  cert: fs.readFileSync(path.resolve('./fullchain.pem'))
+  key: fs.readFileSync(path.resolve('../privkey.pem')),
+  cert: fs.readFileSync(path.resolve('../fullchain.pem'))
 }, server)
+
 const io = require('socket.io')(process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10' ? https : http, {
   secure: process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10' ? true : false,
   pingInterval: 30005,
@@ -91,6 +92,7 @@ const gasPrice = 5
 // const web3Provider = new ethers.providers.Web3Provider(getRandomProvider())
 // web3Provider.pollingInterval = 15000
 
+let observers = []
 const signer = new ethers.Wallet(secrets.key, provider) //web3Provider.getSigner()
 
 const arcaneItemsContract = new ethers.Contract(getAddress(contracts.items), ArcaneItems.abi, signer)
@@ -451,7 +453,7 @@ let roundConfig = {
 let announceReboot = false
 let rebootAfterRound = false
 let totalLegitPlayers = 0
-const debug = false // !(process.env.SUDO_USER === 'dev' || process.env.OS_FLAVOUR === 'debian-10')
+const debug = process.env.HOME === '/Users/dev'
 const debugQueue = false
 const killSameNetworkClients = false
 const sockets = {} // to storage sockets
@@ -835,6 +837,29 @@ const spawnRandomReward = () => {
     }, 30 * 1000)
   }, 3 * 1000)
 }
+
+function disconnectAllPlayers() {
+  log('Disconnecting all players')
+
+  for (let i = 0; i < clients.length; i++) {
+    const client = clients[i]
+    disconnectPlayer(client)
+  }
+}
+
+function monitorObservers() {
+  updateObservers()
+
+  if (observers.length === 0) {
+    publishEvent('OnBroadcast', `Observer unconnected. Contact support.`, 0)
+
+    disconnectAllPlayers()
+  }
+
+  setTimeout(monitorObservers, 5 * 1000)
+}
+
+monitorObservers()
 
 function moveVectorTowards(current, target, maxDistanceDelta) {
   const a = {
@@ -1323,6 +1348,10 @@ function spectate(currentPlayer) {
   }
 }
 
+function updateObservers() {
+  observers = observers.filter(observer => observer.socket.connected)
+}
+
 io.on('connection', function(socket) {
   try {
     const ip = socket.handshake.headers['x-forwarded-for']?.split(',')[0] || socket.conn.remoteAddress?.split(":")[3]
@@ -1556,6 +1585,22 @@ io.on('connection', function(socket) {
     //   }
     // })
 
+    socket.on('ObserverJoin', function() {
+      const sameNetworkObservers = observers.filter(r => r.hash === currentPlayer.hash)
+
+      for (const observer of sameNetworkObservers) {
+        disconnectPlayer(observer)
+      }
+
+      const observer = {
+        socket
+      }
+
+      observers.push(observer)
+
+      emitDirect(socket, 'OnObserverInit', 1)
+    })
+
     socket.on('Load', function() {
       emitDirect(socket, 'OnLoaded', 1)
     })
@@ -1701,6 +1746,12 @@ io.on('connection', function(socket) {
       emitDirect(socket, 'OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
       emitDirect(socket, 'OnJoinGame', currentPlayer.id, currentPlayer.name, currentPlayer.avatar, currentPlayer.isMasterClient ? 'true' : 'false', roundTimer, currentPlayer.position.x, currentPlayer.position.y)
       // emitDirect(socket, 'OnSetInfo', currentPlayer.id, currentPlayer.name, currentPlayer.address, currentPlayer.network, currentPlayer.device)
+
+      if (observers.length === 0) {
+        emitDirect(socket, 'OnBroadcast', `Observer unconnected. Contact support.`, 0)
+        disconnectPlayer(currentPlayer)
+        return
+      }
 
       let guide
 
@@ -1882,7 +1933,6 @@ io.on('connection', function(socket) {
         const targetX = parseFloat(parseFloat(pack.target.split(':')[0].replace(',', '.')).toFixed(3))
         const targetY = parseFloat(parseFloat(pack.target.split(':')[1].replace(',', '.')).toFixed(3))
 
-
         if (!Number.isFinite(positionX) || !Number.isFinite(positionY) || !Number.isFinite(targetX) || !Number.isFinite(targetY)) return
         if (positionX < mapBoundary.x.min) return
         if (positionX > mapBoundary.x.max) return
@@ -1901,6 +1951,930 @@ io.on('connection', function(socket) {
         currentPlayer.lastUpdate = now
       } catch(e) {
         console.log(e)
+      }
+    })
+
+    socket.on('ServerInfoRequest', function(req) {
+      console.log(req)
+      socket.emit('ServerInfoResponse', {
+        id: req.id,
+        data: {
+          version: serverVersion,
+          round: { id: round.id, startedAt: round.startedAt },
+          clientTotal: clients.length,
+          playerTotal: clients.filter(c => !c.isDead && !c.isSpectating).length,
+          spectatorTotal: clients.filter(c => c.isSpectating).length,
+          recentPlayersTotal: round.players.length,
+          spritesTotal: config.spritesTotal,
+          connectedPlayers: clients.map(c => c.name),
+          rewardItemAmount: config.rewardItemAmount,
+          rewardWinnerAmount: config.rewardWinnerAmount,
+          totalLegitPlayers: totalLegitPlayers,
+          gameMode: config.gameMode,
+          orbs: orbs,
+          currentReward
+        }
+      })
+    })
+
+    socket.on('DbRequest', function(req) {
+      socket.emit('DbResponse', {
+        id: req.id,
+        data: db
+      })
+    })
+
+    socket.on('ConfigRequest', function(req) {
+      socket.emit('ConfigResponse', {
+        id: req.id,
+        data: config
+      })
+    })
+
+    socket.on('MaintenanceRequest', function(req) {
+      try {
+        db.log.push({
+          event: 'Maintenance',
+          caller: req.data.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.data.address, hash: req.data.signature }, req.data.address) && db.modList.includes(req.data.address)) {
+          sharedConfig.isMaintenance = true
+          config.isMaintenance = true
+      
+          publishEvent('OnMaintenance', config.isMaintenance)
+
+          socket.emit('MaintenanceResponse', {
+            id: req.id,
+            data: { success: 1 }
+          })
+        } else {
+          socket.emit('MaintenanceResponse', {
+            id: req.id,
+            data: { success: 0 }
+          })
+        }
+      } catch (e) {
+        console.log(e)
+        
+        socket.emit('MaintenanceResponse', {
+          id: req.id,
+          data: { success: 0 }
+        })
+      }
+    })
+
+    socket.on('UnmaintenanceRequest', function(req) {
+      try {
+        db.log.push({
+          event: 'Unmaintenance',
+          caller: req.data.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.data.address, hash: req.data.signature }, req.data.address) && db.modList.includes(req.data.address)) {
+          sharedConfig.isMaintenance = false
+          config.isMaintenance = false
+      
+          publishEvent('OnUnmaintenance', config.isMaintenance)
+
+          socket.emit('UnmaintenanceResponse', {
+            id: req.id,
+            data: { success: 1 }
+          })
+        } else {
+          socket.emit('UnmaintenanceResponse', {
+            id: req.id,
+            data: { success: 0 }
+          })
+        }
+      } catch (e) {
+        console.log(e)
+        
+        socket.emit('UnmaintenanceResponse', {
+          id: req.id,
+          data: { success: 0 }
+        })
+      }
+    })
+
+    socket.on('StartBattleRoyaleRequest', function(req) {
+      try {
+        db.log.push({
+          event: 'StartBattleRoyale',
+          caller: req.data.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.data.address, hash: req.data.signature }, req.data.address) && db.modList.includes(req.data.address)) {
+          baseConfig.isBattleRoyale = true
+          config.isBattleRoyale = true
+
+          publishEvent('OnBroadcast', `Battle Royale Started`, 3)
+          
+          socket.emit('StartBattleRoyaleResponse', {
+            id: req.id,
+            data: { success: 1 }
+          })
+        } else {
+          socket.emit('StartBattleRoyaleResponse', {
+            id: req.id,
+            data: { success: 0 }
+          })
+        }
+      } catch (e) {
+        console.log(e)
+        
+        socket.emit('StartBattleRoyaleResponse', {
+          id: req.id,
+          data: { success: 0 }
+        })
+      }
+    })
+
+    socket.on('StopBattleRoyaleRequest', function(req) {
+      try {
+        db.log.push({
+          event: 'StopBattleRoyale',
+          caller: req.data.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.data.address, hash: req.data.signature }, req.data.address) && db.modList.includes(req.data.address)) {
+          baseConfig.isBattleRoyale = false
+          config.isBattleRoyale = false
+
+          publishEvent('OnBroadcast', `Battle Royale Stopped`, 0)
+      
+          socket.emit('StopBattleRoyaleResponse', {
+            id: req.id,
+            data: { success: 1 }
+          })
+        } else {
+          socket.emit('StopBattleRoyaleResponse', {
+            id: req.id,
+            data: { success: 0 }
+          })
+        }
+      } catch (e) {
+        console.log(e)
+        
+        socket.emit('StopBattleRoyaleResponse', {
+          id: req.id,
+          data: { success: 0 }
+        })
+      }
+    })
+
+    socket.on('PauseRoundRequest', function(req) {
+      try {
+        db.log.push({
+          event: 'PauseRound',
+          caller: req.data.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.data.address, hash: req.data.signature }, req.data.address) && db.modList.includes(req.data.address)) {
+          clearTimeout(roundLoopTimeout)
+
+          baseConfig.isRoundPaused = true
+          config.isRoundPaused = true
+
+          publishEvent('OnRoundPaused')
+          publishEvent('OnBroadcast', `Round Paused`, 0)
+      
+          
+          socket.emit('PauseRoundResponse', {
+            id: req.id,
+            data: { success: 1 }
+          })
+        } else {
+          socket.emit('PauseRoundResponse', {
+            id: req.id,
+            data: { success: 0 }
+          })
+        }
+      } catch (e) {
+        console.log(e)
+        
+        socket.emit('PauseRoundResponse', {
+          id: req.id,
+          data: { success: 0 }
+        })
+      }
+    })
+
+    socket.on('StartRoundRequest', function(req) {
+      try {
+        db.log.push({
+          event: 'StartRound',
+          caller: req.data.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.data.address, hash: req.data.signature }, req.data.address) && db.modList.includes(req.data.address)) {
+          clearTimeout(roundLoopTimeout)
+
+          if (config.isRoundPaused) {
+            baseConfig.isRoundPaused = false
+            config.isRoundPaused = false
+          }
+
+          resetLeaderboard(presets.find(p => p.gameMode === req.data.gameMode))
+
+          socket.emit('StartRoundResponse', {
+            id: req.id,
+            data: { success: 1 }
+          })
+        } else {
+          socket.emit('StartRoundResponse', {
+            id: req.id,
+            data: { success: 0 }
+          })
+        }
+      } catch (e) {
+        console.log(e)
+
+        socket.emit('StartRoundResponse', {
+          id: req.id,
+          data: { success: 0 }
+        })
+      }
+    })
+
+    socket.on('EnableForceLevel2Request', function(req) {
+      try {
+        db.log.push({
+          event: 'EnableForceLevel2',
+          caller: req.data.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.data.address, hash: req.data.signature }, req.data.address) && db.modList.includes(req.data.address)) {
+          baseConfig.level2forced = true
+          config.level2forced = true
+
+          
+          socket.emit('EnableForceLevel2Response', {
+            id: req.id,
+            data: { success: 1 }
+          })
+        } else {
+          socket.emit('EnableForceLevel2Response', {
+            id: req.id,
+            data: { success: 0 }
+          })
+        }
+      } catch (e) {
+        console.log(e)
+
+        socket.emit('EnableForceLevel2Response', {
+          id: req.id,
+          data: { success: 0 }
+        })
+      }
+    })
+
+    socket.on('DisableForceLevel2Request', function(req) {
+      try {
+        db.log.push({
+          event: 'DisableForceLevel2',
+          caller: req.data.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.data.address, hash: req.data.signature }, req.data.address) && db.modList.includes(req.data.address)) {
+          baseConfig.level2forced = false
+          config.level2forced = false
+          
+          socket.emit('DisableForceLevel2Response', {
+            id: req.id,
+            data: { success: 1 }
+          })
+        } else {
+          socket.emit('DisableForceLevel2Response', {
+            id: req.id,
+            data: { success: 0 }
+          })
+        }
+      } catch (e) {
+        console.log(e)
+
+        socket.emit('DisableForceLevel2Response', {
+          id: req.id,
+          data: { success: 0 }
+        })
+      }
+    })
+
+    socket.on('StartGodPartyRequest', function(req) {
+      try {
+        db.log.push({
+          event: 'StartGodParty',
+          caller: req.data.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.data.address, hash: req.data.signature }, req.data.address) && db.modList.includes(req.data.address)) {
+          baseConfig.isGodParty = true
+          config.isGodParty = true
+
+          publishEvent('OnBroadcast', `God Party Started`, 0)
+          
+          socket.emit('StartGodPartyResponse', {
+            id: req.id,
+            data: { success: 1 }
+          })
+        } else {
+          socket.emit('StartGodPartyResponse', {
+            id: req.id,
+            data: { success: 0 }
+          })
+        }
+      } catch (e) {
+        console.log(e)
+        
+        socket.emit('StartGodPartyResponse', {
+          id: req.id,
+          data: { success: 0 }
+        })
+      }
+    })
+
+    socket.on('StopGodPartyRequest', function(req) {
+      try {
+        db.log.push({
+          event: 'StopGodParty',
+          caller: req.data.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.data.address, hash: req.data.signature }, req.data.address) && db.modList.includes(req.data.address)) {
+          baseConfig.isGodParty = false
+          config.isGodParty = false
+
+          for (let i = 0; i < clients.length; i++) {
+            const player = clients[i]
+
+            player.isInvincible = false
+          }
+
+          publishEvent('OnBroadcast', `God Party Stopped`, 2)
+          
+          socket.emit('StopGodPartyResponse', {
+            id: req.id,
+            data: { success: 1 }
+          })
+        } else {
+          socket.emit('StopGodPartyResponse', {
+            id: req.id,
+            data: { success: 0 }
+          })
+        }
+      } catch (e) {
+        console.log(e)
+        
+        socket.emit('StopGodPartyResponse', {
+          id: req.id,
+          data: { success: 0 }
+        })
+      }
+    })
+
+    socket.on('MakeBattleHarderRequest', function(req) {
+      try {
+        db.log.push({
+          event: 'MakeBattleHarder',
+          caller: req.data.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.data.address, hash: req.data.signature }, req.data.address) && db.modList.includes(req.data.address)) {
+          baseConfig.dynamicDecayPower = false
+          config.dynamicDecayPower = false
+
+          sharedConfig.decayPower += 2
+          config.decayPower += 2
+
+          sharedConfig.baseSpeed += 1
+          config.baseSpeed += 1
+
+          sharedConfig.checkPositionDistance += 1
+          config.checkPositionDistance += 1
+          
+          sharedConfig.checkInterval += 1
+          config.checkInterval += 1
+
+          publishEvent('OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
+          publishEvent('OnBroadcast', `Difficulty Increased!`, 2)
+      
+          
+          socket.emit('MakeBattleHarderResponse', {
+            id: req.id,
+            data: { success: 1 }
+          })
+        } else {
+          socket.emit('MakeBattleHarderResponse', {
+            id: req.id,
+            data: { success: 0 }
+          })
+        }
+      } catch (e) {
+        console.log(e)
+        
+        socket.emit('MakeBattleHarderResponse', {
+          id: req.id,
+          data: { success: 0 }
+        })
+      }
+    })
+
+    socket.on('MakeBattleEasierRequest', function(req) {
+      try {
+        db.log.push({
+          event: 'MakeBattleEasier',
+          caller: req.data.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.data.address, hash: req.data.signature }, req.data.address) && db.modList.includes(req.data.address)) {
+          baseConfig.dynamicDecayPower = false
+          config.dynamicDecayPower = false
+
+          sharedConfig.decayPower -= 2
+          config.decayPower -= 2
+
+          sharedConfig.baseSpeed -= 1
+          config.baseSpeed -= 1
+
+          sharedConfig.checkPositionDistance -= 1
+          config.checkPositionDistance -= 1
+          
+          sharedConfig.checkInterval -= 1
+          config.checkInterval -= 1
+
+          publishEvent('OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
+          publishEvent('OnBroadcast', `Difficulty Decreased!`, 0)
+      
+          socket.emit('MakeBattleEasierResponse', {
+            id: req.id,
+            data: { success: 1 }
+          })
+        } else {
+          socket.emit('MakeBattleEasierResponse', {
+            id: req.id,
+            data: { success: 0 }
+          })
+        }
+      } catch (e) {
+        socket.emit('MakeBattleEasierResponse', {
+          id: req.id,
+          data: { success: 0 }
+        })
+      }
+    })
+
+    socket.on('ResetBattleDifficultyRequest', function(req) {
+      try {
+        db.log.push({
+          event: 'ResetBattleDifficulty',
+          caller: req.data.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.data.address, hash: req.data.signature }, req.data.address) && db.modList.includes(req.data.address)) {
+          baseConfig.dynamicDecayPower = true
+          config.dynamicDecayPower = true
+
+          sharedConfig.decayPower = 1.4
+          config.decayPower = 1.4
+
+          sharedConfig.baseSpeed = 3
+          config.baseSpeed = 3
+
+          sharedConfig.checkPositionDistance = 2
+          config.checkPositionDistance = 2
+          
+          sharedConfig.checkInterval = 1
+          config.checkInterval = 1
+
+          publishEvent('OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
+          publishEvent('OnBroadcast', `Difficulty Reset!`, 0)
+      
+          socket.emit('ResetBattleDifficultyResponse', {
+            id: req.id,
+            data: { success: 1 }
+          })
+        } else {
+          socket.emit('ResetBattleDifficultyResponse', {
+            id: req.id,
+            data: { success: 0 }
+          })
+        }
+      } catch (e) {
+        socket.emit('ResetBattleDifficultyResponse', {
+          id: req.id,
+          data: { success: 0 }
+        })
+      }
+    })
+
+    socket.on('AddModRequest', function(req) {
+      try {
+        db.log.push({
+          event: 'AddMod',
+          caller: req.data.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.data.address, hash: req.data.signature }, req.data.address) && db.modList.includes(req.data.address)) {
+          db.modList.push(req.params.address)
+      
+          saveModList()
+          
+          socket.emit('AddModResponse', {
+            id: req.id,
+            data: { success: 1 }
+          })
+        } else {
+          socket.emit('AddModResponse', {
+            id: req.id,
+            data: { success: 0 }
+          })
+        }
+      } catch (e) {
+        console.log(e)
+        
+        socket.emit('AddModResponse', {
+          id: req.id,
+          data: { success: 0 }
+        })
+      }
+    })
+
+    socket.on('RemoveModRequest', function(req) {
+      try {
+        db.log.push({
+          event: 'RemoveMod',
+          caller: req.data.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.data.address, hash: req.data.signature }, req.data.address) && db.modList.includes(req.data.address)) {
+          db.modList.splice(db.modList.indexOf(req.data.target), 1)
+      
+          saveModList()
+          
+          socket.emit('RemoveModResponse', {
+            id: req.id,
+            data: { success: 1 }
+          })
+        } else {
+          socket.emit('RemoveModResponse', {
+            id: req.id,
+            data: { success: 0 }
+          })
+        }
+      } catch (e) {
+        socket.emit('RemoveModResponse', {
+          id: req.id,
+          data: { success: 0 }
+        })
+      }
+    })
+
+    socket.on('SetConfigRequest', function(req) {
+      try {
+        db.log.push({
+          event: 'SetConfig',
+          caller: req.data.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.data.address, hash: req.data.signature }, req.data.address) && db.modList.includes(req.data.address)) {
+          const val = isNumeric(req.data.value) ? parseFloat(req.data.value) : req.data.value
+          if (baseConfig.hasOwnProperty(req.data.key)) 
+            baseConfig[req.data.key] = val
+
+          if (sharedConfig.hasOwnProperty(req.data.key)) 
+            sharedConfig[req.data.key] = val
+
+          config[req.data.key] = val
+
+          publishEvent('OnBroadcast', `${req.data.key} = ${val}`, 1)
+          
+          socket.emit('SetConfigResponse', {
+            id: req.id,
+            data: { success: 1 }
+          })
+        } else {
+          socket.emit('SetConfigResponse', {
+            id: req.id,
+            data: { success: 0 }
+          })
+        }
+      } catch (e) {
+        console.log(e)
+        
+        socket.emit('SetConfigResponse', {
+          id: req.id,
+          data: { success: 0 }
+        })
+      }
+    })
+
+    socket.on('ReportUserRequest', function(req) {
+      try {
+        db.log.push({
+          event: 'Report',
+          value: req.data.target,
+          caller: req.data.address
+        })
+
+        saveLog()
+
+        const currentPlayer = round.players.find(p => p.address === req.data.address)
+        if (currentPlayer && verifySignature({ value: req.data.address, hash: req.data.signature }, req.data.address)) {
+          const reportedPlayer = clients.find(c => c.address === req.data.target)
+
+          if (reportedPlayer) {
+            reportPlayer(clients, currentPlayer, reportedPlayer)
+            
+            socket.emit('ReportUserResponse', {
+              id: req.id,
+              data: { success: 1 }
+            })
+          } else {
+            socket.emit('ReportUserResponse', {
+            id: req.id,
+            data: { success: 0 }
+          })
+          }
+        } else {
+          socket.emit('ReportUserResponse', {
+            id: req.id,
+            data: { success: 0 }
+          })
+        }
+      } catch (e) {
+        console.log(e)
+        
+        socket.emit('ReportUserResponse', {
+          id: req.id,
+          data: { success: 0 }
+        })
+      }
+    })
+
+    socket.on('BanUserRequest', function(req) {
+      try {
+        db.log.push({
+          event: 'Ban',
+          value: req.data.target,
+          caller: req.data.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.data.address, hash: req.data.signature }, req.data.address) && db.modList.includes(req.data.address)) {
+          if (!db.banList.includes(req.data.target)) {
+            db.banList.push(req.data.target)
+          }
+
+          if (clients.find(c => c.address === req.data.target)) {
+            disconnectPlayer(clients.find(c => c.address === req.data.target))
+          }
+
+          saveBanList()
+      
+          
+          socket.emit('BanUserResponse', {
+            id: req.id,
+            data: { success: 1 }
+          })
+        } else {
+          socket.emit('BanUserResponse', {
+            id: req.id,
+            data: { success: 0 }
+          })
+        }
+      } catch (e) {
+        console.log(e)
+        
+        socket.emit('BanUserResponse', {
+          id: req.id,
+          data: { success: 0 }
+        })
+      }
+    })
+
+    socket.on('UnbanUserRequest', function(req) {
+      try {
+        db.log.push({
+          event: 'Unban',
+          value: req.data.target,
+          caller: req.data.address
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.data.address, hash: req.data.signature }, req.data.address) && db.modList.includes(req.data.address)) {
+          db.banList.splice(db.banList.indexOf(req.data.target), 1)
+
+          saveBanList()
+      
+          socket.emit('UnbanUserResponse', {
+            id: req.id,
+            data: { success: 1 }
+          })
+        } else {
+          socket.emit('UnbanUserResponse', {
+            id: req.id,
+            data: { success: 0 }
+          })
+        }
+      } catch (e) {
+        console.log(e)
+        
+        socket.emit('UnbanUserResponse', {
+          id: req.id,
+          data: { success: 0 }
+        })
+      }
+    })
+
+    socket.on('MessageUserRequest', function(req) {
+      try {
+        db.log.push({
+          event: 'Message',
+          value: req.data.target,
+          caller: req.data.address,
+          message: req.data.message
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.data.address, hash: req.data.signature }, req.data.address) && db.modList.includes(req.data.address)) {
+          const socket = sockets[clients.find(c => c.address === req.data.target).id]
+
+          emitDirect(socket, 'OnBroadcast', req.data.message.replace(/:/gi, ''), 0)
+          
+          socket.emit('MessageUserResponse', {
+            id: req.id,
+            data: { success: 1 }
+          })
+        } else {
+          socket.emit('MessageUserResponse', {
+            id: req.id,
+            data: { success: 0 }
+          })
+        }
+      } catch (e) {
+        socket.emit('MessageUserResponse', {
+          id: req.id,
+          data: { success: 0 }
+        })
+      }
+    })
+
+    socket.on('BroadcastRequest', function(req) {
+      try {
+        db.log.push({
+          event: 'Broadcast',
+          caller: req.data.address,
+          message: req.data.message
+        })
+
+        saveLog()
+
+        if (verifySignature({ value: req.data.address, hash: req.data.signature }, req.data.address) && db.modList.includes(req.data.address)) {
+          publishEvent('OnBroadcast', req.data.message.replace(/:/gi, ''), 0)
+          
+          socket.emit('BroadcastResponse', {
+            id: req.id,
+            data: { success: 1 }
+          })
+        } else {
+          socket.emit('BroadcastResponse', {
+            id: req.id,
+            data: { success: 0 }
+          })
+        }
+      } catch (e) {
+        console.log(e)
+        
+        socket.emit('BroadcastResponse', {
+            id: req.id,
+            data: { success: 0 }
+          })
+      }
+    })
+
+    socket.on('UserDetailsRequest', function(req) {
+      try {
+        if (!db.playerRewards[req.data.address]) db.playerRewards[req.data.address] = {}
+        if (!db.playerRewards[req.data.address].pending) db.playerRewards[req.data.address].pending = {}
+        if (!db.playerRewards[req.data.address].pendingItems) db.playerRewards[req.data.address].pendingItems = []
+        if (!db.playerRewards[req.data.address].historyRunes) db.playerRewards[req.data.address].historyRunes = []
+        if (!db.playerRewards[req.data.address].historyItems) db.playerRewards[req.data.address].historyItems = []
+
+        socket.emit('UserDetailsResponse', {
+          id: req.id,
+          data: {
+            success: 1,
+            result: {
+              runes: {
+                pending: db.playerRewards[req.data.address].pending,
+                history: db.playerRewards[req.data.address].historyRunes
+              },
+              items: {
+                pending: db.playerRewards[req.data.address].pendingItems,
+                history: db.playerRewards[req.data.address].historyItems
+              },
+              quests: db.quests?.players[req.data.address] || []
+            }
+          }
+        })
+      } catch (e) {
+        socket.emit('UserDetailsResponse', {
+          id: req.id,
+          data: { success: 0 }
+        })
+      }
+    })
+
+    socket.on('UserRequest', function(req) {
+      try {
+        if (!db.playerRewards[req.data.address]) db.playerRewards[req.data.address] = {}
+        if (!db.playerRewards[req.data.address].pending) db.playerRewards[req.data.address].pending = {}
+        if (!db.playerRewards[req.data.address].pendingItems) db.playerRewards[req.data.address].pendingItems = []
+
+        socket.emit('UserDetailsResponse', {
+          id: req.id,
+          data: db.playerRewards[req.data.address].pending
+        })
+      } catch (e) {
+        socket.emit('UserResponse', {
+          id: req.id,
+          data: { success: 0 }
+        })
+      }
+    })
+
+    socket.on('AdminClaimRequest', function(req) {
+      try {
+        if (!db.playerRewards[req.data.address]) db.playerRewards[req.data.address] = {}
+        if (!db.playerRewards[req.data.address].pending) db.playerRewards[req.data.address].pending = {}
+        if (!db.playerRewards[req.data.address].pending) db.playerRewards[req.data.address].pending[req.data.symbol] = 0
+        if (!db.playerRewards[req.data.address].tx) db.playerRewards[req.data.address].tx = []
+
+        const newReward = {
+          type: "rune",
+          symbol: req.data.symbol,
+          quantity: db.playerRewards[req.data.address].pending[req.data.symbol],
+          winner: {
+            address: req.data.address
+          },
+          tx: req.data.tx
+        }
+
+        db.rewardHistory.push(newReward)
+
+        saveRewardHistory()
+
+        db.playerRewards[req.data.address].pending[req.data.symbol] -= parseFloat(req.data.amount)
+        db.playerRewards[req.data.address].tx.push(req.data.tx)
+
+        savePlayerRewards()
+
+        socket.emit('AdminClaimResponse', {
+          id: req.id,
+          data: { success: 1 }
+        })
+      } catch (e) {
+        console.log(e)
+        
+        socket.emit('AdminClaimResponse', {
+          id: req.id,
+          data: { success: 0 }
+        })
       }
     })
 
@@ -2090,6 +3064,14 @@ let lastFastGameloopTime = getTime()
 let lastFastestGameloopTime = getTime()
 
 function resetLeaderboard(preset) {
+  updateObservers()
+
+  if (observers.length === 0) {
+    publishEvent('OnBroadcast', `Observer unconnected. Contact support.`, 0)
+    roundLoopTimeout = setTimeout(resetLeaderboard, config.roundLoopSeconds * 1000)
+    return
+  }
+
   const fiveSecondsAgo = getTime() - 7000
 
   const leaders = round.players.filter(p => p.lastUpdate >= fiveSecondsAgo).sort((a, b) => b.points - a.points)
@@ -2237,6 +3219,10 @@ function resetLeaderboard(preset) {
     publishEvent('OnBroadcast', value, 1)
     
     rebootAfterRound = true
+  }
+
+  for (const observer of observers) {
+    emitDirect(observer.socket, 'OnObserverRoundFinished')
   }
 
   roundLoopTimeout = setTimeout(resetLeaderboard, config.roundLoopSeconds * 1000)
@@ -2828,758 +3814,6 @@ const initWebServer = async () => {
 
 const initRoutes = async () => {
   try {
-    server.get('/info', async function(req, res) {
-      return res.json({
-        version: serverVersion,
-        round: { id: round.id, startedAt: round.startedAt },
-        clientTotal: clients.length,
-        playerTotal: clients.filter(c => !c.isDead && !c.isSpectating).length,
-        spectatorTotal: clients.filter(c => c.isSpectating).length,
-        recentPlayersTotal: round.players.length,
-        spritesTotal: config.spritesTotal,
-        connectedPlayers: clients.map(c => c.name),
-        rewardItemAmount: config.rewardItemAmount,
-        rewardWinnerAmount: config.rewardWinnerAmount,
-        totalLegitPlayers: totalLegitPlayers,
-        gameMode: config.gameMode,
-        orbs: orbs,
-        currentReward
-      })
-    })
-
-    server.get('/db', async function(req, res) {
-      return res.json(db)
-    })
-
-    server.get('/config', async function(req, res) {
-      return res.json(config)
-    })
-
-    // server.get('/buff/binzy', async function(req, res) {
-    //   db.playerRewards['0xa987f487639920A3c2eFe58C8FBDedB96253ed9B'].pending = {
-    //     "ral": 1,
-    //     "tir": 0.9,
-    //     "amn": 0.9,
-    //     "thul": 0.9,
-    //     "zod": 0.9,
-    //     "sol": 1.1,
-    //     "tal": 0.9,
-    //     "ort": 1.2,
-    //     "shael": 0.9,
-    //     "nef": 0.9
-    //   }
-
-    //   config.claimingRewards = false
-    //   db.playerRewards['0xa987f487639920A3c2eFe58C8FBDedB96253ed9B'].claiming = false
-
-    //   savePlayerRewards()
-    
-    //   res.json(db.playerRewards['0xa987f487639920A3c2eFe58C8FBDedB96253ed9B'].pending)
-    // })
-
-    server.post('/maintenance', function(req, res) {
-      try {
-        db.log.push({
-          event: 'Maintenance',
-          caller: req.body.address
-        })
-
-        saveLog()
-
-        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-          sharedConfig.isMaintenance = true
-          config.isMaintenance = true
-      
-          publishEvent('OnMaintenance', config.isMaintenance)
-
-          res.json({ success: 1 })
-        } else {
-          res.json({ success: 0 })
-        }
-      } catch (e) {
-        console.log(e)
-        
-        res.json({ success: 0 })
-      }
-    })
-
-    server.post('/unmaintenance', function(req, res) {
-      try {
-        db.log.push({
-          event: 'Unmaintenance',
-          caller: req.body.address
-        })
-
-        saveLog()
-
-        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-          sharedConfig.isMaintenance = false
-          config.isMaintenance = false
-      
-          publishEvent('OnMaintenance', config.isMaintenance)
-
-          res.json({ success: 1 })
-        } else {
-          res.json({ success: 0 })
-        }
-      } catch (e) {
-        console.log(e)
-        
-        res.json({ success: 0 })
-      }
-    })
-
-    server.post('/startBattleRoyale', function(req, res) {
-      try {
-        db.log.push({
-          event: 'StartBattleRoyale',
-          caller: req.body.address
-        })
-
-        saveLog()
-
-        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-          baseConfig.isBattleRoyale = true
-          config.isBattleRoyale = true
-
-          publishEvent('OnBroadcast', `Battle Royale Started`, 3)
-      
-          res.json({ success: 1 })
-        } else {
-          res.json({ success: 0 })
-        }
-      } catch (e) {
-        console.log(e)
-        
-        res.json({ success: 0 })
-      }
-    })
-
-    server.post('/stopBattleRoyale', function(req, res) {
-      try {
-        db.log.push({
-          event: 'StopBattleRoyale',
-          caller: req.body.address
-        })
-
-        saveLog()
-
-        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-          baseConfig.isBattleRoyale = false
-          config.isBattleRoyale = false
-
-          publishEvent('OnBroadcast', `Battle Royale Stopped`, 0)
-      
-          res.json({ success: 1 })
-        } else {
-          res.json({ success: 0 })
-        }
-      } catch (e) {
-        console.log(e)
-        
-        res.json({ success: 0 })
-      }
-    })
-
-    server.post('/pauseRound', function(req, res) {
-      try {
-        db.log.push({
-          event: 'PauseRound',
-          caller: req.body.address
-        })
-
-        saveLog()
-
-        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-          clearTimeout(roundLoopTimeout)
-
-          baseConfig.isRoundPaused = true
-          config.isRoundPaused = true
-
-          publishEvent('OnRoundPaused')
-          publishEvent('OnBroadcast', `Round Paused`, 0)
-      
-          res.json({ success: 1 })
-        } else {
-          res.json({ success: 0 })
-        }
-      } catch (e) {
-        console.log(e)
-        
-        res.json({ success: 0 })
-      }
-    })
-
-    server.post('/startRound', function(req, res) {
-      try {
-        db.log.push({
-          event: 'StartRound',
-          caller: req.body.address
-        })
-
-        saveLog()
-
-        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-          clearTimeout(roundLoopTimeout)
-
-          if (config.isRoundPaused) {
-            baseConfig.isRoundPaused = false
-            config.isRoundPaused = false
-          }
-
-          resetLeaderboard(presets.find(p => p.gameMode === req.body.gameMode))
-
-          res.json({ success: 1 })
-        } else {
-          res.json({ success: 0 })
-        }
-      } catch (e) {
-        console.log(e)
-
-        res.json({ success: 0 })
-      }
-    })
-
-    server.post('/enableForceLevel2', function(req, res) {
-      try {
-        db.log.push({
-          event: 'EnableForceLevel2',
-          caller: req.body.address
-        })
-
-        saveLog()
-
-        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-          baseConfig.level2forced = true
-          config.level2forced = true
-
-          res.json({ success: 1 })
-        } else {
-          res.json({ success: 0 })
-        }
-      } catch (e) {
-        console.log(e)
-
-        res.json({ success: 0 })
-      }
-    })
-
-    server.post('/disableForceLevel2', function(req, res) {
-      try {
-        db.log.push({
-          event: 'DisableForceLevel2',
-          caller: req.body.address
-        })
-
-        saveLog()
-
-        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-          baseConfig.level2forced = false
-          config.level2forced = false
-
-          res.json({ success: 1 })
-        } else {
-          res.json({ success: 0 })
-        }
-      } catch (e) {
-        console.log(e)
-
-        res.json({ success: 0 })
-      }
-    })
-
-    
-
-    // server.post('/unpauseRound', function(req, res) {
-    //   try {
-    //     db.log.push({
-    //       event: 'UnpauseRound',
-    //       caller: req.body.address
-    //     })
-
-    //     saveLog()
-
-    //     if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-    //       baseConfig.isRoundPaused = false
-    //       config.isRoundPaused = false
-
-    //       publishEvent('OnBroadcast', `Round Unpaused`, 0)
-      
-    //       res.json({ success: 1 })
-    //     } else {
-    //       res.json({ success: 0 })
-    //     }
-    //   } catch (e) {
-    //     res.json({ success: 0 })
-    //   }
-    // })
-
-    server.post('/startGodParty', function(req, res) {
-      try {
-        db.log.push({
-          event: 'StartGodParty',
-          caller: req.body.address
-        })
-
-        saveLog()
-
-        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-          baseConfig.isGodParty = true
-          config.isGodParty = true
-
-          publishEvent('OnBroadcast', `God Party Started`, 0)
-      
-          res.json({ success: 1 })
-        } else {
-          res.json({ success: 0 })
-        }
-      } catch (e) {
-        console.log(e)
-        
-        res.json({ success: 0 })
-      }
-    })
-
-    server.post('/stopGodParty', function(req, res) {
-      try {
-        db.log.push({
-          event: 'StopGodParty',
-          caller: req.body.address
-        })
-
-        saveLog()
-
-        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-          baseConfig.isGodParty = false
-          config.isGodParty = false
-
-          for (let i = 0; i < clients.length; i++) {
-            const player = clients[i]
-
-            player.isInvincible = false
-          }
-
-          publishEvent('OnBroadcast', `God Party Stopped`, 2)
-      
-          res.json({ success: 1 })
-        } else {
-          res.json({ success: 0 })
-        }
-      } catch (e) {
-        console.log(e)
-        
-        res.json({ success: 0 })
-      }
-    })
-
-    server.post('/makeBattleHarder', function(req, res) {
-      try {
-        db.log.push({
-          event: 'MakeBattleHarder',
-          caller: req.body.address
-        })
-
-        saveLog()
-
-        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-          baseConfig.dynamicDecayPower = false
-          config.dynamicDecayPower = false
-
-          sharedConfig.decayPower += 2
-          config.decayPower += 2
-
-          sharedConfig.baseSpeed += 1
-          config.baseSpeed += 1
-
-          sharedConfig.checkPositionDistance += 1
-          config.checkPositionDistance += 1
-          
-          sharedConfig.checkInterval += 1
-          config.checkInterval += 1
-
-          publishEvent('OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
-          publishEvent('OnBroadcast', `Difficulty Increased!`, 2)
-      
-          res.json({ success: 1 })
-        } else {
-          res.json({ success: 0 })
-        }
-      } catch (e) {
-        console.log(e)
-        
-        res.json({ success: 0 })
-      }
-    })
-
-    server.post('/makeBattleEasier', function(req, res) {
-      try {
-        db.log.push({
-          event: 'MakeBattleEasier',
-          caller: req.body.address
-        })
-
-        saveLog()
-
-        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-          baseConfig.dynamicDecayPower = false
-          config.dynamicDecayPower = false
-
-          sharedConfig.decayPower -= 2
-          config.decayPower -= 2
-
-          sharedConfig.baseSpeed -= 1
-          config.baseSpeed -= 1
-
-          sharedConfig.checkPositionDistance -= 1
-          config.checkPositionDistance -= 1
-          
-          sharedConfig.checkInterval -= 1
-          config.checkInterval -= 1
-
-          publishEvent('OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
-          publishEvent('OnBroadcast', `Difficulty Decreased!`, 0)
-      
-          res.json({ success: 1 })
-        } else {
-          res.json({ success: 0 })
-        }
-      } catch (e) {
-        res.json({ success: 0 })
-      }
-    })
-
-    server.post('/resetBattleDifficulty', function(req, res) {
-      try {
-        db.log.push({
-          event: 'ResetBattleDifficulty',
-          caller: req.body.address
-        })
-
-        saveLog()
-
-        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-          baseConfig.dynamicDecayPower = true
-          config.dynamicDecayPower = true
-
-          sharedConfig.decayPower = 1.4
-          config.decayPower = 1.4
-
-          sharedConfig.baseSpeed = 3
-          config.baseSpeed = 3
-
-          sharedConfig.checkPositionDistance = 2
-          config.checkPositionDistance = 2
-          
-          sharedConfig.checkInterval = 1
-          config.checkInterval = 1
-
-          publishEvent('OnSetPositionMonitor', config.checkPositionDistance + ':' + config.checkInterval + ':' + config.resetInterval)
-          publishEvent('OnBroadcast', `Difficulty Reset!`, 0)
-      
-          res.json({ success: 1 })
-        } else {
-          res.json({ success: 0 })
-        }
-      } catch (e) {
-        res.json({ success: 0 })
-      }
-    })
-
-    server.post('/addMod/:address', function(req, res) {
-      try {
-        db.log.push({
-          event: 'AddMod',
-          caller: req.body.address
-        })
-
-        saveLog()
-
-        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-          db.modList.push(req.params.address)
-      
-          saveModList()
-      
-          res.json({ success: 1 })
-        } else {
-          res.json({ success: 0 })
-        }
-      } catch (e) {
-        console.log(e)
-        
-        res.json({ success: 0 })
-      }
-    })
-
-    server.post('/removeMod/:address', function(req, res) {
-      try {
-        db.log.push({
-          event: 'RemoveMod',
-          caller: req.body.address
-        })
-
-        saveLog()
-
-        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-          db.modList.splice(db.modList.indexOf(req.params.address), 1)
-      
-          saveModList()
-      
-          res.json({ success: 1 })
-        } else {
-          res.json({ success: 0 })
-        }
-      } catch (e) {
-        res.json({ success: 0 })
-      }
-    })
-
-    server.post('/setConfig/:key/:value', function(req, res) {
-      try {
-        db.log.push({
-          event: 'SetConfig',
-          caller: req.body.address
-        })
-
-        saveLog()
-
-        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-          const val = isNumeric(req.params.value) ? parseFloat(req.params.value) : req.params.value
-          if (baseConfig.hasOwnProperty(req.params.key)) 
-            baseConfig[req.params.key] = val
-
-          if (sharedConfig.hasOwnProperty(req.params.key)) 
-            sharedConfig[req.params.key] = val
-
-          config[req.params.key] = val
-
-          publishEvent('OnBroadcast', `${req.params.key} = ${val}`, 1)
-          
-          res.json({ success: 1 })
-        } else {
-          res.json({ success: 0 })
-        }
-      } catch (e) {
-        console.log(e)
-        
-        res.json({ success: 0 })
-      }
-    })
-
-    server.post('/report/:address', function(req, res) {
-      try {
-        db.log.push({
-          event: 'Report',
-          value: req.params.address,
-          caller: req.body.address
-        })
-
-        saveLog()
-
-        const currentPlayer = round.players.find(p => p.address === req.body.address)
-        if (currentPlayer && verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address)) {
-          const reportedPlayer = clients.find(c => c.address === req.params.address)
-
-          if (reportedPlayer) {
-            reportPlayer(clients, currentPlayer, reportedPlayer)
-
-            res.json({ success: 1 })
-          } else {
-            res.json({ success: 0 })
-          }
-        } else {
-          res.json({ success: 0 })
-        }
-      } catch (e) {
-        console.log(e)
-        
-        res.json({ success: 0 })
-      }
-    })
-
-    server.post('/ban/:address', function(req, res) {
-      try {
-        db.log.push({
-          event: 'Ban',
-          value: req.params.address,
-          caller: req.body.address
-        })
-
-        saveLog()
-
-        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-          if (!db.banList.includes(req.params.address)) {
-            db.banList.push(req.params.address)
-          }
-
-          if (clients.find(c => c.address === req.params.address)) {
-            disconnectPlayer(clients.find(c => c.address === req.params.address))
-          }
-
-          saveBanList()
-      
-          res.json({ success: 1 })
-        } else {
-          res.json({ success: 0 })
-        }
-      } catch (e) {
-        console.log(e)
-        
-        res.json({ success: 0 })
-      }
-    })
-
-    server.post('/unban/:address', function(req, res) {
-      try {
-        db.log.push({
-          event: 'Unban',
-          value: req.params.address,
-          caller: req.body.address
-        })
-
-        saveLog()
-
-        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-          db.banList.splice(db.banList.indexOf(req.params.address), 1)
-
-          saveBanList()
-      
-          res.json({ success: 1 })
-        } else {
-          res.json({ success: 0 })
-        }
-      } catch (e) {
-        console.log(e)
-        
-        res.json({ success: 0 })
-      }
-    })
-
-    server.post('/message/:address', function(req, res) {
-      try {
-        db.log.push({
-          event: 'Message',
-          value: req.params.address,
-          caller: req.body.address,
-          message: req.body.message
-        })
-
-        saveLog()
-
-        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-          const socket = sockets[clients.find(c => c.address === req.params.address).id]
-
-          emitDirect(socket, 'OnBroadcast', req.body.message.replace(/:/gi, ''), 0)
-      
-          res.json({ success: 1 })
-        } else {
-          res.json({ success: 0 })
-        }
-      } catch (e) {
-        res.json({ success: 0 })
-      }
-    })
-
-    server.post('/broadcast', function(req, res) {
-      try {
-        db.log.push({
-          event: 'Broadcast',
-          caller: req.body.address,
-          message: req.body.message
-        })
-
-        saveLog()
-
-        if (verifySignature({ value: req.body.address, hash: req.body.signature }, req.body.address) && db.modList.includes(req.body.address)) {
-
-          publishEvent('OnBroadcast', req.body.message.replace(/:/gi, ''), 0)
-      
-          res.json({ success: 1 })
-        } else {
-          res.json({ success: 0 })
-        }
-      } catch (e) {
-        console.log(e)
-        
-        res.json({ success: 0 })
-      }
-    })
-
-    server.get('/user/:address/details', function(req, res) {
-      try {
-        if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
-        if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
-        if (!db.playerRewards[req.params.address].pendingItems) db.playerRewards[req.params.address].pendingItems = []
-        if (!db.playerRewards[req.params.address].historyRunes) db.playerRewards[req.params.address].historyRunes = []
-        if (!db.playerRewards[req.params.address].historyItems) db.playerRewards[req.params.address].historyItems = []
-
-        res.json({
-          success: 1,
-          result: {
-            runes: {
-              pending: db.playerRewards[req.params.address].pending,
-              history: db.playerRewards[req.params.address].historyRunes
-            },
-            items: {
-              pending: db.playerRewards[req.params.address].pendingItems,
-              history: db.playerRewards[req.params.address].historyItems
-            },
-            quests: db.quests?.players[req.params.address] || []
-          }
-        })
-      } catch (e) {
-        res.json({ success: 0 })
-      }
-    })
-
-    server.get('/user/:address', function(req, res) {
-      try {
-        if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
-        if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
-        if (!db.playerRewards[req.params.address].pendingItems) db.playerRewards[req.params.address].pendingItems = []
-
-        res.json(db.playerRewards[req.params.address].pending)
-      } catch (e) {
-        res.json({ success: 0 })
-      }
-    })
-
-    server.get('/admin/claim/:address/:symbol/:amount/:tx', function(req, res) {
-      try {
-        if (!db.playerRewards[req.params.address]) db.playerRewards[req.params.address] = {}
-        if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending = {}
-        if (!db.playerRewards[req.params.address].pending) db.playerRewards[req.params.address].pending[req.params.symbol] = 0
-        if (!db.playerRewards[req.params.address].tx) db.playerRewards[req.params.address].tx = []
-
-        const newReward = {
-          type: "rune",
-          symbol: req.params.symbol,
-          quantity: db.playerRewards[req.params.address].pending[req.params.symbol],
-          winner: {
-            address: req.params.address
-          },
-          tx: req.params.tx
-        }
-
-        db.rewardHistory.push(newReward)
-
-        saveRewardHistory()
-
-        db.playerRewards[req.params.address].pending[req.params.symbol] -= parseFloat(req.params.amount)
-        db.playerRewards[req.params.address].tx.push(req.params.tx)
-
-        savePlayerRewards()
-
-        res.json({ success: true })
-      } catch (e) {
-        console.log(e)
-        
-        res.json({ success: 0 })
-      }
-    })
-
-    server.get('/readiness_check', (req, res) => res.sendStatus(200))
-    server.get('/liveness_check', (req, res) => res.sendStatus(200))
-
     server.get('/.well-known/acme-challenge/M8BaoHsFi7co0BQAuCAq2mI7YrL6OS69HvIQrbyFlC8', (req, res) => res.end('M8BaoHsFi7co0BQAuCAq2mI7YrL6OS69HvIQrbyFlC8.vuboczA32qq2liEOxQ8-eyB18eE2jCWY64W5dIEm4S8'))
   } catch(e) {
     logError(e)
@@ -3615,15 +3849,15 @@ const initGameServer = async () => {
 const init = async () => {
   try {
     await initGameServer()
-    await initWebServer()
-    await initRoutes()
+    // await initWebServer()
+    // await initRoutes()
 
-    https.listen(443, function() {
-      log(`:: Backend ready and listening on *:443`)
+    const sslPort = process.env.SSL_PORT || 443
+    https.listen(sslPort, function() {
+      log(`:: Backend ready and listening on *:${sslPort}`)
     })
 
     const port = process.env.PORT || 80
-
     http.listen(port, function() {
       log(`:: Backend ready and listening on *:${port}`)
     })

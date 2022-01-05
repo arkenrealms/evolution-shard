@@ -3,7 +3,11 @@
     "pending": {
       "tir": 0.01,
       "amn": 0.02,
-      "zod": 0.06
-    }
+      "zod": 0.06,
+      "tal": 0
+    },
+    "pendingItems": [],
+    "historyRunes": [],
+    "historyItems": []
   }
 }

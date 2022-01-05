@@ -1,0 +1,1276 @@
+{
+  "id": 279,
+  "startedAt": 1641372594,
+  "events": [
+    {
+      "type": "emitAll",
+      "name": "OnBroadcast",
+      "args": [
+        "Observer unconnected. Contact support.",
+        0
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "cW3ZAtNOA",
+        1,
+        -6.8283502104453735,
+        -6.543024918048873,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "dsiQC6Pi_0",
+        0,
+        -16.71243357881735,
+        -12.157294649250426,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "iYWp0zOXcW",
+        1,
+        -15.837916599459232,
+        -4.5306216366653835,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "ojVKEI50AV",
+        1,
+        -16.415115912014585,
+        -11.974263767628152,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "ibLal4oQcE",
+        1,
+        -7.202392950325844,
+        -9.739552052007006,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "9-JvCaR-sb",
+        2,
+        -3.813392480412169,
+        -10.100558976984605,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "7y9vpY3ddj",
+        3,
+        -15.438837756892754,
+        -12.905978934757773,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "YxBD4ESmsM",
+        1,
+        -1.7344291112480015,
+        -4.332941761271552,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "RQvG0LGIgt",
+        1,
+        -16.61618292592837,
+        -8.739142428294258,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "PmEwO5N4PO",
+        1,
+        -2.2770100926053463,
+        -5.872885380173842,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "2ny_hFCbF_",
+        3,
+        -3.9962297077843605,
+        -10.035682895964658,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "QKy69lmIEG",
+        0,
+        -7.522217911864814,
+        -12.177004510557543,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "n6FEA-_iud",
+        2,
+        -11.43571345912259,
+        -7.457065971031847,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "Rgm1c-oee3",
+        2,
+        -5.494455390157121,
+        -12.290897938428241,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "3YFYYwE0L1",
+        2,
+        -5.093450894938567,
+        -9.683004952655194,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "ejWPIIPv_y",
+        0,
+        -9.776032963085992,
+        -5.184567370331585,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "GbXLRC4nrhr",
+        1,
+        -12.035094455768393,
+        -4.5039237584806635,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "ImzMfTS2Ydr",
+        0,
+        -12.56327505050357,
+        -6.800341812283134,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "e3PdqSkieHc",
+        2,
+        -4.391723658489257,
+        -9.474165861927615,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "_E81muIhP9H",
+        2,
+        -2.496413190650685,
+        -12.18584935297504,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "1Ar_OzkQ1Tt",
+        3,
+        -13.084402914548255,
+        -4.22893903090845,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "4wk3S4_70gR",
+        1,
+        -16.219890351124324,
+        -5.993997013322066,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "HmWH0iTrAT0",
+        3,
+        -13.780167232191076,
+        -8.61339710130829,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "mLe07ldQ_C6",
+        0,
+        -2.4972878922880106,
+        -11.797641691522857,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "7gXdl69TC-k",
+        1,
+        -15.692071551679787,
+        -6.304613446857189,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "3U3l_-GZfFM",
+        2,
+        -14.046520998025311,
+        -10.363167390772155,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "2GAaF0kpHJa",
+        0,
+        -6.87387315270367,
+        -8.906272619304737,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "wtCfrCVva5j",
+        0,
+        -13.864101493616559,
+        -6.816883243852793,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "zxdPvXTJVws",
+        3,
+        -2.820078034762597,
+        -8.7047988463695,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "9JhdKPGvgad",
+        3,
+        -2.9301670656325705,
+        -9.006895362705034,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "rgT-Nf3LC9P",
+        3,
+        -8.632518858243387,
+        -9.457935993198095,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "Jf-fKjB_Bf7",
+        3,
+        -1.2578697046110978,
+        -7.002865480220879,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "re2HtxwqxCa",
+        1,
+        -11.397313997643757,
+        -7.324962197821367,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "d0OTRGFUhJ_",
+        2,
+        -9.65766194050743,
+        -8.588527585475795,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "t6bVp7euMMY",
+        0,
+        -2.557296812177956,
+        -7.323693730278942,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "HhRUSdwsk52",
+        2,
+        -4.260435976701425,
+        -5.484328984860172,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "wtFOGXc9FKj",
+        3,
+        -5.611974601654525,
+        -12.962399537820211,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "vLgRnvrzbW8",
+        3,
+        -2.810408796687513,
+        -7.431065044304716,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "xpEusHMNydf",
+        2,
+        -3.0562992577282717,
+        -9.954493927945258,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "DOIAnkXt2kj",
+        0,
+        -9.356349174673813,
+        -7.831523406487319,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "gbh0GvC7QAs",
+        2,
+        -4.567610038333505,
+        -9.429704158335424,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "eC9BWkWmixa",
+        3,
+        -9.001087301125544,
+        -4.406401719951912,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "eaZslFRF3FI",
+        3,
+        -3.5149172426389885,
+        -10.914648966223094,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "j4mBf3dd3NJ",
+        0,
+        -9.301261410509891,
+        -9.567029065902247,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "jmt9DN3kXYa",
+        1,
+        -5.028417408307526,
+        -8.566838746474927,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "BufQq0bSpC9",
+        1,
+        -9.80786472668522,
+        -5.780340025720061,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "lR13v_v9Aft",
+        0,
+        -15.46524982810431,
+        -6.512105616167997,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "wvv2tzWkgDM",
+        0,
+        -11.313936710275385,
+        -7.3523686192240785,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "PRsdfRQ-aUe",
+        1,
+        -4.10835726373856,
+        -4.402881648480063,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnPowerUp",
+      "args": [
+        "JViW2F1ssrO",
+        2,
+        -0.4412338354240255,
+        -5.409473602860341,
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitDirect",
+      "player": "uCwIUlYQNZYJHIVSAAAB",
+      "name": "OnObserverInit",
+      "args": [
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnReward",
+      "args": [
+        "zr0Ejk6Hl",
+        0,
+        "ITH",
+        0,
+        -9.420004,
+        -6.517404
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnUpdateReward",
+      "args": [
+        "null",
+        "zr0Ejk6Hl"
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnReward",
+      "args": [
+        "JforTT59S",
+        0,
+        "TAL",
+        0,
+        -3.130003,
+        -7.537404
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitDirect",
+      "player": "uCwIUlYQNZYJHIVSAAAB",
+      "name": "OnUserDisconnected",
+      "args": [
+        "uCwIUlYQNZYJHIVSAAAB"
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnUserDisconnected",
+      "args": [
+        "uCwIUlYQNZYJHIVSAAAB"
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnBroadcast",
+      "args": [
+        "Observer unconnected. Contact support.",
+        0
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnUpdateReward",
+      "args": [
+        "null",
+        "JforTT59S"
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnBroadcast",
+      "args": [
+        "Observer unconnected. Contact support.",
+        0
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnReward",
+      "args": [
+        "99cjbKGw8",
+        0,
+        "SOL",
+        0,
+        -9.420004,
+        -6.517404
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnBroadcast",
+      "args": [
+        "Observer unconnected. Contact support.",
+        0
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitDirect",
+      "player": "hNoP2d4evwuUI10ZAAAD",
+      "name": "OnObserverInit",
+      "args": [
+        1
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnUpdateReward",
+      "args": [
+        "null",
+        "99cjbKGw8"
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnReward",
+      "args": [
+        "lDjID4_TQ",
+        0,
+        "HEL",
+        0,
+        -16.09,
+        -2.867404
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnUpdateReward",
+      "args": [
+        "null",
+        "lDjID4_TQ"
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnReward",
+      "args": [
+        "2T2VCauXn",
+        0,
+        "RAL",
+        0,
+        -7.290003,
+        -12.9074
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnUpdateReward",
+      "args": [
+        "null",
+        "2T2VCauXn"
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnReward",
+      "args": [
+        "amxMWC2qL",
+        0,
+        "THUL",
+        0,
+        -7.28,
+        -15.36
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnUpdateReward",
+      "args": [
+        "null",
+        "amxMWC2qL"
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnReward",
+      "args": [
+        "qx3zYYxan",
+        0,
+        "TAL",
+        0,
+        -3.130003,
+        -7.537404
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnUpdateReward",
+      "args": [
+        "null",
+        "qx3zYYxan"
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnSpawnReward",
+      "args": [
+        "QRULH7bH4",
+        0,
+        "SHAEL",
+        0,
+        -13.46,
+        -13.92
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnUpdateReward",
+      "args": [
+        "null",
+        "QRULH7bH4"
+      ]
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    },
+    {
+      "type": "emitAll",
+      "name": "OnClearLeaderboard",
+      "args": []
+    }
+  ],
+  "states": [],
+  "players": []
+}
