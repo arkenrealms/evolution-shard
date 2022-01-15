@@ -495,7 +495,7 @@ function monitorObservers() {
   setTimeout(monitorObservers, 5 * 1000)
 }
 
-monitorObservers()
+setTimeout(monitorObservers, 30 * 1000)
 
 function moveVectorTowards(current, target, maxDistanceDelta) {
   const a = {

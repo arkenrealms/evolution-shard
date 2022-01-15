@@ -6,7 +6,7 @@ const path = require('path')
 const logData = jetpack.read(path.resolve('../public/data/log.json'), 'json') || []
 
 export const isDebug = process.env.HOME === '/Users/dev'
-console.log(process.env.HOME)
+
 export function logError(err) {
   console.log("[GS]", err)
 
