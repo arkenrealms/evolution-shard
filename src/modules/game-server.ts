@@ -41,7 +41,7 @@ const ranks = {}
 const realmServer = {
   socket: undefined
 }
-const rsCallbacks = {}
+const ioCallbacks = {}
 
 const baseConfig = {
   damagePerTouch: 2,
@@ -337,12 +337,12 @@ function comparePlayers(a, b) {
 }
 
 function emitAll(...args) {
-  // log('emitAll', ...args)
+  // log('Emit All', ...args)
   io.emit(...args)
 }
 
 function emitElse(socket, ...args) {
-  log('emitElse', ...args)
+  log('Emit Else', ...args)
 
   if (!socket || !socket.emit) {
     io.emit(...args)
@@ -354,7 +354,7 @@ function emitElse(socket, ...args) {
 }
 
 function emitDirect(socket, ...args) {
-  log('emitDirect', ...args)
+  log('Emit Direct', ...args)
 
   if (!socket || !socket.emit) return
 
@@ -373,7 +373,7 @@ function emitDirect(socket, ...args) {
 }
 
 function emitAllFast(socket, ...args) {
-  log('emitAllFast', ...args)
+  log('Emit All Fast', ...args)
 
   if (!socket || !socket.emit) {
     io.emit(...args)
@@ -393,14 +393,14 @@ async function rsCall(name, data = {}) {
   return new Promise(resolve => {
     const id = shortId()
     
-    rsCallbacks[id] = resolve
+    ioCallbacks[id] = resolve
 
     if (!realmServer.socket) {
       logError('Not connected to realm server.')
       return
     }
 
-    log('Emit', name, { id, data })
+    log('Emit Realm', name, { id, data })
 
     realmServer.socket.emit(name, { id, data })
   })
@@ -2112,16 +2112,16 @@ function initEventHandler() {
               spectate(currentPlayer)
               return
             }
-    
-            if (config.isRoundPaused) {
-              emitDirect(socket, 'OnRoundPaused')
-              return
-            }
 
             addToRecentPlayers(currentPlayer)
 
             // spawn currentPlayer client on clients in broadcast
             publishEvent('OnSpawnPlayer', currentPlayer.id, currentPlayer.name, currentPlayer.speed, currentPlayer.avatar, currentPlayer.position.x, currentPlayer.position.y, currentPlayer.position.x, currentPlayer.position.y)
+    
+            if (config.isRoundPaused) {
+              emitDirect(socket, 'OnRoundPaused')
+              return
+            }
           }
 
           const pack = decodePayload(msg)
@@ -2773,11 +2773,11 @@ function initEventHandler() {
         // log('onAny', eventName, res)
         if (!res || !res.id) return
         // console.log(eventName, res)
-        if (rsCallbacks[res.id]) {
+        if (ioCallbacks[res.id]) {
           log('Callback', eventName)
-          rsCallbacks[res.id](res.data)
+          ioCallbacks[res.id](res.data)
     
-          delete rsCallbacks[res.id]
+          delete ioCallbacks[res.id]
         }
       })
 

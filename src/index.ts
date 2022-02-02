@@ -1,6 +1,7 @@
 import fs from 'fs'
 import express from 'express'
 import { log, logError, isDebug } from './util'
+import { catchExceptions } from './util/process'
 import { initGameServer } from './game-server'
 import { initWebServer } from './web-server'
 
@@ -10,18 +11,9 @@ if (isDebug) {
   console.log('Running GS in DEBUG mode')
 }
 
-process
-  .on("unhandledRejection", (reason, p) => {
-    console.log(reason, "Unhandled Rejection at Promise", p);
-    logError(reason + ". Unhandled Rejection at Promise:" + p);
-  })
-  .on("uncaughtException", (err) => {
-    console.log(err, "Uncaught Exception thrown");
-    // logError(err + ". Uncaught Exception thrown" + err.stack);
-    process.exit(1);
-  })
-
 async function init() {
+  catchExceptions()
+
   try {
     const server = express()
     const http = require('http').Server(server)
