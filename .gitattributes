@@ -1,0 +1,15 @@
+unity/RuneEvolution_Data/resources.assets.resS filter=lfs diff=lfs merge=lfs -text
+resources.assets.resS filter=lfs diff=lfs merge=lfs -text
+UnityPlayer filter=lfs diff=lfs merge=lfs -text
+unity-mac-server/RuneEvolution.app/Contents/Frameworks/UnityPlayer.dylib filter=lfs diff=lfs merge=lfs -text
+UnityPlayer.dylib filter=lfs diff=lfs merge=lfs -text
+unity-mac-server/RuneEvolution.app/Contents/Resources/Data/resources.assets.resS filter=lfs diff=lfs merge=lfs -text
+unity-linux-server/UnityPlayer_s.debug filter=lfs diff=lfs merge=lfs -text
+unity-linux-server/RuneEvolution_Data/resources.assets.resS filter=lfs diff=lfs merge=lfs -text
+mac/RuneEvolution.app/Contents/Resources/Data/resources.assets.resS filter=lfs diff=lfs merge=lfs -text
+mac/RuneEvolution.app/Contents/Frameworks/UnityPlayer.dylib filter=lfs diff=lfs merge=lfs -text
+linux/RuneEvolution_Data/resources.assets.resS filter=lfs diff=lfs merge=lfs -text
+linux/UnityPlayer_s.debug filter=lfs diff=lfs merge=lfs -text
+linux/Untitled_Core_Data/resources.assets.resS filter=lfs diff=lfs merge=lfs -text
+linux/GameAssembly.so filter=lfs diff=lfs merge=lfs -text
+UnityPlayer_s.debug filter=lfs diff=lfs merge=lfs -text
