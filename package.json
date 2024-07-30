@@ -1,6 +1,6 @@
 {
-  "name": "rune-evolution-game-server",
-  "version": "0.2.1",
+  "name": "@arken/evolution-shard-server",
+  "version": "0.3.0",
   "description": "",
   "main": "build/index.js",
   "dependencies": {
@@ -54,9 +54,6 @@
     "nodemon": "^1.18.10",
     "ts-node": "^8.3.0"
   },
-  "engines": {
-    "node": "14.*.*"
-  },
   "scripts": {
     "dev": "NODE_ENV=development yarn build && PORT=3001 yarn start",
     "inspect": "NODE_ENV=development yarn build && PORT=3001 NODE_ENV=production node --inspect build/index.js",
@@ -64,19 +61,8 @@
     "build": "NODE_ENV=production tsc",
     "start": "NODE_ENV=production node build/index.js",
     "forever": "NODE_ENV=production yarn build && sudo nohup forever start forever-config.json &",
-    "release": "NODE_ENV=production tsc && gcloud app deploy app.yaml --project evident-ethos-317302",
-    "release-europe1": "NODE_ENV=production tsc && gcloud app deploy app.yaml --project rune-evolution-europe1",
-    "release-na1": "NODE_ENV=production tsc && gcloud app deploy app.yaml --project rune-evolution-useast1",
-    "release-asia1": "NODE_ENV=production tsc && gcloud app deploy app.yaml --project rune-evolution-asia1",
-    "release-sa1": "NODE_ENV=production tsc && gcloud app deploy app.yaml --project rune-evolution-sa1",
-    "release-ptr": "NODE_ENV=staging tsc && gcloud app deploy app.ptr.yaml --project rune-evolution-ptr",
     "config": "sudo /opt/bitnami/ctlscript.sh stop apache",
-    "renew": "certbot renew",
-    "connect": "gcloud beta compute ssh --zone \"asia-northeast1-b\" \"rune-evolution-pr1\"  --project \"rune-evolution-ptr\"",
     "kill": "sudo pkill -f node",
-    "nohup": "sudo nohup node --max_semi_space_size=30000 --max-old-space-size=30000 --initial-old-space-size=8000 --optimize-for-size --experimental-modules --experimental-json-modules build/index.js &",
-    "manual": "sudo node --max_semi_space_size=30000 --max-old-space-size=30000 --initial-old-space-size=8000 --optimize-for-size --experimental-modules --experimental-json-modules build/index.js",
-    "update": "git checkout europe1 && git merge ptr1 && git push && git checkout europe2 && git merge ptr1 && git push && git checkout europe3 && git merge ptr1 && git push && git checkout asia1 && git merge ptr1 && git push && git checkout asia2 && git merge ptr1 && git push && git checkout asia3 && git merge ptr1 && git push && git checkout asia4 && git merge ptr1 && git push && git checkout na1 && git merge ptr1 && git push && git checkout sa1 && git merge ptr1 && git push && git checkout oceanic1 && git merge ptr1 && git push && git checkout sa1 && git merge ptr1 && git push && git checkout sa2 && git merge ptr1 && git push && git checkout sa3 && git merge ptr1 && git push && git checkout sa4 && git merge ptr1 && git push && git checkout sa5 && git merge ptr1",
-    "update2": "sudo pkill -f node && cd /opt/bitnami/projects/rune-evolution-game-server/ && git checkout HEAD -- public/data/rewards.json && git pull && yarn build"
+    "nohup": "sudo nohup node --max_semi_space_size=30000 --max-old-space-size=30000 --initial-old-space-size=8000 --optimize-for-size --experimental-modules --experimental-json-modules build/index.js &"
   }
 }

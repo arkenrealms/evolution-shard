@@ -2,7 +2,8 @@ build
 secrets.js
 secrets.ptr.js
 nohup.out
-
+Builds
+linux
 node_modules/
 dist
 Assets/AssetStoreTools
