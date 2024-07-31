@@ -2705,11 +2705,11 @@ function initEventHandler(app) {
         }
       });
 
-      socket.on('apiConnected', async function (req) {
-        log('apiConnected', req);
+      socket.on('seerConnected', async function (req) {
+        log('seerConnected', req);
 
         if (!(await isValidAdminRequest(req))) {
-          publishEventDirect(socket, 'apiConnectedResponse', {
+          publishEventDirect(socket, 'seerConnectedResponse', {
             id: req.id,
             data: { status: 0 },
           });
@@ -2718,17 +2718,17 @@ function initEventHandler(app) {
 
         publishEvent('onBroadcast', `API connected`, 0);
 
-        publishEventDirect(socket, 'apiConnectedResponse', {
+        publishEventDirect(socket, 'seerConnectedResponse', {
           id: req.id,
           data: { status: 1 },
         });
       });
 
-      socket.on('apiDisconnected', async function (req) {
-        log('apiDisconnected', req);
+      socket.on('seerDisconnected', async function (req) {
+        log('seerDisconnected', req);
 
         if (!(await isValidAdminRequest(req))) {
-          publishEventDirect(socket, 'apiDisconnectedResponse', {
+          publishEventDirect(socket, 'seerDisconnectedResponse', {
             id: req.id,
             data: { status: 0 },
           });
@@ -2737,7 +2737,7 @@ function initEventHandler(app) {
 
         publishEvent('onBroadcast', `API disconnected`, 0);
 
-        publishEventDirect(socket, 'apiDisconnectedResponse', {
+        publishEventDirect(socket, 'seerDisconnectedResponse', {
           id: req.id,
           data: { status: 1 },
         });

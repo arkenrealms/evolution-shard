@@ -1,9 +1,11 @@
 {
-  "name": "@arken/evolution-shard-server",
+  "name": "@arken/evolution-shard",
   "version": "0.3.0",
   "description": "",
   "main": "build/index.js",
   "dependencies": {
+    "@arken/node": "workspace:*",
+    "@arken/evolution-protocol": "workspace:*",
     "@typechain/ethers-v4": "^1.0.0",
     "@types/common-tags": "^1.8.0",
     "@types/cors": "^2.8.5",

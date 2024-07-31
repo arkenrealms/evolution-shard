@@ -1,5 +1,5 @@
 {
-  "uid": "arken-evolution-shard-server",
+  "uid": "arken-evolution-shard",
   "max": 999999999999,
   "minUptime": 0,
   "spinSleepTime": 30000,

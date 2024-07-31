@@ -38,20 +38,12 @@ import type {
   ShardClientRouter,
   Realm,
 } from '@arken/evolution-protocol/types';
-import { Mechanic } from '@arken/evolution-protocol/types';
-import mapData from './public/data/map.json';
+import { Mechanic } from '@arken/node/types';
+import type { Signature } from '@arken/node/types';
+import mapData from '../public/data/map.json'; // TODO: get this from the embedded game client
+import type * as Shard from '@arken/evolution-protocol/shard/types';
 
-export const createRealmRouter = (realm: Realm) => {
-  return router({
-    // connected: t.procedure
-    //   .use(hasRole('realm', t))
-    //   .use(customErrorFormatter(t))
-    //   .input(schema.connected)
-    //   .mutation(({ input, ctx }) => Realm.connected(input as Schema.ConnectedInput, ctx)),
-  });
-};
-
-class Shard {
+class Service implements Shard.Service {
   io: any;
   state: any;
   realm: any; //ReturnType<typeof createClient>;
@@ -353,218 +345,214 @@ class Shard {
   }
 
   public async resetLeaderboard(preset: any = null) {
-    try {
-      log('resetLeaderboard', preset);
+    log('resetLeaderboard', preset);
 
-      if (this.config.gameMode === 'Pandamonium') {
-        this.roundLoopTimeout = setTimeout(() => this.resetLeaderboard(), this.config.roundLoopSeconds * 1000);
-        return;
+    if (this.config.gameMode === 'Pandamonium') {
+      this.roundLoopTimeout = setTimeout(() => this.resetLeaderboard(), this.config.roundLoopSeconds * 1000);
+      return;
+    }
+
+    if (!this.realm.client?.socket?.connected) {
+      this.emit.onBroadcast.mutate({ message: `Realm not connected. Contact support.`, priority: 0 });
+      this.roundLoopTimeout = setTimeout(() => this.resetLeaderboard(), this.config.roundLoopSeconds * 1000);
+      return;
+    }
+
+    this.round.endedAt = Math.round(this.getTime() / 1000);
+
+    const fiveSecondsAgo = this.getTime() - 7000;
+    const thirtySecondsAgo = this.getTime() - 30 * 1000;
+
+    const winners = this.round.clients
+      .filter((p) => p.lastUpdate >= fiveSecondsAgo)
+      .sort((a, b) => b.points - a.points)
+      .slice(0, 10);
+
+    if (winners.length) {
+      this.lastLeaderName = winners[0].name;
+      log('Leader: ', winners[0]);
+
+      if (winners[0]?.address) {
+        this.emit.onRoundWinner.mutate(winners[0].name);
       }
 
-      if (!this.realm.client?.socket?.connected) {
-        this.emit.onBroadcast.mutate({ message: `Realm not connected. Contact support.`, priority: 0 });
-        this.roundLoopTimeout = setTimeout(() => this.resetLeaderboard(), this.config.roundLoopSeconds * 1000);
-        return;
+      if (this.config.isBattleRoyale) {
+        this.emit.onBroadcast.mutate(
+          `Top 5 - ${winners
+            .slice(0, 5)
+            .map((l) => l.name)
+            .join(', ')}`,
+          0
+        );
       }
+    }
 
-      this.round.endedAt = Math.round(this.getTime() / 1000);
+    const saveRoundRes = await this.realm.emit.saveRoundRequest.mutate({
+      startedAt: this.round.startedAt,
+      endedAt: this.round.endedAt,
+      players: this.round.clients,
+      winners,
+    });
 
-      const fiveSecondsAgo = this.getTime() - 7000;
-      const thirtySecondsAgo = this.getTime() - 30 * 1000;
+    if (saveRoundRes?.status !== 1) {
+      this.sharedConfig.rewardWinnerAmount = 0;
+      this.config.rewardWinnerAmount = 0;
+      this.sharedConfig.rewardItemAmount = 0;
+      this.config.rewardItemAmount = 0;
 
-      const winners = this.round.clients
-        .filter((p) => p.lastUpdate >= fiveSecondsAgo)
-        .sort((a, b) => b.points - a.points)
-        .slice(0, 10);
+      setTimeout(() => {
+        this.emit.onBroadcast.mutate({ message: `Maintenance`, priority: 3 });
+      }, 30 * 1000);
+    }
 
-      if (winners.length) {
-        this.lastLeaderName = winners[0].name;
-        log('Leader: ', winners[0]);
+    if (this.config.calcRoundRewards) {
+      await this.calcRoundRewards();
+    }
 
-        if (winners[0]?.address) {
-          this.emit.onRoundWinner.mutate(winners[0].name);
-        }
-
-        if (this.config.isBattleRoyale) {
-          this.emit.onBroadcast.mutate(
-            `Top 5 - ${winners
-              .slice(0, 5)
-              .map((l) => l.name)
-              .join(', ')}`,
-            0
-          );
-        }
-      }
-
-      const saveRoundRes = await this.realm.emit.saveRoundRequest.mutate({
-        startedAt: this.round.startedAt,
-        endedAt: this.round.endedAt,
-        players: this.round.clients,
-        winners,
-      });
-
-      if (saveRoundRes?.status !== 1) {
-        this.sharedConfig.rewardWinnerAmount = 0;
-        this.config.rewardWinnerAmount = 0;
-        this.sharedConfig.rewardItemAmount = 0;
-        this.config.rewardItemAmount = 0;
-
-        setTimeout(() => {
-          this.emit.onBroadcast.mutate({ message: `Maintenance`, priority: 3 });
-        }, 30 * 1000);
-      }
-
-      if (this.config.calcRoundRewards) {
-        await this.calcRoundRewards();
-      }
-
-      if (preset) {
-        this.roundConfig = {
-          ...this.baseConfig,
-          ...this.sharedConfig,
-          ...preset,
-        };
-        this.config = JSON.parse(JSON.stringify(this.roundConfig));
-      } else {
-        this.randomRoundPreset();
-      }
-
-      this.baseConfig.roundId = this.baseConfig.roundId + 1;
-      this.config.roundId = this.baseConfig.roundId;
-
-      this.round = {
-        startedAt: Math.round(this.getTime() / 1000),
-        endedAt: null,
-        players: [],
-        events: [],
-        states: [],
+    if (preset) {
+      this.roundConfig = {
+        ...this.baseConfig,
+        ...this.sharedConfig,
+        ...preset,
       };
+      this.config = JSON.parse(JSON.stringify(this.roundConfig));
+    } else {
+      this.randomRoundPreset();
+    }
 
-      for (const client of this.clients) {
-        if (!this.ranks[client.address]) this.ranks[client.address] = {};
-        if (!this.ranks[client.address].kills) this.ranks[client.address].kills = 0;
+    this.baseConfig.roundId = this.baseConfig.roundId + 1;
+    this.config.roundId = this.baseConfig.roundId;
 
-        this.ranks[client.address].kills += client.kills;
+    this.round = {
+      startedAt: Math.round(this.getTime() / 1000),
+      endedAt: null,
+      players: [],
+      events: [],
+      states: [],
+    };
 
-        client.joinedRoundAt = this.getTime();
-        client.points = 0;
-        client.kills = 0;
-        client.killStreak = 0;
-        client.deaths = 0;
-        client.evolves = 0;
-        client.rewards = 0;
-        client.orbs = 0;
-        client.powerups = 0;
-        client.baseSpeed = 1;
-        client.decayPower = 1;
-        client.pickups = [];
-        client.xp = 50;
-        client.maxHp = 100;
-        client.avatar = this.config.startAvatar;
-        client.speed = this.getClientSpeed(client, this.config);
-        client.cameraSize = client.overrideCameraSize || this.config.cameraSize;
-        client.log = {
-          kills: [],
-          deaths: [],
-          revenge: 0,
-          resetPosition: 0,
-          phases: 0,
-          stuck: 0,
-          collided: 0,
-          timeoutDisconnect: 0,
-          speedProblem: 0,
-          clientDistanceProblem: 0,
-          outOfBounds: 0,
-          ranOutOfHealth: 0,
-          notReallyTrying: 0,
-          tooManyKills: 0,
-          killingThemselves: 0,
-          sameNetworkDisconnect: 0,
-          connectedTooSoon: 0,
-          clientDisconnected: 0,
-          positionJump: 0,
-          pauses: 0,
-          connects: 0,
-          path: '',
-          positions: 0,
-          spectating: 0,
-          replay: [],
-        };
-        client.gameMode = this.config.gameMode;
+    for (const client of this.clients) {
+      if (!this.ranks[client.address]) this.ranks[client.address] = {};
+      if (!this.ranks[client.address].kills) this.ranks[client.address].kills = 0;
 
-        if (this.config.gameMode === 'Pandamonium' && this.pandas.includes(client.address)) {
-          client.avatar = 2;
-          this.emit('onUpdateEvolution', client.id, client.avatar, client.speed);
-        } else {
-          this.emit('onUpdateRegression', client.id, client.avatar, client.speed);
-        }
+      this.ranks[client.address].kills += client.kills;
 
-        if (client.isDead || client.isSpectating) continue;
+      client.joinedRoundAt = this.getTime();
+      client.points = 0;
+      client.kills = 0;
+      client.killStreak = 0;
+      client.deaths = 0;
+      client.evolves = 0;
+      client.rewards = 0;
+      client.orbs = 0;
+      client.powerups = 0;
+      client.baseSpeed = 1;
+      client.decayPower = 1;
+      client.pickups = [];
+      client.xp = 50;
+      client.maxHp = 100;
+      client.avatar = this.config.startAvatar;
+      client.speed = this.getClientSpeed(client, this.config);
+      client.cameraSize = client.overrideCameraSize || this.config.cameraSize;
+      client.log = {
+        kills: [],
+        deaths: [],
+        revenge: 0,
+        resetPosition: 0,
+        phases: 0,
+        stuck: 0,
+        collided: 0,
+        timeoutDisconnect: 0,
+        speedProblem: 0,
+        clientDistanceProblem: 0,
+        outOfBounds: 0,
+        ranOutOfHealth: 0,
+        notReallyTrying: 0,
+        tooManyKills: 0,
+        killingThemselves: 0,
+        sameNetworkDisconnect: 0,
+        connectedTooSoon: 0,
+        clientDisconnected: 0,
+        positionJump: 0,
+        pauses: 0,
+        connects: 0,
+        path: '',
+        positions: 0,
+        spectating: 0,
+        replay: [],
+      };
+      client.gameMode = this.config.gameMode;
 
-        client.startedRoundAt = Math.round(this.getTime() / 1000);
-
-        this.round.players.push(client);
-      }
-
-      for (let i = 0; i < this.orbs.length; i++) {
-        this.emit('onUpdatePickup', 'null', this.orbs[i].id, 0);
-      }
-
-      this.orbs.splice(0, this.orbs.length);
-
-      this.randomizeSpriteXp();
-
-      this.syncSprites();
-
-      const roundTimer = this.round.startedAt + this.config.roundLoopSeconds - Math.round(this.getTime() / 1000);
-      this.emit(
-        'OnSetRoundInfo',
-        roundTimer + ':' + this.getRoundInfo().join(':') + ':' + this.getGameModeGuide(this.config).join(':')
-      );
-
-      log(
-        'roundInfo',
-        roundTimer + ':' + this.getRoundInfo().join(':') + ':' + this.getGameModeGuide(this.config).join(':'),
-        (
-          this.config.roundLoopSeconds +
-          ':' +
-          this.getRoundInfo().join(':') +
-          ':' +
-          this.getGameModeGuide(this.config).join(':')
-        ).split(':').length
-      );
-
-      this.emit('onClearLeaderboard');
-
-      this.emit.onBroadcast.mutate({
-        message: `Game Mode - ${this.config.gameMode} (Round ${this.config.roundId})`,
-        priority: 0,
-      });
-
-      if (this.config.hideMap) {
-        this.emit('onHideMinimap');
-        this.emit.onBroadcast.mutate({ message: `Minimap hidden in this mode!`, priority: 2 });
+      if (this.config.gameMode === 'Pandamonium' && this.pandas.includes(client.address)) {
+        client.avatar = 2;
+        this.emit('onUpdateEvolution', client.id, client.avatar, client.speed);
       } else {
-        this.emit('onShowMinimap');
+        this.emit('onUpdateRegression', client.id, client.avatar, client.speed);
       }
 
-      if (this.config.periodicReboots && this.rebootAfterRound) {
-        this.emit('onMaintenance', true);
+      if (client.isDead || client.isSpectating) continue;
 
-        setTimeout(() => {
-          process.exit();
-        }, 3 * 1000);
-      }
+      client.startedRoundAt = Math.round(this.getTime() / 1000);
 
-      if (this.config.periodicReboots && this.announceReboot) {
-        const value = 'Restarting server at end of this round.';
+      this.round.players.push(client);
+    }
 
-        this.emit.onBroadcast.mutate({ message: value, priority: 1 });
+    for (let i = 0; i < this.orbs.length; i++) {
+      this.emit('onUpdatePickup', 'null', this.orbs[i].id, 0);
+    }
 
-        this.rebootAfterRound = true;
-      }
-    } catch (e) {
-      log('Error:', e);
+    this.orbs.splice(0, this.orbs.length);
+
+    this.randomizeSpriteXp();
+
+    this.syncSprites();
+
+    const roundTimer = this.round.startedAt + this.config.roundLoopSeconds - Math.round(this.getTime() / 1000);
+    this.emit(
+      'OnSetRoundInfo',
+      roundTimer + ':' + this.getRoundInfo().join(':') + ':' + this.getGameModeGuide(this.config).join(':')
+    );
+
+    log(
+      'roundInfo',
+      roundTimer + ':' + this.getRoundInfo().join(':') + ':' + this.getGameModeGuide(this.config).join(':'),
+      (
+        this.config.roundLoopSeconds +
+        ':' +
+        this.getRoundInfo().join(':') +
+        ':' +
+        this.getGameModeGuide(this.config).join(':')
+      ).split(':').length
+    );
+
+    this.emit('onClearLeaderboard');
+
+    this.emit.onBroadcast.mutate({
+      message: `Game Mode - ${this.config.gameMode} (Round ${this.config.roundId})`,
+      priority: 0,
+    });
+
+    if (this.config.hideMap) {
+      this.emit('onHideMinimap');
+      this.emit.onBroadcast.mutate({ message: `Minimap hidden in this mode!`, priority: 2 });
+    } else {
+      this.emit('onShowMinimap');
+    }
+
+    if (this.config.periodicReboots && this.rebootAfterRound) {
+      this.emit('onMaintenance', true);
+
+      setTimeout(() => {
+        process.exit();
+      }, 3 * 1000);
+    }
+
+    if (this.config.periodicReboots && this.announceReboot) {
+      const value = 'Restarting server at end of this round.';
+
+      this.emit.onBroadcast.mutate({ message: value, priority: 1 });
+
+      this.rebootAfterRound = true;
     }
 
     this.roundLoopTimeout = setTimeout(() => this.resetLeaderboard(), this.config.roundLoopSeconds * 1000);
@@ -1242,13 +1230,13 @@ class Shard {
     return this.guestNames[randomIndex];
   }
 
-  async apiConnected(input: Schema.ApiConnectedInput, ctx: ShardContext) {
-    this.emitAll.onBroadcast.mutate({ message: 'API connected', priority: 0 });
+  async seerConnected(input: Schema.ApiConnectedInput, ctx: ShardContext) {
+    this.emitAll.onBroadcast.mutate({ message: 'Seer connected', priority: 0 });
     return { status: 1 };
   }
 
-  async apiDisconnected(input: Schema.ApiDisconnectedInput, ctx: ShardContext) {
-    this.emitAll.onBroadcast.mutate({ message: 'API disconnected', priority: 0 });
+  async seerDisconnected(input: Schema.ApiDisconnectedInput, ctx: ShardContext) {
+    this.emitAll.onBroadcast.mutate({ message: 'Seer disconnected', priority: 0 });
     return { status: 1 };
   }
 
@@ -1482,8 +1470,8 @@ class Shard {
     }
   }
 
-  async setInfo({ msg }: Schema.SetInfoInput, { client }: ShardContext) {
-    log('SetInfo', msg);
+  async login({ msg }: Schema.LoginInput, { client }: ShardContext) {
+    log('Login', msg);
 
     const pack = decodePayload(msg);
     if (!pack.signature || !pack.network || !pack.device || !pack.address) {
@@ -1493,7 +1481,7 @@ class Shard {
     }
 
     const address = await this.normalizeAddress(pack.address);
-    log('SetInfo normalizeAddress', pack.address, address);
+    log('Login normalizeAddress', pack.address, address);
     if (!address) {
       client.log.addressProblem += 1;
       this.disconnectClient(client, 'address problem');
@@ -1551,7 +1539,7 @@ class Shard {
       client.log.connects += 1;
     }
 
-    this.emitAll('onSetInfo', client.id, client.name, client.network, client.address, client.device);
+    this.emitAll('onLogin', client.id, client.name, client.network, client.address, client.device);
 
     if (this.config.log.connections) {
       log('Connected', { hash: client.hash, address: client.address, name: client.name });
@@ -2175,43 +2163,38 @@ class Shard {
       }
     }
 
-    try {
-      const pack = decodePayload(input.msg);
-      const positionX = parseFloat(parseFloat(pack.position.split(':')[0].replace(',', '.')).toFixed(3));
-      const positionY = parseFloat(parseFloat(pack.position.split(':')[1].replace(',', '.')).toFixed(3));
-      const targetX = parseFloat(parseFloat(pack.target.split(':')[0].replace(',', '.')).toFixed(3));
-      const targetY = parseFloat(parseFloat(pack.target.split(':')[1].replace(',', '.')).toFixed(3));
+    const pack = decodePayload(input.msg);
+    const positionX = parseFloat(parseFloat(pack.position.split(':')[0].replace(',', '.')).toFixed(3));
+    const positionY = parseFloat(parseFloat(pack.position.split(':')[1].replace(',', '.')).toFixed(3));
+    const targetX = parseFloat(parseFloat(pack.target.split(':')[0].replace(',', '.')).toFixed(3));
+    const targetY = parseFloat(parseFloat(pack.target.split(':')[1].replace(',', '.')).toFixed(3));
 
-      if (
-        !Number.isFinite(positionX) ||
-        !Number.isFinite(positionY) ||
-        !Number.isFinite(targetX) ||
-        !Number.isFinite(targetY) ||
-        positionX < this.mapBoundary.x.min ||
-        positionX > this.mapBoundary.x.max ||
-        positionY < this.mapBoundary.y.min ||
-        positionY > this.mapBoundary.y.max
-      )
-        return { status: 0 };
+    if (
+      !Number.isFinite(positionX) ||
+      !Number.isFinite(positionY) ||
+      !Number.isFinite(targetX) ||
+      !Number.isFinite(targetY) ||
+      positionX < this.mapBoundary.x.min ||
+      positionX > this.mapBoundary.x.max ||
+      positionY < this.mapBoundary.y.min ||
+      positionY > this.mapBoundary.y.max
+    )
+      return { status: 0 };
 
-      if (
-        this.config.anticheat.disconnectPositionJumps &&
-        this.distanceBetweenPoints(client.position, { x: positionX, y: positionY }) > 5
-      ) {
-        client.log.positionJump += 1;
-        this.disconnectClient(client, 'position jumped');
-        return { status: 0 };
-      }
-
-      client.clientPosition = { x: this.normalizeFloat(positionX, 4), y: this.normalizeFloat(positionY, 4) };
-      client.clientTarget = { x: this.normalizeFloat(targetX, 4), y: this.normalizeFloat(targetY, 4) };
-      client.lastReportedTime = client.name === 'Testman' ? parseFloat(pack.time) - 300 : parseFloat(pack.time);
-      client.lastUpdate = now;
-      return { status: 1 };
-    } catch (e) {
-      log('Error:', e);
-      return { status: 0, error: e.message };
+    if (
+      this.config.anticheat.disconnectPositionJumps &&
+      this.distanceBetweenPoints(client.position, { x: positionX, y: positionY }) > 5
+    ) {
+      client.log.positionJump += 1;
+      this.disconnectClient(client, 'position jumped');
+      return { status: 0 };
     }
+
+    client.clientPosition = { x: this.normalizeFloat(positionX, 4), y: this.normalizeFloat(positionY, 4) };
+    client.clientTarget = { x: this.normalizeFloat(targetX, 4), y: this.normalizeFloat(targetY, 4) };
+    client.lastReportedTime = client.name === 'Testman' ? parseFloat(pack.time) - 300 : parseFloat(pack.time);
+    client.lastUpdate = now;
+    return { status: 1 };
   }
 
   async restart(input: Schema.RestartInput, ctx: ShardContext) {
@@ -2446,214 +2429,9 @@ class Shard {
   }
 }
 
-export const createShardRouter = (gameWorld: Shard) => {
-  return router({
-    connected: procedure
-      .use(hasRole('realm', t))
-      .use(customErrorFormatter(t))
-      .input(schema.connected)
-      .mutation(({ input, ctx }) => gameWorld.connected(input as Schema.ConnectedInput, ctx)),
-
-    apiConnected: procedure
-      .use(hasRole('realm', t))
-      .use(customErrorFormatter(t))
-      .input(schema.apiConnected)
-      .mutation(({ input, ctx }) => gameWorld.apiConnected(input as Schema.ApiConnectedInput, ctx)),
-
-    apiDisconnected: procedure
-      .use(hasRole('realm', t))
-      .use(customErrorFormatter(t))
-      .input(schema.apiDisconnected)
-      .mutation(({ input, ctx }) => gameWorld.apiDisconnected(input as Schema.ApiDisconnectedInput, ctx)),
-
-    setCharacter: procedure
-      .use(hasRole('realm', t))
-      .use(customErrorFormatter(t))
-      .input(schema.setCharacter)
-      .mutation(({ input, ctx }) => gameWorld.setCharacter(input as Schema.SetCharacterInput, ctx)),
-
-    setConfig: procedure
-      .use(hasRole('realm', t))
-      .use(customErrorFormatter(t))
-      .input(schema.setConfig)
-      .mutation(({ input, ctx }) => gameWorld.setConfig(input as Schema.SetConfigInput, ctx)),
-
-    getConfig: procedure
-      .use(hasRole('realm', t))
-      .use(customErrorFormatter(t))
-      .input(schema.getConfig)
-      .mutation(({ input, ctx }) => gameWorld.getConfig(input as Schema.GetConfigInput, ctx)),
-
-    load: procedure
-      .use(customErrorFormatter(t))
-      .input(schema.load)
-      .mutation(({ input, ctx }) => gameWorld.load(input as Schema.LoadInput, ctx)),
-
-    spectate: procedure
-      .use(customErrorFormatter(t))
-      .input(schema.spectate)
-      .mutation(({ input, ctx }) => gameWorld.spectate(input, ctx)),
-
-    setInfo: procedure
-      .use(customErrorFormatter(t))
-      .input(schema.setInfo)
-      .mutation(({ input, ctx }) => gameWorld.setInfo(input as Schema.SetInfoInput, ctx)),
-
-    join: procedure
-      .use(customErrorFormatter(t))
-      .input(schema.join)
-      .mutation(({ input, ctx }) => gameWorld.join(input as Schema.JoinInput, ctx)),
-
-    updateMyself: procedure
-      .use(customErrorFormatter(t))
-      .input(schema.updateMyself)
-      .mutation(({ input, ctx }) => gameWorld.updateMyself(input as Schema.UpdateMyselfInput, ctx)),
-
-    restart: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.restart)
-      .mutation(({ input, ctx }) => gameWorld.restart(input as Schema.RestartInput, ctx)),
-
-    maintenance: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.maintenance)
-      .mutation(({ input, ctx }) => gameWorld.maintenance(input as Schema.MaintenanceInput, ctx)),
-
-    unmaintenance: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.unmaintenance)
-      .mutation(({ input, ctx }) => gameWorld.unmaintenance(input as Schema.UnmaintenanceInput, ctx)),
-
-    startBattleRoyale: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.startBattleRoyale)
-      .mutation(({ input, ctx }) => gameWorld.startBattleRoyale(input as Schema.StartBattleRoyaleInput, ctx)),
-
-    stopBattleRoyale: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.stopBattleRoyale)
-      .mutation(({ input, ctx }) => gameWorld.stopBattleRoyale(input as Schema.StopBattleRoyaleInput, ctx)),
-
-    pauseRound: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.pauseRound)
-      .mutation(({ input, ctx }) => gameWorld.pauseRound(input as Schema.PauseRoundInput, ctx)),
-
-    startRound: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.startRound)
-      .mutation(({ input, ctx }) => gameWorld.startRound(input as Schema.StartRoundInput, ctx)),
-
-    enableForceLevel2: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.enableForceLevel2)
-      .mutation(({ input, ctx }) => gameWorld.enableForceLevel2(input as Schema.EnableForceLevel2Input, ctx)),
-
-    disableForceLevel2: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.disableForceLevel2)
-      .mutation(({ input, ctx }) => gameWorld.disableForceLevel2(input as Schema.DisableForceLevel2Input, ctx)),
-
-    startGodParty: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.startGodParty)
-      .mutation(({ input, ctx }) => gameWorld.startGodParty(input as Schema.StartGodPartyInput, ctx)),
-
-    stopGodParty: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.stopGodParty)
-      .mutation(({ input, ctx }) => gameWorld.stopGodParty(input as Schema.StopGodPartyInput, ctx)),
-
-    startRoyale: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.startRoyale)
-      .mutation(({ input, ctx }) => gameWorld.startRoyale(input as Schema.StartRoyaleInput, ctx)),
-
-    pauseRoyale: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.pauseRoyale)
-      .mutation(({ input, ctx }) => gameWorld.pauseRoyale(input as Schema.PauseRoyaleInput, ctx)),
-
-    unpauseRoyale: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.unpauseRoyale)
-      .mutation(({ input, ctx }) => gameWorld.unpauseRoyale(input as Schema.UnpauseRoyaleInput, ctx)),
-
-    stopRoyale: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.stopRoyale)
-      .mutation(({ input, ctx }) => gameWorld.stopRoyale(input as Schema.StopRoyaleInput, ctx)),
-
-    makeBattleHarder: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.makeBattleHarder)
-      .mutation(({ input, ctx }) => gameWorld.makeBattleHarder(input as Schema.MakeBattleHarderInput, ctx)),
-
-    makeBattleEasier: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.makeBattleEasier)
-      .mutation(({ input, ctx }) => gameWorld.makeBattleEasier(input as Schema.MakeBattleEasierInput, ctx)),
-
-    resetBattleDifficulty: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.resetBattleDifficulty)
-      .mutation(({ input, ctx }) => gameWorld.resetBattleDifficulty(input as Schema.ResetBattleDifficultyInput, ctx)),
-
-    messageUser: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.messageUser)
-      .mutation(({ input, ctx }) => gameWorld.messageUser(input as Schema.MessageUserInput, ctx)),
-
-    changeUser: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.changeUser)
-      .mutation(({ input, ctx }) => gameWorld.changeUser(input as Schema.ChangeUserInput, ctx)),
-
-    broadcast: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.broadcast)
-      .mutation(({ input, ctx }) => gameWorld.broadcast(input as Schema.BroadcastInput, ctx)),
-
-    kickClient: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.kickClient)
-      .mutation(({ input, ctx }) => gameWorld.kickClient(input as Schema.KickClientInput, ctx)),
-
-    info: procedure
-      .use(hasRole('mod', t))
-      .use(customErrorFormatter(t))
-      .input(schema.info)
-      .mutation(({ input, ctx }) => gameWorld.info(input, ctx)),
-  });
-};
-
-export type Router = typeof createShardRouter;
-
 export async function init(app) {
   try {
-    const gameWorld = new Shard(this.app);
+    const gameWorld = new Service(this.app);
 
     log('Starting event handler');
     this.app.io.on('connection', function (socket) {
