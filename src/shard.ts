@@ -20,14 +20,16 @@ import { testMode, baseConfig, sharedConfig, Config } from '@arken/evolution-pro
 import { presets } from '@arken/evolution-protocol/presets';
 import * as schema from '@arken/evolution-protocol/shard/schema';
 import type * as Schema from '@arken/evolution-protocol/shard/schema';
-import { procedure, router } from '@arken/evolution-protocol/shard/server';
+import {
+  procedure,
+  createCallerFactory,
+  createRouter as createShardRouter,
+} from '@arken/evolution-protocol/shard/server';
 import type {
   Orb,
-  ShardApplication,
   ShardClient,
   Position,
   Boundary,
-  Signature,
   Reward,
   PowerUp,
   RoundEvent,
@@ -85,14 +87,12 @@ class Service implements Shard.Service {
   clientSpawnPoints: Position[];
   lastFastGameloopTime: number;
   lastFastestGameloopTime: number;
-  app: ShardApplication;
   emit: ReturnType<typeof createTRPCProxyClient<ShardClientRouter>>;
   emitDirect: ReturnType<typeof createTRPCProxyClient<ShardClientRouter>>;
   emitAll: ReturnType<typeof createTRPCProxyClient<ShardClientRouter>>;
   emitAllDirect: ReturnType<typeof createTRPCProxyClient<ShardClientRouter>>;
 
-  constructor(app: ShardApplication) {
-    this.app = app;
+  constructor() {
     this.realm = new Realm();
     this.guestNames = [
       'Robin Banks',
@@ -311,17 +311,17 @@ class Service implements Shard.Service {
     if (Object.keys(this.clientLookup).length == 0) {
       this.randomRoundPreset();
       this.clearSprites();
-      this.spawnSprites(this.app.config.spritesStartCount);
+      this.spawnSprites(this.config.spritesStartCount);
     }
     setTimeout(() => this.monitorRealm(), 30 * 1000);
-    setTimeout(() => this.fastGameloop(), this.app.config.fastLoopSeconds * 1000);
-    setTimeout(() => this.slowGameloop(), this.app.config.slowLoopSeconds * 1000);
-    setTimeout(() => this.sendUpdates(), this.app.config.sendUpdateLoopSeconds * 1000);
-    setTimeout(() => this.spawnRewards(), this.app.config.rewardSpawnLoopSeconds * 1000);
-    setTimeout(() => this.checkConnectionLoop(), this.app.config.checkConnectionLoopSeconds * 1000);
+    setTimeout(() => this.fastGameloop(), this.config.fastLoopSeconds * 1000);
+    setTimeout(() => this.slowGameloop(), this.config.slowLoopSeconds * 1000);
+    setTimeout(() => this.sendUpdates(), this.config.sendUpdateLoopSeconds * 1000);
+    setTimeout(() => this.spawnRewards(), this.config.rewardSpawnLoopSeconds * 1000);
+    setTimeout(() => this.checkConnectionLoop(), this.config.checkConnectionLoopSeconds * 1000);
     this.roundLoopTimeout = setTimeout(() => {
       this.resetLeaderboard();
-    }, this.app.config.roundLoopSeconds * 1000);
+    }, this.config.roundLoopSeconds * 1000);
   }
 
   public async calcRoundRewards() {
@@ -1079,7 +1079,7 @@ class Service implements Shard.Service {
     return Date.now();
   }
 
-  async connected(input: Schema.ConnectedInput, { client }: ShardContext) {
+  async connected(input: Shard.ConnectedInput, { client }: ShardContext) {
     if (this.realm.client?.socket?.connected) {
       this.disconnectClient(this.realm.client, 'Realm already connected');
       return;
@@ -1230,18 +1230,17 @@ class Service implements Shard.Service {
     return this.guestNames[randomIndex];
   }
 
-  async seerConnected(input: Schema.ApiConnectedInput, ctx: ShardContext) {
+  async seerConnected(input: Shard.ApiConnectedInput, ctx: ShardContext) {
     this.emitAll.onBroadcast.mutate({ message: 'Seer connected', priority: 0 });
     return { status: 1 };
   }
 
-  async seerDisconnected(input: Schema.ApiDisconnectedInput, ctx: ShardContext) {
+  async seerDisconnected(input: Shard.ApiDisconnectedInput, ctx: ShardContext) {
     this.emitAll.onBroadcast.mutate({ message: 'Seer disconnected', priority: 0 });
     return { status: 1 };
   }
 
-  // Example usage in your function:
-  broadcastMechanics(input: Schema.BroadcastInput, { client }: ShardContext): void {
+  broadcastMechanics(input: Shard.BroadcastInput, { client }: ShardContext): void {
     if (this.isMechanicEnabled({ id: Mechanic.RewardsIncrease }, { client })) {
       this.emit(
         client,
@@ -1326,7 +1325,7 @@ class Service implements Shard.Service {
     return !!client.character.meta[id];
   }
 
-  async setCharacter(input: Schema.SetCharacterInput, { client }: ShardContext) {
+  async setCharacter(input: Shard.SetCharacterInput, { client }: ShardContext) {
     // Check if the client is a realm client
     if (!client.isRealm) {
       return { status: 0 };
@@ -1347,21 +1346,21 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async setConfig(input: Schema.SetConfigInput, { client }: ShardContext) {
+  async setConfig(input: Shard.SetConfigInput, { client }: ShardContext) {
     return { status: 1 };
   }
 
-  async getConfig(input: Schema.GetConfigInput, { client }: ShardContext) {
+  async getConfig(input: Shard.GetConfigInput, { client }: ShardContext) {
     return { status: 1, data: this.config };
   }
 
-  async load(input: Schema.LoadInput, { client }: ShardContext) {
+  async load(input: Shard.LoadInput, { client }: ShardContext) {
     log('Load', client.hash);
     this.emit.onLoaded.mutate(1, { client });
     return { status: 1 };
   }
 
-  public spectate(input: Schema.SpectateInput, { client }: ShardContext) {
+  public spectate(input: Shard.SpectateInput, { client }: ShardContext) {
     // Spectating is not allowed during maintenance unless the client is a moderator
     if (this.config.isMaintenance && !client.isMod) return { status: 0 };
 
@@ -1462,6 +1461,7 @@ class Service implements Shard.Service {
   public async getUsername(address: string): Promise<string> {
     try {
       log(`Getting username for ${address}`);
+      // TODO: replace with realm call
       const response = await axios.get(`https://envoy.arken.gg/profile/${address}`);
       const { username = '' } = response.data;
       return username;
@@ -1470,10 +1470,10 @@ class Service implements Shard.Service {
     }
   }
 
-  async login({ msg }: Schema.LoginInput, { client }: ShardContext) {
-    log('Login', msg);
+  async login({ data }: Shard.LoginInput, { client }: ShardContext) {
+    log('Login', data);
 
-    const pack = decodePayload(msg);
+    const pack = decodePayload(data);
     if (!pack.signature || !pack.network || !pack.device || !pack.address) {
       client.log.signinProblem += 1;
       this.disconnectClient(client, 'signin problem');
@@ -1574,7 +1574,7 @@ class Service implements Shard.Service {
   }
 
   // Method to verify if a signature request is valid
-  async auth({ data, signature }: Schema.AuthInput, { client }: ShardContext) {
+  async auth({ data, signature }: Shard.AuthInput, { client }: ShardContext) {
     log('Verifying', data);
 
     if (!signature.address) return { status: 0 };
@@ -2087,6 +2087,16 @@ class Service implements Shard.Service {
     return Math.hypot(pos1.x - pos2.x, pos1.y - pos2.y);
   }
 
+  resetClient(client) {
+    const spawnPoint = this.clientSpawnPoints[Math.floor(Math.random() * this.clientSpawnPoints.length)];
+    client.position = spawnPoint;
+    client.target = spawnPoint;
+    client.clientPosition = spawnPoint;
+    client.clientTarget = spawnPoint;
+    client.avatar = 0;
+    client.xp = 50;
+  }
+
   public async claimReward(client: ShardClient, reward: Reward): Promise<void> {
     if (!reward) return;
 
@@ -2119,7 +2129,7 @@ class Service implements Shard.Service {
     this.currentReward = null;
   }
 
-  async updateMyself({ msg }: Schema.UpdateMyselfInput, { client }: ShardContext) {
+  async updateMyself({ data }: Shard.UpdateMyselfInput, { client }: ShardContext) {
     if (client.isDead && !client.isJoining) return { status: 0 };
     if (client.isSpectating) return { status: 0 };
     if (this.config.isMaintenance && !client.isMod) {
@@ -2163,7 +2173,7 @@ class Service implements Shard.Service {
       }
     }
 
-    const pack = decodePayload(input.msg);
+    const pack = decodePayload(data);
     const positionX = parseFloat(parseFloat(pack.position.split(':')[0].replace(',', '.')).toFixed(3));
     const positionY = parseFloat(parseFloat(pack.position.split(':')[1].replace(',', '.')).toFixed(3));
     const targetX = parseFloat(parseFloat(pack.target.split(':')[0].replace(',', '.')).toFixed(3));
@@ -2197,28 +2207,28 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async restart(input: Schema.RestartInput, ctx: ShardContext) {
+  async restart(input: Shard.RestartInput, ctx: ShardContext) {
     this.emitAll.onBroadcast.mutate({ message: `Server is rebooting in 10 seconds`, priority: 3 });
     await sleep(10 * 1000);
     process.exit(1);
     return { status: 1 };
   }
 
-  async maintenance(input: Schema.MaintenanceInput, ctx: ShardContext) {
+  async maintenance(input: Shard.MaintenanceInput, ctx: ShardContext) {
     this.sharedConfig.isMaintenance = true;
     this.config.isMaintenance = true;
     this.emitAll('onMaintenance', this.config.isMaintenance);
     return { status: 1 };
   }
 
-  async unmaintenance(input: Schema.UnmaintenanceInput, ctx: ShardContext) {
+  async unmaintenance(input: Shard.UnmaintenanceInput, ctx: ShardContext) {
     this.sharedConfig.isMaintenance = false;
     this.config.isMaintenance = false;
     this.emitAll('onUnmaintenance', this.config.isMaintenance);
     return { status: 1 };
   }
 
-  async startBattleRoyale(input: Schema.StartBattleRoyaleInput, ctx: ShardContext) {
+  async startBattleRoyale(input: Shard.StartBattleRoyaleInput, ctx: ShardContext) {
     this.emitAll.onBroadcast.mutate({ message: `Battle Royale in 3...`, priority: 1 });
     await sleep(1 * 1000);
     this.emitAll.onBroadcast.mutate({ message: `Battle Royale in 2...`, priority: 1 });
@@ -2234,14 +2244,14 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async stopBattleRoyale(input: Schema.StopBattleRoyaleInput, ctx: ShardContext) {
+  async stopBattleRoyale(input: Shard.StopBattleRoyaleInput, ctx: ShardContext) {
     this.baseConfig.isBattleRoyale = false;
     this.config.isBattleRoyale = false;
     this.emitAll.onBroadcast.mutate({ message: `Battle Royale Stopped`, priority: 0 });
     return { status: 1 };
   }
 
-  async pauseRound(input: Schema.PauseRoundInput, ctx: ShardContext) {
+  async pauseRound(input: Shard.PauseRoundInput, ctx: ShardContext) {
     clearTimeout(this.roundLoopTimeout);
     this.baseConfig.isRoundPaused = true;
     this.config.isRoundPaused = true;
@@ -2250,7 +2260,7 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async startRound(input: Schema.StartRoundInput, ctx: ShardContext) {
+  async startRound(input: Shard.StartRoundInput, ctx: ShardContext) {
     clearTimeout(this.roundLoopTimeout);
     if (this.config.isRoundPaused) {
       this.baseConfig.isRoundPaused = false;
@@ -2260,26 +2270,26 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async enableForceLevel2(input: Schema.EnableForceLevel2Input, ctx: ShardContext) {
+  async enableForceLevel2(input: Shard.EnableForceLevel2Input, ctx: ShardContext) {
     this.baseConfig.level2forced = true;
     this.config.level2forced = true;
     return { status: 1 };
   }
 
-  async disableForceLevel2(input: Schema.DisableForceLevel2Input, ctx: ShardContext) {
+  async disableForceLevel2(input: Shard.DisableForceLevel2Input, ctx: ShardContext) {
     this.baseConfig.level2forced = false;
     this.config.level2forced = false;
     return { status: 1 };
   }
 
-  async startGodParty(input: Schema.StartGodPartyInput, ctx: ShardContext) {
+  async startGodParty(input: Shard.StartGodPartyInput, ctx: ShardContext) {
     this.baseConfig.isGodParty = true;
     this.config.isGodParty = true;
     this.emitAll.onBroadcast.mutate({ message: `God Party Started`, priority: 0 });
     return { status: 1 };
   }
 
-  async stopGodParty(input: Schema.StopGodPartyInput, ctx: ShardContext) {
+  async stopGodParty(input: Shard.StopGodPartyInput, ctx: ShardContext) {
     this.baseConfig.isGodParty = false;
     this.config.isGodParty = false;
     for (const client of this.clients) {
@@ -2289,31 +2299,31 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async startRoyale(input: Schema.StartBattleRoyaleInput, ctx: ShardContext) {
+  async startRoyale(input: Shard.StartBattleRoyaleInput, ctx: ShardContext) {
     this.baseConfig.isRoyale = true;
     this.config.isRoyale = true;
     this.emitAll.onBroadcast.mutate({ message: `Royale Started`, priority: 0 });
     return { status: 1 };
   }
 
-  async pauseRoyale(input: Schema.PauseRoundInput, ctx: ShardContext) {
+  async pauseRoyale(input: Shard.PauseRoundInput, ctx: ShardContext) {
     this.emitAll.onBroadcast.mutate({ message: `Royale Paused`, priority: 2 });
     return { status: 1 };
   }
 
-  async unpauseRoyale(input: Schema.UnpauseRoyaleInput, ctx: ShardContext) {
+  async unpauseRoyale(input: Shard.UnpauseRoyaleInput, ctx: ShardContext) {
     this.emitAll.onBroadcast.mutate({ message: `Royale Unpaused`, priority: 2 });
     return { status: 1 };
   }
 
-  async stopRoyale(input: Schema.StopBattleRoyaleInput, ctx: ShardContext) {
+  async stopRoyale(input: Shard.StopBattleRoyaleInput, ctx: ShardContext) {
     this.baseConfig.isRoyale = false;
     this.config.isRoyale = false;
     this.emitAll.onBroadcast.mutate({ message: `Royale Stopped`, priority: 2 });
     return { status: 1 };
   }
 
-  async makeBattleHarder(input: Schema.MakeBattleHarderInput, ctx: ShardContext) {
+  async makeBattleHarder(input: Shard.MakeBattleHarderInput, ctx: ShardContext) {
     this.baseConfig.dynamicDecayPower = false;
     this.config.dynamicDecayPower = false;
     this.sharedConfig.decayPower += 2;
@@ -2333,7 +2343,7 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async makeBattleEasier(ctx: { client: ShardClient }, input: { signature: string }) {
+  async makeBattleEasier({ client }: { client: ShardClient }, input: { signature: string }) {
     this.baseConfig.dynamicDecayPower = false;
     this.config.dynamicDecayPower = false;
     this.sharedConfig.decayPower -= 2;
@@ -2353,7 +2363,7 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async resetBattleDifficulty(ctx: { client: ShardClient }, input: { signature: string }) {
+  async resetBattleDifficulty({ client }: { client: ShardClient }, input: { signature: string }) {
     this.baseConfig.dynamicDecayPower = true;
     this.config.dynamicDecayPower = true;
     this.sharedConfig.decayPower = 1.4;
@@ -2371,7 +2381,7 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async messageUser(ctx: { client: ShardClient }, input: { data: any; signature: string }) {
+  async messageUser({ client }: { client: ShardClient }, input: { data: any; signature: string }) {
     const targetClient = this.clients.find((c) => c.address === input.data.target);
     if (!targetClient) return { status: 0 };
     this.sockets[targetClient.id].emitAll.onBroadcast.mutate({
@@ -2381,11 +2391,11 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async changeUser(ctx: { client: ShardClient }, input: { data: any; signature: string }) {
+  async changeUser({ client }: { client: ShardClient }, input: { data: any; signature: string }) {
     const newClient = this.clients.find((c) => c.address === input.data.target);
     if (!newClient) return { status: 0 };
-    for (const key of Object.keys(input.data.this.app.config)) {
-      const value = input.data.this.app.config[key];
+    for (const key of Object.keys(input.data.this.config)) {
+      const value = input.data.this.config[key];
       const val = value === 'true' ? true : value === 'false' ? false : isNumeric(value) ? parseFloat(value) : value;
       if (client.hasOwnProperty(key)) (newClient as any)[key] = val;
       else throw new Error("User doesn't have that option");
@@ -2393,19 +2403,19 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async broadcast(ctx: { client: ShardClient }, input: { data: any; signature: string }) {
+  async broadcast({ client }: { client: ShardClient }, input: { data: any; signature: string }) {
     this.emitAll.onBroadcast.mutate(input.data.message.replace(/:/gi, ''), 0);
     return { status: 1 };
   }
 
-  async kickClient(ctx: { client: ShardClient }, input: { data: any; signature: string }) {
+  async kickClient({ client }: { client: ShardClient }, input: { data: any; signature: string }) {
     const targetClient = this.clients.find((c) => c.address === input.data.target);
     if (!targetClient) return { status: 0 };
     this.disconnectClient(targetClient, 'kicked');
     return { status: 1 };
   }
 
-  async info(ctx: { client: ShardClient }, input: any) {
+  async info({ client }: { client: ShardClient }, input: any) {
     return {
       status: 1,
       data: {
@@ -2431,7 +2441,7 @@ class Service implements Shard.Service {
 
 export async function init(app) {
   try {
-    const gameWorld = new Service(this.app);
+    const service = new Service(this.app);
 
     log('Starting event handler');
     this.app.io.on('connection', function (socket) {
@@ -2439,7 +2449,7 @@ export async function init(app) {
         log('Connection', socket.id);
 
         const hash = ipHashFromSocket(socket);
-        const spawnPoint = gameWorld.clientSpawnPoints[Math.floor(Math.random() * gameWorld.clientSpawnPoints.length)];
+        const spawnPoint = service.clientSpawnPoints[Math.floor(Math.random() * service.clientSpawnPoints.length)];
         const client: ShardClient = {
           name: 'Unknown' + Math.floor(Math.random() * 999),
           startedRoundAt: null,
@@ -2482,19 +2492,19 @@ export async function init(app) {
           isGod: false,
           isRealm: false,
           isGuest: false,
-          isInvincible: gameWorld.config.isGodParty ? true : false,
+          isInvincible: service.config.isGodParty ? true : false,
           isPhased: false,
           overrideSpeed: null as any,
           overrideCameraSize: null as any,
-          cameraSize: gameWorld.config.cameraSize,
-          speed: gameWorld.config.baseSpeed * gameWorld.config.avatarSpeedMultiplier0,
+          cameraSize: service.config.cameraSize,
+          speed: service.config.baseSpeed * service.config.avatarSpeedMultiplier0,
           joinedAt: 0,
           invincibleUntil: 0,
           decayPower: 1,
           hash: ipHashFromSocket(socket),
           lastReportedTime: getTime(),
           lastUpdate: 0,
-          gameMode: this.app.config.gameMode,
+          gameMode: this.config.gameMode,
           phasedUntil: getTime(),
           overrideSpeedUntil: 0,
           joinedRoundAt: getTime(),
@@ -2551,30 +2561,30 @@ export async function init(app) {
         };
         log('User connected from hash ' + hash);
 
-        if (!testMode && this.app.killSameNetworkClients) {
-          const sameNetworkClient = this.app.clients.find((r) => r.hash === client.hash && r.id !== client.id);
+        if (!testMode && service.config.killSameNetworkClients) {
+          const sameNetworkClient = service.clients.find((r) => r.hash === client.hash && r.id !== client.id);
           if (sameNetworkClient) {
             client.log.sameNetworkDisconnect += 1;
-            gameWorld.disconnectClient(client, 'same network');
+            service.disconnectClient(client, 'same network');
             return;
           }
         }
-        gameWorld.sockets[client.id] = socket;
-        gameWorld.clientLookup[client.id] = client;
-        if (Object.keys(gameWorld.clientLookup).length == 1) {
+        service.sockets[client.id] = socket;
+        service.clientLookup[client.id] = client;
+        if (Object.keys(service.clientLookup).length == 1) {
           client.isMasterClient = true;
         }
-        gameWorld.clients = gameWorld.clients.filter((c) => c.hash !== client.hash);
-        gameWorld.clients.push(client);
+        service.clients = service.clients.filter((c) => c.hash !== client.hash);
+        service.clients.push(client);
 
-        const router = createShardRouter(gameWorld);
+        const router = createShardRouter(service);
 
         const ctx = { client };
 
         socket.on('trpc', async (message) => {
           const { id, method, params } = message;
           try {
-            const createCaller = t.createCallerFactory(router);
+            const createCaller = createCallerFactory(router);
             const caller = createCaller(ctx);
             const result = await caller[method](params);
 
@@ -2588,9 +2598,9 @@ export async function init(app) {
         socket.on('disconnect', function () {
           log('User has disconnected');
           client.log.clientDisconnected += 1;
-          gameWorld.disconnectClient(client, 'client disconnected');
+          service.disconnectClient(client, 'client disconnected');
           if (client.isRealm) {
-            gameWorld.emitAll.onBroadcast.mutate({ message: `Realm disconnected`, priority: 0 });
+            service.emitAll.onBroadcast.mutate({ message: `Realm disconnected`, priority: 0 });
           }
         });
       } catch (e) {
