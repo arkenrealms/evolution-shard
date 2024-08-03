@@ -25,10 +25,9 @@ import {
   createCallerFactory,
   createRouter as createShardRouter,
 } from '@arken/evolution-protocol/shard/server';
+import type { ShardClientRouter, Realm } from '@arken/evolution-protocol/types';
 import type {
   Orb,
-  ShardClient,
-  Position,
   Boundary,
   Reward,
   PowerUp,
@@ -36,11 +35,8 @@ import type {
   Round,
   Preset,
   Event,
-  ShardContext,
-  ShardClientRouter,
-  Realm,
-} from '@arken/evolution-protocol/types';
-import { Mechanic } from '@arken/node/types';
+} from '@arken/evolution-protocol/shard/types';
+import { EvolutionMechanic as Mechanic, Position } from '@arken/node/types';
 import type { Signature } from '@arken/node/types';
 import mapData from '../public/data/map.json'; // TODO: get this from the embedded game client
 import type * as Shard from '@arken/evolution-protocol/shard/types';
@@ -58,14 +54,14 @@ class Service implements Shard.Service {
   debugQueue: boolean;
   killSameNetworkClients: boolean;
   sockets: Record<string, any>;
-  clientLookup: Record<string, ShardClient>;
+  clientLookup: Record<string, Shard.Client>;
   powerups: PowerUp[];
   powerupLookup: Record<string, PowerUp>;
   currentReward?: Reward;
   orbs: Orb[];
   orbLookup: Record<string, Orb>;
   eventQueue: Event[];
-  clients: ShardClient[];
+  clients: Shard.Client[];
   lastReward?: Reward;
   lastLeaderName?: string;
   config: Partial<Config>;
@@ -143,7 +139,7 @@ class Service implements Shard.Service {
     this.eventFlushedAt = getTime();
     this.round = {
       id: shortId(),
-      startedAt: Math.round(getTime() / 1000),
+      startedDate: Math.round(getTime() / 1000),
       endedAt: null,
       events: [],
       states: [],
@@ -187,7 +183,7 @@ class Service implements Shard.Service {
             return observable((observer) => {
               const { input, context } = op;
               const { name, args } = input as Event;
-              const client = context.client as ShardClient;
+              const client = context.client as Shard.Client;
 
               if (!client) {
                 log('Emit Direct failed, no client', ...args);
@@ -208,7 +204,7 @@ class Service implements Shard.Service {
                 this.round.events.push({ type: 'emitDirect', client: client.id, name: e.name, args: e.args });
               }
 
-              (context.client as ShardClient).socket.emit('onEvents', this.getPayload(compiled));
+              (context.client as Shard.Client).socket.emit('onEvents', this.getPayload(compiled));
 
               observer.complete();
             });
@@ -228,7 +224,7 @@ class Service implements Shard.Service {
                 console.log(`emitDirect: ${name}`, args);
               }
 
-              (context.client as ShardClient).socket.emit(name, Object.values(args));
+              (context.client as Shard.Client).socket.emit(name, Object.values(args));
 
               observer.complete();
             });
@@ -336,7 +332,7 @@ class Service implements Shard.Service {
       this.config.rewardItemAmount = calcRewardsRes.data.rewardItemAmount;
 
       if (this.config.rewardWinnerAmount === 0 && calcRewardsRes.data.rewardWinnerAmount !== 0) {
-        const roundTimer = this.round.startedAt + this.config.roundLoopSeconds - Math.round(this.getTime() / 1000);
+        const roundTimer = this.round.startedDate + this.config.roundLoopSeconds - Math.round(this.getTime() / 1000);
         this.emit.onSetRoundInfo.mutate(
           roundTimer + ':' + this.getRoundInfo().join(':') + ':' + this.getGameModeGuide(this.config).join(':')
         );
@@ -388,7 +384,7 @@ class Service implements Shard.Service {
     }
 
     const saveRoundRes = await this.realm.emit.saveRoundRequest.mutate({
-      startedAt: this.round.startedAt,
+      startedDate: this.round.startedDate,
       endedAt: this.round.endedAt,
       players: this.round.clients,
       winners,
@@ -420,13 +416,15 @@ class Service implements Shard.Service {
       this.randomRoundPreset();
     }
 
+    // TODO: get ID from realm
     this.baseConfig.roundId = this.baseConfig.roundId + 1;
     this.config.roundId = this.baseConfig.roundId;
 
     this.round = {
-      startedAt: Math.round(this.getTime() / 1000),
+      id: this.config.roundId,
+      startedDate: Math.round(this.getTime() / 1000),
       endedAt: null,
-      players: [],
+      clients: [],
       events: [],
       states: [],
     };
@@ -479,6 +477,14 @@ class Service implements Shard.Service {
         path: '',
         positions: 0,
         spectating: 0,
+        recentJoinProblem: 0,
+        usernameProblem: 0,
+        maintenanceJoin: 0,
+        signatureProblem: 0,
+        signinProblem: 0,
+        versionProblem: 0,
+        failedRealmCheck: 0,
+        addressProblem: 0,
         replay: [],
       };
       client.gameMode = this.config.gameMode;
@@ -507,7 +513,7 @@ class Service implements Shard.Service {
 
     this.syncSprites();
 
-    const roundTimer = this.round.startedAt + this.config.roundLoopSeconds - Math.round(this.getTime() / 1000);
+    const roundTimer = this.round.startedDate + this.config.roundLoopSeconds - Math.round(this.getTime() / 1000);
     this.emit(
       'OnSetRoundInfo',
       roundTimer + ':' + this.getRoundInfo().join(':') + ':' + this.getGameModeGuide(this.config).join(':')
@@ -615,7 +621,7 @@ class Service implements Shard.Service {
 
     this.removeReward();
 
-    const rewardRes = await this.realm.router.getRandomReward.mutate();
+    const rewardRes = await this.realm.emit.getRandomReward.mutate();
 
     if (rewardRes?.status !== 1) return;
 
@@ -712,7 +718,7 @@ class Service implements Shard.Service {
           client.overrideSpeedUntil = 0;
         }
 
-        client.speed = this.getClientSpeed(client, this.config);
+        client.speed = this.getClientSpeed(client);
 
         if (!this.config.isRoundPaused && this.config.gameMode !== 'Pandamonium') {
           let decay = this.config.noDecay
@@ -720,8 +726,16 @@ class Service implements Shard.Service {
             : ((client.avatar + 1) / (1 / this.config.fastLoopSeconds)) *
               ((this.config['avatarDecayPower' + client.avatar] || 1) * this.config.decayPower);
 
-          if (this.isMechanicEnabled({ id: 1105 }, { client }) && this.isMechanicEnabled({ id: 1104 }, { client })) {
-            decay = decay * (1 + (client.character.meta[1105] - client.character.meta[1104]) / 100);
+          if (
+            this.isMechanicEnabled({ id: Mechanic.EnergyDecayIncrease }, { client }) &&
+            this.isMechanicEnabled({ id: Mechanic.EnergyDecayDecrease }, { client })
+          ) {
+            decay =
+              decay *
+              (1 +
+                (client.character.meta[Mechanic.EnergyDecayIncrease] -
+                  client.character.meta[Mechanic.EnergyDecayDecrease]) /
+                  100);
           }
 
           this.handleClientDecay(client, decay, now, isInvincible, currentTime);
@@ -787,7 +801,13 @@ class Service implements Shard.Service {
     }
   }
 
-  handleClientDecay(client: ShardClient, decay: number, now: number, isInvincible: boolean, currentTime: number): void {
+  handleClientDecay(
+    client: Shard.Client,
+    decay: number,
+    now: number,
+    isInvincible: boolean,
+    currentTime: number
+  ): void {
     if (client.xp > client.maxHp) {
       if (decay > 0) {
         if (client.avatar < this.config.maxEvolves - 1) {
@@ -803,12 +823,19 @@ class Service implements Shard.Service {
             client.speed = client.speed * 0.8;
           }
 
-          if (this.isMechanicEnabled({ id: 1223 }, { client }) && client.character.meta[1223] > 0) {
+          if (
+            this.isMechanicEnabled({ id: Mechanic.EvolveMovementBurst }, { client }) &&
+            client.character.meta[Mechanic.EvolveMovementBurst] > 0
+          ) {
             client.overrideSpeedUntil = this.getTime() + 1000;
-            client.overrideSpeed = client.speed * (1 + client.character.meta[1223] / 100);
+            client.overrideSpeed = client.speed * (1 + client.character.meta[Mechanic.EvolveMovementBurst] / 100);
 
-            if (this.isMechanicEnabled({ id: 1030 }, { client }) && client.character.meta[1030] > 0) {
-              client.overrideSpeed = client.overrideSpeed * (1 + client.character.meta[1030] / 100);
+            if (
+              this.isMechanicEnabled({ id: Mechanic.MovementSpeedIncrease }, { client }) &&
+              client.character.meta[Mechanic.MovementSpeedIncrease] > 0
+            ) {
+              client.overrideSpeed =
+                client.overrideSpeed * (1 + client.character.meta[Mechanic.MovementSpeedIncrease] / 100);
             }
           }
 
@@ -832,12 +859,19 @@ class Service implements Shard.Service {
             client.speed = client.speed * 0.8;
           }
 
-          if (this.isMechanicEnabled({ id: 1223 }, { client }) && client.character.meta[1223] > 0) {
+          if (
+            this.isMechanicEnabled({ id: Mechanic.EvolveMovementBurst }, { client }) &&
+            client.character.meta[Mechanic.EvolveMovementBurst] > 0
+          ) {
             client.overrideSpeedUntil = this.getTime() + 1000;
-            client.overrideSpeed = client.speed * (1 + client.character.meta[1223] / 100);
+            client.overrideSpeed = client.speed * (1 + client.character.meta[Mechanic.EvolveMovementBurst] / 100);
 
-            if (this.isMechanicEnabled({ id: 1030 }, { client }) && client.character.meta[1030] > 0) {
-              client.overrideSpeed = client.overrideSpeed * (1 + client.character.meta[1030] / 100);
+            if (
+              this.isMechanicEnabled({ id: Mechanic.MovementSpeedIncrease }, { client }) &&
+              client.character.meta[Mechanic.MovementSpeedIncrease] > 0
+            ) {
+              client.overrideSpeed =
+                client.overrideSpeed * (1 + client.character.meta[Mechanic.MovementSpeedIncrease] / 100);
             }
           }
 
@@ -899,7 +933,7 @@ class Service implements Shard.Service {
     }
   }
 
-  registerKill(winner: ShardClient, loser: ShardClient): void {
+  registerKill(winner: Shard.Client, loser: Shard.Client): void {
     const now = this.getTime();
 
     if (this.config.isGodParty) return;
@@ -970,10 +1004,13 @@ class Service implements Shard.Service {
 
     let deathPenaltyAvoid = false;
 
-    if (this.isMechanicEnabled({ id: 1102 }, { client: loser }) && loser.character.meta[1102] > 0) {
+    if (
+      this.isMechanicEnabled({ id: Mechanic.DeathPenaltyAvoid }, { client: loser }) &&
+      loser.character.meta[Mechanic.DeathPenaltyAvoid] > 0
+    ) {
       const r = this.random(1, 100);
 
-      if (r <= loser.character.meta[1102]) {
+      if (r <= loser.character.meta[Mechanic.DeathPenaltyAvoid]) {
         deathPenaltyAvoid = true;
         this.emitAll.onBroadcast.mutate({ message: `${loser.name} avoided penalty!`, priority: 0 });
       }
@@ -1006,14 +1043,22 @@ class Service implements Shard.Service {
       winner.log.revenge += 1;
     }
 
-    if (this.isMechanicEnabled({ id: 1222 }, { client: winner }) && winner.character.meta[1222] > 0) {
+    if (
+      this.isMechanicEnabled({ id: Mechanic.IncreaseMovementSpeedOnKill }, { client: winner }) &&
+      winner.character.meta[Mechanic.IncreaseMovementSpeedOnKill] > 0
+    ) {
       winner.overrideSpeed =
-        winner.speed * (1 + winner.character.meta[1222] / 100) * (1 + winner.character.meta[1030] / 100);
+        winner.speed *
+        (1 + winner.character.meta[Mechanic.IncreaseMovementSpeedOnKill] / 100) *
+        (1 + winner.character.meta[Mechanic.MovementSpeedIncrease] / 100);
       winner.overrideSpeedUntil = this.getTime() + 5000;
     }
 
-    if (this.isMechanicEnabled({ id: 1219 }, { client: winner }) && winner.character.meta[1219] > 0) {
-      winner.maxHp = winner.maxHp * (1 + winner.character.meta[1219] / 100);
+    if (
+      this.isMechanicEnabled({ id: Mechanic.IncreaseHealthOnKill }, { client: winner }) &&
+      winner.character.meta[Mechanic.IncreaseHealthOnKill] > 0
+    ) {
+      winner.maxHp = winner.maxHp * (1 + winner.character.meta[Mechanic.IncreaseHealthOnKill] / 100);
     }
 
     winner.xp += 25;
@@ -1079,7 +1124,10 @@ class Service implements Shard.Service {
     return Date.now();
   }
 
-  async connected(input: Shard.ConnectedInput, { client }: ShardContext) {
+  async connected(
+    ...[input, { client }]: Parameters<Shard.Service['connected']>
+  ): ReturnType<Shard.Service['connected']> {
+    // async connected(input: Shard.ConnectedInput, { client }: Shard.ServiceContext): Shard.ConnectedOutput {
     if (this.realm.client?.socket?.connected) {
       this.disconnectClient(this.realm.client, 'Realm already connected');
       return;
@@ -1090,7 +1138,7 @@ class Service implements Shard.Service {
     this.realm.client = client;
 
     // Initialize the realm server with status 1
-    const res = await this.realm.router.init.mutate();
+    const res = await this.realm.emit.init.mutate();
     log('init', res);
 
     // Check if initialization was successful
@@ -1214,14 +1262,14 @@ class Service implements Shard.Service {
     this.config.spritesTotal = this.powerups.length;
   }
 
-  addToRecentClients(client: ShardClient): void {
+  addToRecentClients(client: Shard.Client): void {
     if (!client.address || !client.name) return;
     this.round.clients = this.round.clients.filter((r) => r.address !== client.address);
     this.round.clients.push(client);
   }
 
   roundEndingSoon(sec: number): boolean {
-    const roundTimer = this.round.startedAt + this.config.roundLoopSeconds - Math.round(this.getTime() / 1000);
+    const roundTimer = this.round.startedDate + this.config.roundLoopSeconds - Math.round(this.getTime() / 1000);
     return roundTimer < sec;
   }
 
@@ -1230,56 +1278,56 @@ class Service implements Shard.Service {
     return this.guestNames[randomIndex];
   }
 
-  async seerConnected(input: Shard.ApiConnectedInput, ctx: ShardContext) {
+  async seerConnected(input: Shard.ApiConnectedInput, ctx: Shard.ServiceContext) {
     this.emitAll.onBroadcast.mutate({ message: 'Seer connected', priority: 0 });
     return { status: 1 };
   }
 
-  async seerDisconnected(input: Shard.ApiDisconnectedInput, ctx: ShardContext) {
+  async seerDisconnected(input: Shard.ApiDisconnectedInput, ctx: Shard.ServiceContext) {
     this.emitAll.onBroadcast.mutate({ message: 'Seer disconnected', priority: 0 });
     return { status: 1 };
   }
 
-  broadcastMechanics(input: Shard.BroadcastInput, { client }: ShardContext): void {
-    if (this.isMechanicEnabled({ id: Mechanic.RewardsIncrease }, { client })) {
+  broadcastMechanics(input: Shard.BroadcastInput, { client }: Shard.ServiceContext): void {
+    if (this.isMechanicEnabled({ id: Mechanic.WinRewardsIncrease }, { client })) {
       this.emit(
         client,
         'onBroadcast',
         `${this.formatNumber(
-          client.character.meta[Mechanic.RewardsIncrease] - client.character.meta[Mechanic.RewardsDecrease]
+          client.character.meta[Mechanic.WinRewardsIncrease] - client.character.meta[Mechanic.WinRewardsDecrease]
         )}% Rewards`,
         0
       );
     }
-    if (this.isMechanicEnabled({ id: Mechanic.MovementBurstOnKill }, { client })) {
+    if (this.isMechanicEnabled({ id: Mechanic.IncreaseMovementSpeedOnKill }, { client })) {
       this.emit(
         client,
         'onBroadcast',
-        `${this.formatNumber(client.character.meta[Mechanic.MovementBurstOnKill])}% Movement Burst On Kill`,
+        `${this.formatNumber(client.character.meta[Mechanic.IncreaseMovementSpeedOnKill])}% Movement Burst On Kill`,
         0
       );
     }
-    if (this.isMechanicEnabled({ id: Mechanic.MovementBurstOnEvolve }, { client })) {
+    if (this.isMechanicEnabled({ id: Mechanic.EvolveMovementBurst }, { client })) {
       this.emit(
         client,
         'onBroadcast',
-        `${this.formatNumber(client.character.meta[Mechanic.MovementBurstOnEvolve])}% Movement Burst On Evolve`,
+        `${this.formatNumber(client.character.meta[Mechanic.EvolveMovementBurst])}% Movement Burst On Evolve`,
         0
       );
     }
-    if (this.isMechanicEnabled({ id: Mechanic.MovementBurstStrength }, { client })) {
+    if (this.isMechanicEnabled({ id: Mechanic.MovementSpeedIncrease }, { client })) {
       this.emit(
         client,
         'onBroadcast',
-        `${this.formatNumber(client.character.meta[Mechanic.MovementBurstStrength])}% Movement Burst Strength`,
+        `${this.formatNumber(client.character.meta[Mechanic.MovementSpeedIncrease])}% Movement Burst Strength`,
         0
       );
     }
-    if (this.isMechanicEnabled({ id: Mechanic.AvoidDeathPenalty }, { client })) {
+    if (this.isMechanicEnabled({ id: Mechanic.DeathPenaltyAvoid }, { client })) {
       this.emit(
         client,
         'onBroadcast',
-        `${this.formatNumber(client.character.meta[Mechanic.AvoidDeathPenalty])}% Avoid Death Penalty`,
+        `${this.formatNumber(client.character.meta[Mechanic.DeathPenaltyAvoid])}% Avoid Death Penalty`,
         0
       );
     }
@@ -1291,41 +1339,41 @@ class Service implements Shard.Service {
         0
       );
     }
-    if (this.isMechanicEnabled({ id: Mechanic.IncreasedHealthOnKill }, { client })) {
+    if (this.isMechanicEnabled({ id: Mechanic.IncreaseHealthOnKill }, { client })) {
       this.emit(
         client,
         'onBroadcast',
-        `${this.formatNumber(client.character.meta[Mechanic.IncreasedHealthOnKill])}% Increased Health On Kill`,
+        `${this.formatNumber(client.character.meta[Mechanic.IncreaseHealthOnKill])}% Increased Health On Kill`,
         0
       );
     }
-    if (this.isMechanicEnabled({ id: Mechanic.EnergyDecay }, { client })) {
+    if (this.isMechanicEnabled({ id: Mechanic.EnergyDecayIncrease }, { client })) {
       this.emit(
         client,
         'onBroadcast',
         `${this.formatNumber(
-          client.character.meta[Mechanic.EnergyDecay] - client.character.meta[Mechanic.EnergyDecay - 1]
+          client.character.meta[Mechanic.EnergyDecayIncrease] - client.character.meta[Mechanic.EnergyDecayIncrease - 1]
         )}% Energy Decay`,
         0
       );
     }
-    if (this.isMechanicEnabled({ id: Mechanic.SpriteFuel }, { client })) {
+    if (this.isMechanicEnabled({ id: Mechanic.SpriteFuelIncrease }, { client })) {
       this.emit(
         client,
         'onBroadcast',
         `${this.formatNumber(
-          client.character.meta[Mechanic.SpriteFuel] - client.character.meta[Mechanic.SpriteFuel - 1]
+          client.character.meta[Mechanic.SpriteFuelIncrease] - client.character.meta[Mechanic.SpriteFuelIncrease - 1]
         )}% Sprite Fuel`,
         0
       );
     }
   }
 
-  isMechanicEnabled({ id }: { id: number }, { client }: ShardContext): boolean {
+  isMechanicEnabled({ id }: { id: number }, { client }: Shard.ServiceContext): boolean {
     return !!client.character.meta[id];
   }
 
-  async setCharacter(input: Shard.SetCharacterInput, { client }: ShardContext) {
+  async setCharacter(input: Shard.SetCharacterInput, { client }: Shard.ServiceContext) {
     // Check if the client is a realm client
     if (!client.isRealm) {
       return { status: 0 };
@@ -1346,21 +1394,21 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async setConfig(input: Shard.SetConfigInput, { client }: ShardContext) {
+  async setConfig(input: Shard.SetConfigInput, { client }: Shard.ServiceContext) {
     return { status: 1 };
   }
 
-  async getConfig(input: Shard.GetConfigInput, { client }: ShardContext) {
+  async getConfig(input: Shard.GetConfigInput, { client }: Shard.ServiceContext) {
     return { status: 1, data: this.config };
   }
 
-  async load(input: Shard.LoadInput, { client }: ShardContext) {
+  async load(input: Shard.LoadInput, { client }: Shard.ServiceContext) {
     log('Load', client.hash);
     this.emit.onLoaded.mutate(1, { client });
     return { status: 1 };
   }
 
-  public spectate(input: Shard.SpectateInput, { client }: ShardContext) {
+  public spectate(input: Shard.SpectateInput, { client }: Shard.ServiceContext) {
     // Spectating is not allowed during maintenance unless the client is a moderator
     if (this.config.isMaintenance && !client.isMod) return { status: 0 };
 
@@ -1416,7 +1464,7 @@ class Service implements Shard.Service {
     this.eventQueue = [];
   }
 
-  disconnectClient(client: ShardClient, reason = 'Unknown', immediate = false) {
+  disconnectClient(client: Shard.Client, reason = 'Unknown', immediate = false) {
     if (client.isRealm) return;
 
     this.clients = this.clients.filter((c) => c.id !== client.id);
@@ -1470,7 +1518,7 @@ class Service implements Shard.Service {
     }
   }
 
-  async login({ data }: Shard.LoginInput, { client }: ShardContext) {
+  async login({ data }: Shard.LoginInput, { client }: Shard.ServiceContext) {
     log('Login', data);
 
     const pack = decodePayload(data);
@@ -1549,7 +1597,7 @@ class Service implements Shard.Service {
   }
 
   // Method to compare clients by their points
-  compareClients(a: ShardClient, b: ShardClient): number {
+  compareClients(a: Shard.Client, b: Shard.Client): number {
     if (a.points > b.points) return -1;
     if (a.points < b.points) return 1;
     return 0;
@@ -1564,7 +1612,7 @@ class Service implements Shard.Service {
   async normalizeAddress(address: string): Promise<string | false> {
     if (!address) return false;
     try {
-      const res = await this.realm.router.normalizeAddress.mutate({ address });
+      const res = await this.realm.emit.normalizeAddress.mutate({ address });
       log('normalizeAddressResponse', res);
       return res.address;
     } catch (e) {
@@ -1574,12 +1622,12 @@ class Service implements Shard.Service {
   }
 
   // Method to verify if a signature request is valid
-  async auth({ data, signature }: Shard.AuthInput, { client }: ShardContext) {
+  async auth({ data, signature }: Shard.AuthInput, { client }: Shard.ServiceContext) {
     log('Verifying', data);
 
     if (!signature.address) return { status: 0 };
 
-    const res = await this.realm.router.auth.mutate({ data, signature });
+    const res = await this.realm.emit.auth.mutate({ data, signature });
 
     if (res.status !== 1) return { status: 0 };
 
@@ -1596,7 +1644,7 @@ class Service implements Shard.Service {
   }
 
   // Method to calculate the speed of a client based on their config and base speed
-  getClientSpeed(client: ShardClient): number {
+  getClientSpeed(client: Shard.Client): number {
     return this.normalizeFloat(
       this.config.baseSpeed * this.config['avatarSpeedMultiplier' + client.avatar!] * client.baseSpeed
     );
@@ -1607,11 +1655,11 @@ class Service implements Shard.Service {
     return parseFloat(value.toFixed(precision));
   }
 
-  async join({ client }: ShardContext) {
+  async join({ client }: Shard.ServiceContext) {
     log('JoinShard', client.id, client.hash);
 
     try {
-      const confirmUser = await this.realm.router.confirmUser.mutate({ address: client.address });
+      const confirmUser = await this.realm.emit.confirmUser.mutate({ address: client.address });
 
       if (confirmUser?.status !== 1) {
         client.log.failedRealmCheck += 1;
@@ -1650,7 +1698,7 @@ class Service implements Shard.Service {
       log('[INFO] client ' + client.id + ': logged!');
       log('[INFO] Total clients: ' + Object.keys(this.clientLookup).length);
 
-      const roundTimer = this.round.startedAt + this.config.roundLoopSeconds - Math.round(getTime() / 1000);
+      const roundTimer = this.round.startedDate + this.config.roundLoopSeconds - Math.round(getTime() / 1000);
       this.emit(
         client,
         'onSetPositionMonitor',
@@ -2041,8 +2089,9 @@ class Service implements Shard.Service {
               client.points += this.config.pointsPerPowerup;
               client.xp += value * this.config.spriteXpMultiplier;
 
-              if (client.character.meta[1117] > 0) {
-                client.xp += (value * this.config.spriteXpMultiplier * client.character.meta[1117]) / 100;
+              if (client.character.meta[Mechanic.SpriteFuelIncrease] > 0) {
+                client.xp +=
+                  (value * this.config.spriteXpMultiplier * client.character.meta[Mechanic.SpriteFuelIncrease]) / 100;
               }
 
               this.emitAll('onUpdatePickup', client.id, powerup.id, value);
@@ -2097,7 +2146,7 @@ class Service implements Shard.Service {
     client.xp = 50;
   }
 
-  public async claimReward(client: ShardClient, reward: Reward): Promise<void> {
+  public async claimReward(client: Shard.Client, reward: Reward): Promise<void> {
     if (!reward) return;
 
     if (this.config.anticheat.sameClientCantClaimRewardTwiceInRow && this.lastReward?.winner === client.name) return;
@@ -2116,10 +2165,12 @@ class Service implements Shard.Service {
     client.rewards += 1;
     client.points += this.config.pointsPerReward;
     client.pickups.push(reward);
-
-    if (this.isMechanicEnabled({ id: 1164 }, { client }) && client.character.meta[1164] > 0) {
+    if (
+      this.isMechanicEnabled({ id: Mechanic.DoublePickupChance }, { client }) &&
+      client.character.meta[Mechanic.DoublePickupChance] > 0
+    ) {
       const r = this.random(1, 100);
-      if (r <= client.character.meta[1164]) {
+      if (r <= client.character.meta[Mechanic.DoublePickupChance]) {
         client.pickups.push(reward);
         this.emitAll.onBroadcast.mutate({ message: `${client.name} got a double pickup!`, priority: 0 });
       }
@@ -2129,7 +2180,7 @@ class Service implements Shard.Service {
     this.currentReward = null;
   }
 
-  async updateMyself({ data }: Shard.UpdateMyselfInput, { client }: ShardContext) {
+  async updateMyself({ data }: Shard.UpdateMyselfInput, { client }: Shard.ServiceContext) {
     if (client.isDead && !client.isJoining) return { status: 0 };
     if (client.isSpectating) return { status: 0 };
     if (this.config.isMaintenance && !client.isMod) {
@@ -2207,28 +2258,28 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async restart(input: Shard.RestartInput, ctx: ShardContext) {
+  async restart(input: Shard.RestartInput, ctx: Shard.ServiceContext) {
     this.emitAll.onBroadcast.mutate({ message: `Server is rebooting in 10 seconds`, priority: 3 });
     await sleep(10 * 1000);
     process.exit(1);
     return { status: 1 };
   }
 
-  async maintenance(input: Shard.MaintenanceInput, ctx: ShardContext) {
+  async maintenance(input: Shard.MaintenanceInput, ctx: Shard.ServiceContext) {
     this.sharedConfig.isMaintenance = true;
     this.config.isMaintenance = true;
     this.emitAll('onMaintenance', this.config.isMaintenance);
     return { status: 1 };
   }
 
-  async unmaintenance(input: Shard.UnmaintenanceInput, ctx: ShardContext) {
+  async unmaintenance(input: Shard.UnmaintenanceInput, ctx: Shard.ServiceContext) {
     this.sharedConfig.isMaintenance = false;
     this.config.isMaintenance = false;
     this.emitAll('onUnmaintenance', this.config.isMaintenance);
     return { status: 1 };
   }
 
-  async startBattleRoyale(input: Shard.StartBattleRoyaleInput, ctx: ShardContext) {
+  async startBattleRoyale(input: Shard.StartBattleRoyaleInput, ctx: Shard.ServiceContext) {
     this.emitAll.onBroadcast.mutate({ message: `Battle Royale in 3...`, priority: 1 });
     await sleep(1 * 1000);
     this.emitAll.onBroadcast.mutate({ message: `Battle Royale in 2...`, priority: 1 });
@@ -2244,14 +2295,14 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async stopBattleRoyale(input: Shard.StopBattleRoyaleInput, ctx: ShardContext) {
+  async stopBattleRoyale(input: Shard.StopBattleRoyaleInput, ctx: Shard.ServiceContext) {
     this.baseConfig.isBattleRoyale = false;
     this.config.isBattleRoyale = false;
     this.emitAll.onBroadcast.mutate({ message: `Battle Royale Stopped`, priority: 0 });
     return { status: 1 };
   }
 
-  async pauseRound(input: Shard.PauseRoundInput, ctx: ShardContext) {
+  async pauseRound(input: Shard.PauseRoundInput, ctx: Shard.ServiceContext) {
     clearTimeout(this.roundLoopTimeout);
     this.baseConfig.isRoundPaused = true;
     this.config.isRoundPaused = true;
@@ -2260,7 +2311,7 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async startRound(input: Shard.StartRoundInput, ctx: ShardContext) {
+  async startRound(input: Shard.StartRoundInput, ctx: Shard.ServiceContext) {
     clearTimeout(this.roundLoopTimeout);
     if (this.config.isRoundPaused) {
       this.baseConfig.isRoundPaused = false;
@@ -2270,26 +2321,26 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async enableForceLevel2(input: Shard.EnableForceLevel2Input, ctx: ShardContext) {
+  async enableForceLevel2(input: Shard.EnableForceLevel2Input, ctx: Shard.ServiceContext) {
     this.baseConfig.level2forced = true;
     this.config.level2forced = true;
     return { status: 1 };
   }
 
-  async disableForceLevel2(input: Shard.DisableForceLevel2Input, ctx: ShardContext) {
+  async disableForceLevel2(input: Shard.DisableForceLevel2Input, ctx: Shard.ServiceContext) {
     this.baseConfig.level2forced = false;
     this.config.level2forced = false;
     return { status: 1 };
   }
 
-  async startGodParty(input: Shard.StartGodPartyInput, ctx: ShardContext) {
+  async startGodParty(input: Shard.StartGodPartyInput, ctx: Shard.ServiceContext) {
     this.baseConfig.isGodParty = true;
     this.config.isGodParty = true;
     this.emitAll.onBroadcast.mutate({ message: `God Party Started`, priority: 0 });
     return { status: 1 };
   }
 
-  async stopGodParty(input: Shard.StopGodPartyInput, ctx: ShardContext) {
+  async stopGodParty(input: Shard.StopGodPartyInput, ctx: Shard.ServiceContext) {
     this.baseConfig.isGodParty = false;
     this.config.isGodParty = false;
     for (const client of this.clients) {
@@ -2299,31 +2350,31 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async startRoyale(input: Shard.StartBattleRoyaleInput, ctx: ShardContext) {
+  async startRoyale(input: Shard.StartBattleRoyaleInput, ctx: Shard.ServiceContext) {
     this.baseConfig.isRoyale = true;
     this.config.isRoyale = true;
     this.emitAll.onBroadcast.mutate({ message: `Royale Started`, priority: 0 });
     return { status: 1 };
   }
 
-  async pauseRoyale(input: Shard.PauseRoundInput, ctx: ShardContext) {
+  async pauseRoyale(input: Shard.PauseRoundInput, ctx: Shard.ServiceContext) {
     this.emitAll.onBroadcast.mutate({ message: `Royale Paused`, priority: 2 });
     return { status: 1 };
   }
 
-  async unpauseRoyale(input: Shard.UnpauseRoyaleInput, ctx: ShardContext) {
+  async unpauseRoyale(input: Shard.UnpauseRoyaleInput, ctx: Shard.ServiceContext) {
     this.emitAll.onBroadcast.mutate({ message: `Royale Unpaused`, priority: 2 });
     return { status: 1 };
   }
 
-  async stopRoyale(input: Shard.StopBattleRoyaleInput, ctx: ShardContext) {
+  async stopRoyale(input: Shard.StopBattleRoyaleInput, ctx: Shard.ServiceContext) {
     this.baseConfig.isRoyale = false;
     this.config.isRoyale = false;
     this.emitAll.onBroadcast.mutate({ message: `Royale Stopped`, priority: 2 });
     return { status: 1 };
   }
 
-  async makeBattleHarder(input: Shard.MakeBattleHarderInput, ctx: ShardContext) {
+  async makeBattleHarder(input: Shard.MakeBattleHarderInput, ctx: Shard.ServiceContext) {
     this.baseConfig.dynamicDecayPower = false;
     this.config.dynamicDecayPower = false;
     this.sharedConfig.decayPower += 2;
@@ -2343,7 +2394,7 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async makeBattleEasier({ client }: { client: ShardClient }, input: { signature: string }) {
+  async makeBattleEasier({ client }: { client: Shard.Client }, input: { signature: string }) {
     this.baseConfig.dynamicDecayPower = false;
     this.config.dynamicDecayPower = false;
     this.sharedConfig.decayPower -= 2;
@@ -2363,7 +2414,7 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async resetBattleDifficulty({ client }: { client: ShardClient }, input: { signature: string }) {
+  async resetBattleDifficulty({ client }: { client: Shard.Client }, input: { signature: string }) {
     this.baseConfig.dynamicDecayPower = true;
     this.config.dynamicDecayPower = true;
     this.sharedConfig.decayPower = 1.4;
@@ -2381,7 +2432,7 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async messageUser({ client }: { client: ShardClient }, input: { data: any; signature: string }) {
+  async messageUser({ client }: { client: Shard.Client }, input: { data: any; signature: string }) {
     const targetClient = this.clients.find((c) => c.address === input.data.target);
     if (!targetClient) return { status: 0 };
     this.sockets[targetClient.id].emitAll.onBroadcast.mutate({
@@ -2391,7 +2442,7 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async changeUser({ client }: { client: ShardClient }, input: { data: any; signature: string }) {
+  async changeUser({ client }: { client: Shard.Client }, input: { data: any; signature: string }) {
     const newClient = this.clients.find((c) => c.address === input.data.target);
     if (!newClient) return { status: 0 };
     for (const key of Object.keys(input.data.this.config)) {
@@ -2403,26 +2454,26 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async broadcast({ client }: { client: ShardClient }, input: { data: any; signature: string }) {
+  async broadcast({ client }: { client: Shard.Client }, input: { data: any; signature: string }) {
     this.emitAll.onBroadcast.mutate(input.data.message.replace(/:/gi, ''), 0);
     return { status: 1 };
   }
 
-  async kickClient({ client }: { client: ShardClient }, input: { data: any; signature: string }) {
+  async kickClient({ client }: { client: Shard.Client }, input: { data: any; signature: string }) {
     const targetClient = this.clients.find((c) => c.address === input.data.target);
     if (!targetClient) return { status: 0 };
     this.disconnectClient(targetClient, 'kicked');
     return { status: 1 };
   }
 
-  async info({ client }: { client: ShardClient }, input: any) {
+  async info(...[input, { client }]: Parameters<Shard.Service['info']>): ReturnType<Shard.Service['info']> {
     return {
       status: 1,
       data: {
         id: this.config.id,
         version: this.serverVersion,
         port: this.state.spawnPort,
-        round: { id: this.config.roundId, startedAt: this.round.startedAt },
+        round: { id: this.config.roundId, startedDate: this.round.startedDate },
         clientCount: this.clients.length,
         // clientCount: this.clients.filter((c) => !c.isDead && !c.isSpectating).length,
         spectatorCount: this.clients.filter((c) => c.isSpectating).length,
@@ -2450,7 +2501,7 @@ export async function init(app) {
 
         const hash = ipHashFromSocket(socket);
         const spawnPoint = service.clientSpawnPoints[Math.floor(Math.random() * service.clientSpawnPoints.length)];
-        const client: ShardClient = {
+        const client: Shard.Client = {
           name: 'Unknown' + Math.floor(Math.random() * 999),
           startedRoundAt: null,
           lastTouchClientId: null,
@@ -2511,16 +2562,16 @@ export async function init(app) {
           baseSpeed: 1,
           character: {
             meta: {
-              [Mechanic.MovementBurstStrength]: 0,
-              [Mechanic.AvoidDeathPenalty]: 0,
-              [Mechanic.EnergyDecay]: 0,
-              [Mechanic.RewardsIncrease]: 0,
-              [Mechanic.RewardsDecrease]: 0,
-              [Mechanic.MovementBurstOnKill]: 0,
-              [Mechanic.MovementBurstOnEvolve]: 0,
+              [Mechanic.MovementSpeedIncrease]: 0,
+              [Mechanic.DeathPenaltyAvoid]: 0,
+              [Mechanic.EnergyDecayIncrease]: 0,
+              [Mechanic.WinRewardsIncrease]: 0,
+              [Mechanic.WinRewardsDecrease]: 0,
+              [Mechanic.IncreaseMovementSpeedOnKill]: 0,
+              [Mechanic.EvolveMovementBurst]: 0,
               [Mechanic.DoublePickupChance]: 0,
-              [Mechanic.IncreasedHealthOnKill]: 0,
-              [Mechanic.SpriteFuel]: 0,
+              [Mechanic.IncreaseHealthOnKill]: 0,
+              [Mechanic.SpriteFuelIncrease]: 0,
             },
           },
           log: {

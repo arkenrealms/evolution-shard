@@ -70,7 +70,7 @@ describe('tRPC and Game Server Integration Tests', () => {
 
   test('tRPC saveRoundRequest', async () => {
     const response = await trpcClient.mutation('saveRoundRequest', {
-      startedAt: Date.now(),
+      startedDate: Date.now(),
       endedAt: Date.now(),
       players: [],
       winners: [],
