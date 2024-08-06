@@ -321,7 +321,7 @@ class Service implements Shard.Service {
   }
 
   public async calcRoundRewards() {
-    const calcRewardsRes = await this.realm.emit.configureRequest.mutate({
+    const calcRewardsRes = await this.realm.emit.configure.mutate({
       clients: this.clients,
     });
 
@@ -334,10 +334,18 @@ class Service implements Shard.Service {
       if (this.config.rewardWinnerAmount === 0 && calcRewardsRes.data.rewardWinnerAmount !== 0) {
         const roundTimer = this.round.startedDate + this.config.roundLoopSeconds - Math.round(this.getTime() / 1000);
         this.emit.onSetRoundInfo.mutate(
-          roundTimer + ':' + this.getRoundInfo().join(':') + ':' + this.getGameModeGuide(this.config).join(':')
+          roundTimer + ':' + this.getRoundInfo().join(':') + ':' + this.getGameModeGuide().join(':')
         );
       }
     }
+  }
+
+  randomizeSpriteXp() {
+    const shuffledValues = shuffleArray([2, 4, 8, 16]);
+    this.config.powerupXp0 = shuffledValues[0];
+    this.config.powerupXp1 = shuffledValues[1];
+    this.config.powerupXp2 = shuffledValues[2];
+    this.config.powerupXp3 = shuffledValues[3];
   }
 
   public async resetLeaderboard(preset: any = null) {
@@ -383,7 +391,7 @@ class Service implements Shard.Service {
       }
     }
 
-    const saveRoundRes = await this.realm.emit.saveRoundRequest.mutate({
+    const saveRoundRes = await this.realm.emit.saveRound.mutate({
       startedDate: this.round.startedDate,
       endedAt: this.round.endedAt,
       players: this.round.clients,
@@ -500,7 +508,7 @@ class Service implements Shard.Service {
 
       client.startedRoundAt = Math.round(this.getTime() / 1000);
 
-      this.round.players.push(client);
+      this.round.clients.push(client);
     }
 
     for (let i = 0; i < this.orbs.length; i++) {
@@ -516,18 +524,18 @@ class Service implements Shard.Service {
     const roundTimer = this.round.startedDate + this.config.roundLoopSeconds - Math.round(this.getTime() / 1000);
     this.emit(
       'OnSetRoundInfo',
-      roundTimer + ':' + this.getRoundInfo().join(':') + ':' + this.getGameModeGuide(this.config).join(':')
+      roundTimer + ':' + this.getRoundInfo().join(':') + ':' + this.getGameModeGuide().join(':')
     );
 
     log(
       'roundInfo',
-      roundTimer + ':' + this.getRoundInfo().join(':') + ':' + this.getGameModeGuide(this.config).join(':'),
+      roundTimer + ':' + this.getRoundInfo().join(':') + ':' + this.getGameModeGuide().join(':'),
       (
         this.config.roundLoopSeconds +
         ':' +
         this.getRoundInfo().join(':') +
         ':' +
-        this.getGameModeGuide(this.config).join(':')
+        this.getGameModeGuide().join(':')
       ).split(':').length
     );
 
@@ -894,7 +902,7 @@ class Service implements Shard.Service {
               client.log.ranOutOfHealth += 1;
 
               if (client.lastTouchTime > now - 2000) {
-                this.registerKill(this.app, this.clientLookup[client.lastTouchClientId], client);
+                this.registerKill(his.clientLookup[client.lastTouchClientId], client);
               } else {
                 this.disconnectClient(client, 'starved');
               }
@@ -1074,7 +1082,7 @@ class Service implements Shard.Service {
       type: 4,
       points: orbPoints,
       scale: orbPoints,
-      enabledAt: now + this.config.orbTimeoutSeconds * 1000,
+      enabledDate: now + this.config.orbTimeoutSeconds * 1000,
       position: {
         x: loser.position.x,
         y: loser.position.y,
@@ -1130,7 +1138,8 @@ class Service implements Shard.Service {
     // async connected(input: Shard.ConnectedInput, { client }: Shard.ServiceContext): Shard.ConnectedOutput {
     if (this.realm.client?.socket?.connected) {
       this.disconnectClient(this.realm.client, 'Realm already connected');
-      return;
+
+      return { status: 2 };
     }
 
     client.isRealm = true;
@@ -1432,6 +1441,8 @@ class Service implements Shard.Service {
       this.syncSprites();
       this.emitAll('onSpectate', client.id, client.speed, client.cameraSize);
     }
+
+    return { status: 1 };
   }
 
   syncSprites() {
@@ -2041,7 +2052,7 @@ class Service implements Shard.Service {
             const position2 = client2.isPhased ? client2.phasedPosition : client2.position;
 
             if (this.distanceBetweenPoints(position1, position2) <= distance) {
-              this.registerKill(this.app, client1, client2);
+              this.registerKill(client1, client2);
             }
           }
         }
@@ -2103,7 +2114,7 @@ class Service implements Shard.Service {
 
           if (!client.isInvincible) {
             for (const orb of this.orbs) {
-              if (now < orb.enabledAt) continue;
+              if (now < orb.enabledDate) continue;
               if (this.distanceBetweenPoints(client.position, orb.position) > touchDistance) continue;
 
               client.orbs += 1;
@@ -2116,7 +2127,7 @@ class Service implements Shard.Service {
               this.emitAll.onBroadcast.mutate({ message: `${client.name} stole an orb (${orb.points})`, priority: 0 });
             }
 
-            if (this.currentReward && now >= this.currentReward.enabledAt) {
+            if (this.currentReward && now >= this.currentReward.enabledDate) {
               if (this.distanceBetweenPoints(client.position, this.currentReward.position) <= touchDistance) {
                 this.claimReward(client, this.currentReward);
                 this.removeReward();
@@ -2492,7 +2503,7 @@ class Service implements Shard.Service {
 
 export async function init(app) {
   try {
-    const service = new Service(this.app);
+    const service = new Service();
 
     log('Starting event handler');
     this.app.io.on('connection', function (socket) {
@@ -2503,6 +2514,7 @@ export async function init(app) {
         const spawnPoint = service.clientSpawnPoints[Math.floor(Math.random() * service.clientSpawnPoints.length)];
         const client: Shard.Client = {
           name: 'Unknown' + Math.floor(Math.random() * 999),
+          emit: undefined,
           startedRoundAt: null,
           lastTouchClientId: null,
           lastTouchTime: null,
@@ -2628,14 +2640,14 @@ export async function init(app) {
         service.clients = service.clients.filter((c) => c.hash !== client.hash);
         service.clients.push(client);
 
-        const router = createShardRouter(service);
+        client.emit = createShardRouter(service);
 
         const ctx = { client };
 
         socket.on('trpc', async (message) => {
           const { id, method, params } = message;
           try {
-            const createCaller = createCallerFactory(router);
+            const createCaller = createCallerFactory(client.emit);
             const caller = createCaller(ctx);
             const result = await caller[method](params);
 

@@ -1244,7 +1244,7 @@ const registerKill = (app, winner, loser) => {
     type: 4,
     points: orbPoints,
     scale: orbPoints,
-    enabledAt: now + config.orbTimeoutSeconds * 1000,
+    enabledDate: now + config.orbTimeoutSeconds * 1000,
     position: {
       x: loser.position.x,
       y: loser.position.y,
@@ -2084,7 +2084,7 @@ function detectCollisions(app) {
         if (!isNew) {
           for (const orb of orbs) {
             if (!orb) continue;
-            if (now < orb.enabledAt) continue;
+            if (now < orb.enabledDate) continue;
             if (distanceBetweenPoints(player.position, orb.position) > touchDistance) continue;
 
             player.orbs += 1;
@@ -2102,7 +2102,7 @@ function detectCollisions(app) {
 
           for (const reward of rewards) {
             if (!reward) continue;
-            if (now < reward.enabledAt) continue;
+            if (now < reward.enabledDate) continue;
             // log(distanceBetweenPoints(player.position, reward.position), player.position, reward.position, touchDistance)
             if (distanceBetweenPoints(player.position, reward.position) > touchDistance) continue;
 
