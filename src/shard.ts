@@ -16,7 +16,7 @@ import {
 } from '@arken/node/util';
 import { sleep } from '@arken/node/util/time';
 import { customErrorFormatter, hasRole, transformer } from '@arken/node/util/rpc';
-import { testMode, baseConfig, sharedConfig, Config } from '@arken/evolution-protocol/config';
+import { testMode, baseConfig, sharedConfig } from '@arken/evolution-protocol/config';
 import { presets } from '@arken/evolution-protocol/presets';
 import * as schema from '@arken/evolution-protocol/shard/schema';
 import type * as Schema from '@arken/evolution-protocol/shard/schema';
@@ -64,9 +64,9 @@ class Service implements Shard.Service {
   clients: Shard.Client[];
   lastReward?: Reward;
   lastLeaderName?: string;
-  config: Partial<Config>;
-  sharedConfig: Partial<Config>;
-  baseConfig: Partial<Config>;
+  config: Partial<Shard.Config>;
+  sharedConfig: Partial<Shard.Config>;
+  baseConfig: Shard.Config;
   round: Round;
   ranks: Record<string, any>;
   pandas: string[];
@@ -75,7 +75,7 @@ class Service implements Shard.Service {
   requestTimestamps: Record<string, number[]>;
   loggableEvents: string[];
   currentPreset: Preset;
-  roundConfig: Config;
+  roundConfig: Shard.Config;
   spawnBoundary1: Boundary;
   spawnBoundary2: Boundary;
   mapBoundary: Boundary;
@@ -89,7 +89,7 @@ class Service implements Shard.Service {
   emitAllDirect: ReturnType<typeof createTRPCProxyClient<ShardClientRouter>>;
 
   constructor() {
-    this.realm = new Realm();
+    // this.realm = new Realm();
     this.guestNames = [
       'Robin Banks',
       'Rick Axely',
@@ -357,7 +357,7 @@ class Service implements Shard.Service {
     }
 
     if (!this.realm.client?.socket?.connected) {
-      this.emit.onBroadcast.mutate({ message: `Realm not connected. Contact support.`, priority: 0 });
+      this.emit.onBroadcast.mutate([`Realm not connected. Contact support.`, 0]);
       this.roundLoopTimeout = setTimeout(() => this.resetLeaderboard(), this.config.roundLoopSeconds * 1000);
       return;
     }
@@ -377,17 +377,17 @@ class Service implements Shard.Service {
       log('Leader: ', winners[0]);
 
       if (winners[0]?.address) {
-        this.emit.onRoundWinner.mutate(winners[0].name);
+        this.emitAll.onRoundWinner.mutate(winners[0].name);
       }
 
       if (this.config.isBattleRoyale) {
-        this.emit.onBroadcast.mutate(
+        this.emitAll.onBroadcast.mutate([
           `Top 5 - ${winners
             .slice(0, 5)
             .map((l) => l.name)
             .join(', ')}`,
-          0
-        );
+          0,
+        ]);
       }
     }
 
@@ -405,7 +405,7 @@ class Service implements Shard.Service {
       this.config.rewardItemAmount = 0;
 
       setTimeout(() => {
-        this.emit.onBroadcast.mutate({ message: `Maintenance`, priority: 3 });
+        this.emit.onBroadcast.mutate([`Maintenance`, 3]);
       }, 30 * 1000);
     }
 
@@ -425,8 +425,8 @@ class Service implements Shard.Service {
     }
 
     // TODO: get ID from realm
-    this.baseConfig.roundId = this.baseConfig.roundId + 1;
-    this.config.roundId = this.baseConfig.roundId;
+    // this.baseConfig.roundId = this.baseConfig.roundId + 1;
+    // this.config.roundId = this.baseConfig.roundId;
 
     this.round = {
       id: this.config.roundId,
@@ -458,7 +458,7 @@ class Service implements Shard.Service {
       client.xp = 50;
       client.maxHp = 100;
       client.avatar = this.config.startAvatar;
-      client.speed = this.getClientSpeed(client, this.config);
+      client.speed = this.getClientSpeed(client);
       client.cameraSize = client.overrideCameraSize || this.config.cameraSize;
       client.log = {
         kills: [],
@@ -499,9 +499,9 @@ class Service implements Shard.Service {
 
       if (this.config.gameMode === 'Pandamonium' && this.pandas.includes(client.address)) {
         client.avatar = 2;
-        this.emit('onUpdateEvolution', client.id, client.avatar, client.speed);
+        this.emitAll.onUpdateEvolution.mutate([client.id, client.avatar, client.speed]);
       } else {
-        this.emit('onUpdateRegression', client.id, client.avatar, client.speed);
+        this.emitAll.onUpdateRegression.mutate([client.id, client.avatar, client.speed]);
       }
 
       if (client.isDead || client.isSpectating) continue;
@@ -512,7 +512,7 @@ class Service implements Shard.Service {
     }
 
     for (let i = 0; i < this.orbs.length; i++) {
-      this.emit('onUpdatePickup', 'null', this.orbs[i].id, 0);
+      this.emitAll.onUpdatePickup.mutate(['null', this.orbs[i].id, 0]);
     }
 
     this.orbs.splice(0, this.orbs.length);
@@ -522,8 +522,7 @@ class Service implements Shard.Service {
     this.syncSprites();
 
     const roundTimer = this.round.startedDate + this.config.roundLoopSeconds - Math.round(this.getTime() / 1000);
-    this.emit(
-      'OnSetRoundInfo',
+    this.emitAll.onSetRoundInfo.mutate(
       roundTimer + ':' + this.getRoundInfo().join(':') + ':' + this.getGameModeGuide().join(':')
     );
 
@@ -539,22 +538,19 @@ class Service implements Shard.Service {
       ).split(':').length
     );
 
-    this.emit('onClearLeaderboard');
+    this.emitAll.onClearLeaderboard.mutate();
 
-    this.emit.onBroadcast.mutate({
-      message: `Game Mode - ${this.config.gameMode} (Round ${this.config.roundId})`,
-      priority: 0,
-    });
+    this.emitAll.onBroadcast.mutate([`Game Mode - ${this.config.gameMode} (Round ${this.config.roundId})`, 0]);
 
     if (this.config.hideMap) {
-      this.emit('onHideMinimap');
-      this.emit.onBroadcast.mutate({ message: `Minimap hidden in this mode!`, priority: 2 });
+      this.emitAll.onHideMinimap.mutate();
+      this.emitAll.onBroadcast.mutate([`Minimap hidden in this mode!`, 2]);
     } else {
-      this.emit('onShowMinimap');
+      this.emitAll.onShowMinimap.mutate();
     }
 
     if (this.config.periodicReboots && this.rebootAfterRound) {
-      this.emit('onMaintenance', true);
+      this.emitAll.onMaintenance.mutate([true]);
 
       setTimeout(() => {
         process.exit();
@@ -564,7 +560,7 @@ class Service implements Shard.Service {
     if (this.config.periodicReboots && this.announceReboot) {
       const value = 'Restarting server at end of this round.';
 
-      this.emit.onBroadcast.mutate({ message: value, priority: 1 });
+      this.emitAll.onBroadcast.mutate([value, 1]);
 
       this.rebootAfterRound = true;
     }
@@ -596,8 +592,7 @@ class Service implements Shard.Service {
 
     const leaderboard = this.round.clients.sort(this.compareClients).slice(0, 10);
     for (let j = 0; j < leaderboard.length; j++) {
-      this.emitAll(
-        'onUpdateBestClient',
+      this.emitAll.onUpdateBestClient.mutate([
         leaderboard[j].name,
         j,
         leaderboard[j].points,
@@ -607,8 +602,8 @@ class Service implements Shard.Service {
         leaderboard[j].evolves,
         leaderboard[j].rewards,
         leaderboard[j].isDead ? '-' : Math.round(leaderboard[j].latency),
-        this.ranks[leaderboard[j].address]?.kills / 5 || 1
-      );
+        this.ranks[leaderboard[j].address]?.kills / 5 || 1,
+      ]);
     }
 
     this.flushEventQueue();
@@ -629,7 +624,7 @@ class Service implements Shard.Service {
 
     this.removeReward();
 
-    const rewardRes = await this.realm.emit.getRandomReward.mutate();
+    const rewardRes = await this.realm.emitAll.getRandomReward.mutate();
 
     if (rewardRes?.status !== 1) return;
 
@@ -640,10 +635,7 @@ class Service implements Shard.Service {
     }
 
     if (tempReward.type !== 'rune') {
-      this.emitAll.onBroadcast.mutate({
-        message: `Powerful Energy Detected - ${tempReward.rewardItemName}`,
-        priority: 3,
-      });
+      this.emitAll.onBroadcast.mutate([`Powerful Energy Detected - ${tempReward.rewardItemName}`, 3]);
     }
 
     await sleep(3 * 1000);
@@ -689,7 +681,7 @@ class Service implements Shard.Service {
 
   monitorRealm(): void {
     if (!this.realm.client?.socket?.connected) {
-      this.emitAll.onBroadcast.mutate({ message: `Realm not connected. Contact support.`, priority: 0 });
+      this.emitAll.onBroadcast.mutate([`Realm not connected. Contact support.`, 0]);
       this.disconnectAllClients();
     }
 
@@ -759,26 +751,21 @@ class Service implements Shard.Service {
           client.avatar = 2;
         }
 
-        this.emitAll.onUpdatePlayer(
-          {
-            data: [
-              client.id,
-              client.overrideSpeed || client.speed,
-              client.overrideCameraSize || client.cameraSize,
-              client.position.x,
-              client.position.y,
-              client.position.x, // target
-              client.position.y, // target
-              Math.floor(client.xp),
-              now,
-              Math.round(client.latency),
-              isInvincible ? '1' : '0',
-              client.isStuck ? '1' : '0',
-              isPhased && !isInvincible ? '1' : '0',
-            ],
-          },
-          { client }
-        );
+        this.emitAll.onUpdatePlayer.mutate([
+          client.id,
+          client.overrideSpeed || client.speed,
+          client.overrideCameraSize || client.cameraSize,
+          client.position.x,
+          client.position.y,
+          client.position.x, // target
+          client.position.y, // target
+          Math.floor(client.xp),
+          now,
+          Math.round(client.latency),
+          isInvincible ? '1' : '0',
+          client.isStuck ? '1' : '0',
+          isPhased && !isInvincible ? '1' : '0',
+        ]);
       }
 
       this.flushEventQueue();
@@ -847,7 +834,7 @@ class Service implements Shard.Service {
             }
           }
 
-          this.emitAll('onUpdateEvolution', client.id, client.avatar, client.overrideSpeed || client.speed);
+          this.emitAll.onUpdateEvolution.mutate([client.id, client.avatar, client.overrideSpeed || client.speed]);
         } else {
           client.xp = client.maxHp;
         }
@@ -883,7 +870,7 @@ class Service implements Shard.Service {
             }
           }
 
-          this.emitAll('onUpdateEvolution', client.id, client.avatar, client.overrideSpeed || client.speed);
+          this.emitAll.onUpdateEvolution.mutate([client.id, client.avatar, client.overrideSpeed || client.speed]);
         }
       }
     } else {
@@ -902,7 +889,7 @@ class Service implements Shard.Service {
               client.log.ranOutOfHealth += 1;
 
               if (client.lastTouchTime > now - 2000) {
-                this.registerKill(his.clientLookup[client.lastTouchClientId], client);
+                this.registerKill(this.clientLookup[client.lastTouchClientId], client);
               } else {
                 this.disconnectClient(client, 'starved');
               }
@@ -918,7 +905,7 @@ class Service implements Shard.Service {
               client.speed = client.speed * 0.8;
             }
 
-            this.emitAll('onUpdateRegression', client.id, client.avatar, client.overrideSpeed || client.speed);
+            this.emitAll.onUpdateRegression.mutate([client.id, client.avatar, client.overrideSpeed || client.speed]);
           }
         } else {
           if (client.avatar === 0) {
@@ -934,7 +921,7 @@ class Service implements Shard.Service {
               client.speed = client.speed * 0.8;
             }
 
-            this.emitAll('onUpdateRegression', client.id, client.avatar, client.overrideSpeed || client.speed);
+            this.emitAll.onUpdateRegression.mutate([client.id, client.avatar, client.overrideSpeed || client.speed]);
           }
         }
       }
@@ -1020,7 +1007,7 @@ class Service implements Shard.Service {
 
       if (r <= loser.character.meta[Mechanic.DeathPenaltyAvoid]) {
         deathPenaltyAvoid = true;
-        this.emitAll.onBroadcast.mutate({ message: `${loser.name} avoided penalty!`, priority: 0 });
+        this.emitAll.onBroadcast.mutate([`${loser.name} avoided penalty!`, 0]);
       }
     }
 
@@ -1073,7 +1060,7 @@ class Service implements Shard.Service {
 
     if (winner.xp > winner.maxHp) winner.xp = winner.maxHp;
 
-    this.emitAll('onGameOver', loser.id, winner.id);
+    this.emitAll.onGameOver.mutate([loser.id, winner.id]);
 
     this.disconnectClient(loser, 'got killed');
 
@@ -1098,7 +1085,7 @@ class Service implements Shard.Service {
         this.orbs.push(orb);
         this.orbLookup[orb.id] = orb;
 
-        this.emitAll('onSpawnPowerUp', orb.id, orb.type, orb.position.x, orb.position.y, orb.scale);
+        this.emitAll.onSpawnPowerUp.mutate([orb.id, orb.type, orb.position.x, orb.position.y, orb.scale]);
       }, this.config.orbTimeoutSeconds * 1000);
     }
   }
@@ -1116,10 +1103,7 @@ class Service implements Shard.Service {
     const totalAliveClients = this.clients.filter((client) => !client.isGod && !client.isSpectating && !client.isDead);
 
     if (this.config.isBattleRoyale && totalAliveClients.length === 1) {
-      this.emitAll.onBroadcast.mutate({
-        message: `${totalAliveClients[0].name} is the last dragon standing`,
-        priority: 3,
-      });
+      this.emitAll.onBroadcast.mutate([`${totalAliveClients[0].name} is the last dragon standing`, 3]);
 
       this.baseConfig.isBattleRoyale = false;
       this.config.isBattleRoyale = false;
@@ -1207,7 +1191,7 @@ class Service implements Shard.Service {
 
   removeReward(): void {
     if (!this.currentReward) return;
-    this.emitAll('onUpdateReward', 'null', this.currentReward.id);
+    this.emitAll.onUpdateReward.mutate(['null', this.currentReward.id]);
     this.currentReward = undefined;
   }
 
@@ -1259,14 +1243,13 @@ class Service implements Shard.Service {
       const powerupSpawnPoint = { id: shortId.generate(), type: Math.floor(Math.random() * 4), scale: 1, position };
       this.powerups.push(powerupSpawnPoint);
       this.powerupLookup[powerupSpawnPoint.id] = powerupSpawnPoint;
-      this.emitAll(
-        'onSpawnPowerUp',
+      this.emitAll.onSpawnPowerUp.mutate([
         powerupSpawnPoint.id,
         powerupSpawnPoint.type,
         powerupSpawnPoint.position.x,
         powerupSpawnPoint.position.y,
-        powerupSpawnPoint.scale
-      );
+        powerupSpawnPoint.scale,
+      ]);
     }
     this.config.spritesTotal = this.powerups.length;
   }
@@ -1287,93 +1270,90 @@ class Service implements Shard.Service {
     return this.guestNames[randomIndex];
   }
 
-  async seerConnected(input: Shard.ApiConnectedInput, ctx: Shard.ServiceContext) {
-    this.emitAll.onBroadcast.mutate({ message: 'Seer connected', priority: 0 });
+  async seerConnected(
+    ...[input, { client }]: Parameters<Shard.Service['seerConnected']>
+  ): ReturnType<Shard.Service['seerConnected']> {
+    this.emitAll.onBroadcast.mutate(['Seer connected', 0]);
     return { status: 1 };
   }
 
-  async seerDisconnected(input: Shard.ApiDisconnectedInput, ctx: Shard.ServiceContext) {
-    this.emitAll.onBroadcast.mutate({ message: 'Seer disconnected', priority: 0 });
+  async seerDisconnected(
+    ...[input, { client }]: Parameters<Shard.Service['seerDisconnected']>
+  ): ReturnType<Shard.Service['seerDisconnected']> {
+    this.emitAll.onBroadcast.mutate(['Seer disconnected', 0]);
     return { status: 1 };
   }
 
   broadcastMechanics(input: Shard.BroadcastInput, { client }: Shard.ServiceContext): void {
     if (this.isMechanicEnabled({ id: Mechanic.WinRewardsIncrease }, { client })) {
-      this.emit(
-        client,
-        'onBroadcast',
+      this.emit.onBroadcast.mutate([
         `${this.formatNumber(
           client.character.meta[Mechanic.WinRewardsIncrease] - client.character.meta[Mechanic.WinRewardsDecrease]
         )}% Rewards`,
-        0
-      );
+        0,
+        { context: { client } },
+      ]);
     }
     if (this.isMechanicEnabled({ id: Mechanic.IncreaseMovementSpeedOnKill }, { client })) {
-      this.emit(
-        client,
-        'onBroadcast',
-        `${this.formatNumber(client.character.meta[Mechanic.IncreaseMovementSpeedOnKill])}% Movement Burst On Kill`,
-        0
+      this.emit.onBroadcast.mutate(
+        [
+          `${this.formatNumber(client.character.meta[Mechanic.IncreaseMovementSpeedOnKill])}% Movement Burst On Kill`,
+          0,
+        ],
+        { context: { client } }
       );
     }
     if (this.isMechanicEnabled({ id: Mechanic.EvolveMovementBurst }, { client })) {
-      this.emit(
-        client,
-        'onBroadcast',
-        `${this.formatNumber(client.character.meta[Mechanic.EvolveMovementBurst])}% Movement Burst On Evolve`,
-        0
+      this.emit.onBroadcast.mutate(
+        [`${this.formatNumber(client.character.meta[Mechanic.EvolveMovementBurst])}% Movement Burst On Evolve`, 0],
+        { context: { client } }
       );
     }
     if (this.isMechanicEnabled({ id: Mechanic.MovementSpeedIncrease }, { client })) {
-      this.emit(
-        client,
-        'onBroadcast',
-        `${this.formatNumber(client.character.meta[Mechanic.MovementSpeedIncrease])}% Movement Burst Strength`,
-        0
+      this.emit.onBroadcast.mutate(
+        [`${this.formatNumber(client.character.meta[Mechanic.MovementSpeedIncrease])}% Movement Burst Strength`, 0],
+        { context: { client } }
       );
     }
     if (this.isMechanicEnabled({ id: Mechanic.DeathPenaltyAvoid }, { client })) {
-      this.emit(
-        client,
-        'onBroadcast',
-        `${this.formatNumber(client.character.meta[Mechanic.DeathPenaltyAvoid])}% Avoid Death Penalty`,
-        0
+      this.emit.onBroadcast.mutate(
+        [`${this.formatNumber(client.character.meta[Mechanic.DeathPenaltyAvoid])}% Avoid Death Penalty`, 0],
+        { context: { client } }
       );
     }
     if (this.isMechanicEnabled({ id: Mechanic.DoublePickupChance }, { client })) {
-      this.emit(
-        client,
-        'onBroadcast',
-        `${this.formatNumber(client.character.meta[Mechanic.DoublePickupChance])}% Double Pickup Chance`,
-        0
+      this.emit.onBroadcast.mutate(
+        [`${this.formatNumber(client.character.meta[Mechanic.DoublePickupChance])}% Double Pickup Chance`, 0],
+        { context: { client } }
       );
     }
     if (this.isMechanicEnabled({ id: Mechanic.IncreaseHealthOnKill }, { client })) {
-      this.emit(
-        client,
-        'onBroadcast',
-        `${this.formatNumber(client.character.meta[Mechanic.IncreaseHealthOnKill])}% Increased Health On Kill`,
-        0
+      this.emit.onBroadcast.mutate(
+        [`${this.formatNumber(client.character.meta[Mechanic.IncreaseHealthOnKill])}% Increased Health On Kill`, 0],
+        { context: { client } }
       );
     }
     if (this.isMechanicEnabled({ id: Mechanic.EnergyDecayIncrease }, { client })) {
-      this.emit(
-        client,
-        'onBroadcast',
-        `${this.formatNumber(
-          client.character.meta[Mechanic.EnergyDecayIncrease] - client.character.meta[Mechanic.EnergyDecayIncrease - 1]
-        )}% Energy Decay`,
-        0
+      this.emit.onBroadcast.mutate(
+        [
+          `${this.formatNumber(
+            client.character.meta[Mechanic.EnergyDecayIncrease] -
+              client.character.meta[Mechanic.EnergyDecayIncrease - 1]
+          )}% Energy Decay`,
+          0,
+        ],
+        { context: { client } }
       );
     }
     if (this.isMechanicEnabled({ id: Mechanic.SpriteFuelIncrease }, { client })) {
-      this.emit(
-        client,
-        'onBroadcast',
-        `${this.formatNumber(
-          client.character.meta[Mechanic.SpriteFuelIncrease] - client.character.meta[Mechanic.SpriteFuelIncrease - 1]
-        )}% Sprite Fuel`,
-        0
+      this.emit.onBroadcast.mutate(
+        [
+          `${this.formatNumber(
+            client.character.meta[Mechanic.SpriteFuelIncrease] - client.character.meta[Mechanic.SpriteFuelIncrease - 1]
+          )}% Sprite Fuel`,
+          0,
+        ],
+        { context: { client } }
       );
     }
   }
@@ -1382,7 +1362,9 @@ class Service implements Shard.Service {
     return !!client.character.meta[id];
   }
 
-  async setCharacter(input: Shard.SetCharacterInput, { client }: Shard.ServiceContext) {
+  async setCharacter(
+    ...[input, { client }]: Parameters<Shard.Service['setCharacter']>
+  ): ReturnType<Shard.Service['setCharacter']> {
     // Check if the client is a realm client
     if (!client.isRealm) {
       return { status: 0 };
@@ -1403,21 +1385,25 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async setConfig(input: Shard.SetConfigInput, { client }: Shard.ServiceContext) {
+  async setConfig(
+    ...[input, { client }]: Parameters<Shard.Service['setConfig']>
+  ): ReturnType<Shard.Service['setConfig']> {
     return { status: 1 };
   }
 
-  async getConfig(input: Shard.GetConfigInput, { client }: Shard.ServiceContext) {
+  async getConfig(
+    ...[input, { client }]: Parameters<Shard.Service['getConfig']>
+  ): ReturnType<Shard.Service['getConfig']> {
     return { status: 1, data: this.config };
   }
 
-  async load(input: Shard.LoadInput, { client }: Shard.ServiceContext) {
+  async load(...[input, { client }]: Parameters<Shard.Service['load']>): ReturnType<Shard.Service['load']> {
     log('Load', client.hash);
-    this.emit.onLoaded.mutate(1, { client });
+    this.emit.onLoaded.mutate(1, { context: { client } });
     return { status: 1 };
   }
 
-  public spectate(input: Shard.SpectateInput, { client }: Shard.ServiceContext) {
+  async spectate(...[input, { client }]: Parameters<Shard.Service['spectate']>): ReturnType<Shard.Service['spectate']> {
     // Spectating is not allowed during maintenance unless the client is a moderator
     if (this.config.isMaintenance && !client.isMod) return { status: 0 };
 
@@ -1439,7 +1425,7 @@ class Service implements Shard.Service {
       client.log.spectating += 1;
 
       this.syncSprites();
-      this.emitAll('onSpectate', client.id, client.speed, client.cameraSize);
+      this.emitAll.onSpectate.mutate([client.id, client.speed, client.cameraSize]);
     }
 
     return { status: 1 };
@@ -1453,7 +1439,7 @@ class Service implements Shard.Service {
     if (this.powerups.length > length) {
       const deletedPoints = this.powerups.splice(length);
       for (let i = 0; i < deletedPoints.length; i++) {
-        this.emitAll('onUpdatePickup', 'null', deletedPoints[i].id, 0);
+        this.emitAll.onUpdatePickup.mutate(['null', deletedPoints[i].id, 0]);
       }
       this.config.spritesTotal = length;
     } else if (length > this.powerups.length) {
@@ -1481,14 +1467,14 @@ class Service implements Shard.Service {
     this.clients = this.clients.filter((c) => c.id !== client.id);
 
     if (this.config.gameMode === 'Pandamonium') {
-      this.emitAll.onBroadcast.mutate({
-        message: `${
+      this.emitAll.onBroadcast.mutate([
+        `${
           this.clients.filter(
             (c) => !c.isDead && !c.isDisconnected && !c.isSpectating && !this.pandas.includes(c.address)
           ).length
         } alive`,
-        priority: 0,
-      });
+        0,
+      ]);
     }
 
     if (client.isDisconnected) return;
@@ -1504,7 +1490,7 @@ class Service implements Shard.Service {
       const oldSocket = this.sockets[client.id];
       setTimeout(
         () => {
-          this.emitAll('onUserDisconnected', client.id);
+          this.emitAll.onUserDisconnected.mutate(client.id);
           this.syncSprites();
           this.flushEventQueue();
           if (oldSocket && oldSocket.emit && oldSocket.connected) oldSocket.disconnect();
@@ -1529,14 +1515,18 @@ class Service implements Shard.Service {
     }
   }
 
-  async login({ data }: Shard.LoginInput, { client }: Shard.ServiceContext) {
-    log('Login', data);
+  async login(...[input, { client }]: Parameters<Shard.Service['login']>): ReturnType<Shard.Service['login']> {
+    log('Login', input.data);
 
-    const pack = decodePayload(data);
+    const pack = decodePayload(input.data);
     if (!pack.signature || !pack.network || !pack.device || !pack.address) {
       client.log.signinProblem += 1;
       this.disconnectClient(client, 'signin problem');
       return { status: 0 };
+    }
+
+    if (!this.realm && pack.address === '') {
+      this.realm = { client, emit: {} };
     }
 
     const address = await this.normalizeAddress(pack.address);
@@ -1562,14 +1552,14 @@ class Service implements Shard.Service {
     }
 
     if (client.isBanned) {
-      this.emit(client, 'onBanned', true);
+      this.emit.onBanned.mutate([true], { context: { client } });
       this.disconnectClient(client, 'banned');
       return { status: 0 };
     }
 
     if (this.config.isMaintenance && !client.isMod) {
       client.log.maintenanceJoin += 1;
-      this.emit(client, 'onMaintenance', true);
+      this.emit.onMaintenance.mutate([true], { context: { client } });
       this.disconnectClient(client, 'maintenance');
       return { status: 0 };
     }
@@ -1598,7 +1588,7 @@ class Service implements Shard.Service {
       client.log.connects += 1;
     }
 
-    this.emitAll('onLogin', client.id, client.name, client.network, client.address, client.device);
+    this.emitAll.onLogin.mutate([client.id, client.name, client.network, client.address, client.device]);
 
     if (this.config.log.connections) {
       log('Connected', { hash: client.hash, address: client.address, name: client.name });
@@ -1633,7 +1623,9 @@ class Service implements Shard.Service {
   }
 
   // Method to verify if a signature request is valid
-  async auth({ data, signature }: Shard.AuthInput, { client }: Shard.ServiceContext) {
+  async auth(
+    ...[{ data, signature }, { client }]: Parameters<Shard.Service['auth']>
+  ): ReturnType<Shard.Service['auth']> {
     log('Verifying', data);
 
     if (!signature.address) return { status: 0 };
@@ -1666,7 +1658,7 @@ class Service implements Shard.Service {
     return parseFloat(value.toFixed(precision));
   }
 
-  async join({ client }: Shard.ServiceContext) {
+  async join(...[input, { client }]: Parameters<Shard.Service['join']>): ReturnType<Shard.Service['join']> {
     log('JoinShard', client.id, client.hash);
 
     try {
@@ -1692,7 +1684,7 @@ class Service implements Shard.Service {
       }
 
       if (this.config.isMaintenance && !client.isMod) {
-        this.emit(client, 'onMaintenance', true);
+        this.emit.onMaintenance.mutate([true], { context: { client } });
         this.disconnectClient(client, 'maintenance');
         return { status: 0 };
       }
@@ -1703,59 +1695,60 @@ class Service implements Shard.Service {
 
       if (this.config.gameMode === 'Pandamonium' && this.pandas.includes(client.address)) {
         client.avatar = 2;
-        this.emit(client, 'onUpdateEvolution', client.id, client.avatar, client.speed);
+        this.emit.onUpdateEvolution.mutate([client.id, client.avatar, client.speed], { context: { client } });
       }
 
       log('[INFO] client ' + client.id + ': logged!');
       log('[INFO] Total clients: ' + Object.keys(this.clientLookup).length);
 
       const roundTimer = this.round.startedDate + this.config.roundLoopSeconds - Math.round(getTime() / 1000);
-      this.emit(
-        client,
-        'onSetPositionMonitor',
+      this.emit.onSetPositionMonitor.mutate(
         `${Math.round(this.config.checkPositionDistance)}:${Math.round(this.config.checkInterval)}:${Math.round(
           this.config.resetInterval
         )}`
       );
-      this.emit(
-        client,
-        'onJoinGame',
-        client.id,
-        client.name,
-        client.avatar,
-        client.isMasterClient ? 'true' : 'false',
-        roundTimer,
-        client.position.x,
-        client.position.y
+
+      this.emit.onJoinGame.mutate(
+        [
+          client.id,
+          client.name,
+          client.avatar,
+          client.isMasterClient ? 'true' : 'false',
+          roundTimer,
+          client.position.x,
+          client.position.y,
+        ],
+        { context: { client } }
       );
 
       if (!this.realm) {
-        this.emit(client, 'onBroadcast', `Realm not connected. Contact support.`, 0);
+        this.emit.onBroadcast.mutate([`Realm not connected. Contact support.`, 0], { context: { client } });
         this.disconnectClient(client, 'realm not connected');
         return { status: 0 };
       }
 
       if (!this.config.isRoundPaused) {
-        this.emit(
-          client,
-          'onSetRoundInfo',
-          `${roundTimer}:${this.getRoundInfo().join(':')}:${this.getGameModeGuide().join(':')}`
+        this.emit.onSetRoundInfo.mutate(
+          `${roundTimer}:${this.getRoundInfo().join(':')}:${this.getGameModeGuide().join(':')}`,
+          { context: { client } }
         );
-        this.emit(client, 'onBroadcast', `Game Mode - ${this.config.gameMode} (Round ${this.config.roundId})`, 0);
+        this.emit.onBroadcast.mutate([`Game Mode - ${this.config.gameMode} (Round ${this.config.roundId})`, 0], {
+          context: { client },
+        });
       }
 
       this.syncSprites();
 
       if (this.config.hideMap) {
-        this.emit(client, 'onHideMinimap');
-        this.emit(client, 'onBroadcast', `Minimap hidden in this mode!`, 2);
+        this.emit.onHideMinimap.mutate([], { context: { client } });
+        this.emit.onBroadcast.mutate([`Minimap hidden in this mode!`, 2], { context: { client } });
       }
 
       if (this.config.level2open) {
-        this.emit(client, 'onOpenLevel2');
-        this.emit(client, 'onBroadcast', `Wall going down!`, 0);
+        this.emit.onOpenLevel2.mutate([], { context: { client } });
+        this.emit.onBroadcast.mutate([`Wall going down!`, 0], { context: { client } });
       } else {
-        this.emit(client, 'onCloseLevel2');
+        this.emit.onCloseLevel2.mutate([], { context: { client } });
       }
 
       for (const otherClient of this.clients) {
@@ -1768,46 +1761,45 @@ class Service implements Shard.Service {
         )
           continue;
 
-        this.emit(
-          client,
-          'onSpawnClient',
-          otherClient.id,
-          otherClient.name,
-          otherClient.speed,
-          otherClient.avatar,
-          otherClient.position.x,
-          otherClient.position.y,
-          otherClient.position.x,
-          otherClient.position.y
+        this.emit.onSpawnClient.mutate(
+          [
+            otherClient.id,
+            otherClient.name,
+            otherClient.speed,
+            otherClient.avatar,
+            otherClient.position.x,
+            otherClient.position.y,
+            otherClient.position.x,
+            otherClient.position.y,
+          ],
+          { context: { client } }
         );
       }
 
       for (const powerup of this.powerups) {
-        this.emit(
-          client,
-          'onSpawnPowerUp',
-          powerup.id,
-          powerup.type,
-          powerup.position.x,
-          powerup.position.y,
-          powerup.scale
+        this.emit.onSpawnPowerUp.mutate(
+          [powerup.id, powerup.type, powerup.position.x, powerup.position.y, powerup.scale],
+          { context: { client } }
         );
       }
 
       for (const orb of this.orbs) {
-        this.emit(client, 'onSpawnPowerUp', orb.id, orb.type, orb.position.x, orb.position.y, orb.scale);
+        this.emit.onSpawnPowerUp.mutate([orb.id, orb.type, orb.position.x, orb.position.y, orb.scale], {
+          context: { client },
+        });
       }
 
       if (this.currentReward) {
-        this.emit(
-          client,
-          'onSpawnReward',
-          this.currentReward.id,
-          this.currentReward.rewardItemType,
-          this.currentReward.rewardItemName,
-          this.currentReward.quantity,
-          this.currentReward.position.x,
-          this.currentReward.position.y
+        this.emit.onSpawnReward.mutate(
+          [
+            this.currentReward.id,
+            this.currentReward.rewardItemType,
+            this.currentReward.rewardItemName,
+            this.currentReward.quantity,
+            this.currentReward.position.x,
+            this.currentReward.position.y,
+          ],
+          { context: { client } }
         );
       }
 
@@ -1998,7 +1990,7 @@ class Service implements Shard.Service {
         ) {
           if (!this.config.level2open) {
             this.config.level2open = true;
-            this.emitAll.onBroadcast.mutate({ message: `Wall going down...`, priority: 0 });
+            this.emitAll.onBroadcast.mutate([`Wall going down...`, 0]);
 
             setTimeout(() => {
               this.config.spritesStartCount = 200;
@@ -2006,7 +1998,7 @@ class Service implements Shard.Service {
               this.spawnSprites(this.config.spritesStartCount);
             }, 2000);
 
-            this.emitAll('onOpenLevel2');
+            this.emitAll.onOpenLevel2.mutate();
           }
         }
 
@@ -2017,7 +2009,7 @@ class Service implements Shard.Service {
           if (this.config.level2open) {
             this.config.level2open = false;
 
-            this.emitAll.onBroadcast.mutate({ message: `Wall going up...`, priority: 0 });
+            this.emitAll.onBroadcast.mutate([`Wall going up...`, 0]);
 
             this.config.spritesStartCount = 50;
             this.clearSprites();
@@ -2029,7 +2021,7 @@ class Service implements Shard.Service {
               }
             }, 2000);
 
-            this.emitAll('onCloseLevel2');
+            this.emitAll.onCloseLevel2.mutate();
           }
         }
       }
@@ -2105,7 +2097,7 @@ class Service implements Shard.Service {
                   (value * this.config.spriteXpMultiplier * client.character.meta[Mechanic.SpriteFuelIncrease]) / 100;
               }
 
-              this.emitAll('onUpdatePickup', client.id, powerup.id, value);
+              this.emitAll.onUpdatePickup.mutate([client.id, powerup.id, value]);
 
               this.removeSprite(powerup.id);
               this.spawnSprites(1);
@@ -2121,10 +2113,10 @@ class Service implements Shard.Service {
               client.points += orb.points;
               client.points += this.config.pointsPerOrb;
 
-              this.emitAll('onUpdatePickup', client.id, orb.id, 0);
+              this.emitAll.onUpdatePickup.mutate([client.id, orb.id, 0]);
               this.removeOrb(orb.id);
 
-              this.emitAll.onBroadcast.mutate({ message: `${client.name} stole an orb (${orb.points})`, priority: 0 });
+              this.emitAll.onBroadcast.mutate([`${client.name} stole an orb (${orb.points})`, 0]);
             }
 
             if (this.currentReward && now >= this.currentReward.enabledDate) {
@@ -2171,7 +2163,7 @@ class Service implements Shard.Service {
 
     reward.winner = client.name;
 
-    this.emitAll('onUpdateReward', client.id, reward.id);
+    this.emitAll.onUpdateReward.mutate([client.id, reward.id]);
 
     client.rewards += 1;
     client.points += this.config.pointsPerReward;
@@ -2183,7 +2175,7 @@ class Service implements Shard.Service {
       const r = this.random(1, 100);
       if (r <= client.character.meta[Mechanic.DoublePickupChance]) {
         client.pickups.push(reward);
-        this.emitAll.onBroadcast.mutate({ message: `${client.name} got a double pickup!`, priority: 0 });
+        this.emitAll.onBroadcast.mutate([`${client.name} got a double pickup!`, 0]);
       }
     }
 
@@ -2191,11 +2183,13 @@ class Service implements Shard.Service {
     this.currentReward = null;
   }
 
-  async updateMyself({ data }: Shard.UpdateMyselfInput, { client }: Shard.ServiceContext) {
+  async updateMyself(
+    ...[{ data }, { client }]: Parameters<Shard.Service['updateMyself']>
+  ): ReturnType<Shard.Service['updateMyself']> {
     if (client.isDead && !client.isJoining) return { status: 0 };
     if (client.isSpectating) return { status: 0 };
     if (this.config.isMaintenance && !client.isMod) {
-      this.emit(client, 'onMaintenance', true);
+      this.emit.onMaintenance.mutate([true], { context: { client } });
       this.disconnectClient(client, 'maintenance');
       return { status: 0 };
     }
@@ -2211,14 +2205,13 @@ class Service implements Shard.Service {
       client.invincibleUntil = client.joinedAt + this.config.immunitySeconds;
 
       if (this.config.isBattleRoyale) {
-        this.emit(client, 'onBroadcast', 'Spectate until the round is over', 0);
+        this.emit.onBroadcast.mutate(['Spectate until the round is over', 0], { context: { client } });
 
         return this.spectate({}, { client });
       }
 
       this.addToRecentClients(client);
-      this.emitAll(
-        'onSpawnClient',
+      this.emitAll.onSpawnClient.mutate([
         client.id,
         client.name,
         client.overrideSpeed || client.speed,
@@ -2226,11 +2219,11 @@ class Service implements Shard.Service {
         client.position.x,
         client.position.y,
         client.position.x,
-        client.position.y
-      );
+        client.position.y,
+      ]);
 
       if (this.config.isRoundPaused) {
-        this.emit(client, 'onRoundPaused');
+        this.emit.onRoundPaused.mutate([], { context: { client } });
         return { status: 0 };
       }
     }
@@ -2269,60 +2262,72 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async restart(input: Shard.RestartInput, ctx: Shard.ServiceContext) {
-    this.emitAll.onBroadcast.mutate({ message: `Server is rebooting in 10 seconds`, priority: 3 });
+  async restart(...[input, { client }]: Parameters<Shard.Service['restart']>): ReturnType<Shard.Service['restart']> {
+    this.emitAll.onBroadcast.mutate([`Server is rebooting in 10 seconds`, 3]);
     await sleep(10 * 1000);
     process.exit(1);
     return { status: 1 };
   }
 
-  async maintenance(input: Shard.MaintenanceInput, ctx: Shard.ServiceContext) {
+  async maintenance(
+    ...[input, { client }]: Parameters<Shard.Service['maintenance']>
+  ): ReturnType<Shard.Service['maintenance']> {
     this.sharedConfig.isMaintenance = true;
     this.config.isMaintenance = true;
-    this.emitAll('onMaintenance', this.config.isMaintenance);
+    this.emitAll.onMaintenance.mutate(this.config.isMaintenance);
     return { status: 1 };
   }
 
-  async unmaintenance(input: Shard.UnmaintenanceInput, ctx: Shard.ServiceContext) {
+  async unmaintenance(
+    ...[input, { client }]: Parameters<Shard.Service['unmaintenance']>
+  ): ReturnType<Shard.Service['unmaintenance']> {
     this.sharedConfig.isMaintenance = false;
     this.config.isMaintenance = false;
-    this.emitAll('onUnmaintenance', this.config.isMaintenance);
+    this.emitAll.onUnmaintenance.mutate(this.config.isMaintenance);
     return { status: 1 };
   }
 
-  async startBattleRoyale(input: Shard.StartBattleRoyaleInput, ctx: Shard.ServiceContext) {
-    this.emitAll.onBroadcast.mutate({ message: `Battle Royale in 3...`, priority: 1 });
+  async startBattleRoyale(
+    ...[input, { client }]: Parameters<Shard.Service['startBattleRoyale']>
+  ): ReturnType<Shard.Service['startBattleRoyale']> {
+    this.emitAll.onBroadcast.mutate([`Battle Royale in 3...`, 1]);
     await sleep(1 * 1000);
-    this.emitAll.onBroadcast.mutate({ message: `Battle Royale in 2...`, priority: 1 });
+    this.emitAll.onBroadcast.mutate([`Battle Royale in 2...`, 1]);
     await sleep(1 * 1000);
-    this.emitAll.onBroadcast.mutate({ message: `Battle Royale in 1...`, priority: 1 });
+    this.emitAll.onBroadcast.mutate([`Battle Royale in 1...`, 1]);
     await sleep(1 * 1000);
     this.baseConfig.isBattleRoyale = true;
     this.config.isBattleRoyale = true;
     this.baseConfig.isGodParty = false;
     this.config.isGodParty = false;
-    this.emitAll.onBroadcast.mutate({ message: `Battle Royale Started`, priority: 3 });
-    this.emitAll.onBroadcast.mutate({ message: `God Party Stopped`, priority: 3 });
+    this.emitAll.onBroadcast.mutate([`Battle Royale Started`, 3]);
+    this.emitAll.onBroadcast.mutate([`God Party Stopped`, 3]);
     return { status: 1 };
   }
 
-  async stopBattleRoyale(input: Shard.StopBattleRoyaleInput, ctx: Shard.ServiceContext) {
+  async stopBattleRoyale(
+    ...[input, { client }]: Parameters<Shard.Service['stopBattleRoyale']>
+  ): ReturnType<Shard.Service['stopBattleRoyale']> {
     this.baseConfig.isBattleRoyale = false;
     this.config.isBattleRoyale = false;
-    this.emitAll.onBroadcast.mutate({ message: `Battle Royale Stopped`, priority: 0 });
+    this.emitAll.onBroadcast.mutate([`Battle Royale Stopped`, 0]);
     return { status: 1 };
   }
 
-  async pauseRound(input: Shard.PauseRoundInput, ctx: Shard.ServiceContext) {
+  async pauseRound(
+    ...[input, { client }]: Parameters<Shard.Service['pauseRound']>
+  ): ReturnType<Shard.Service['pauseRound']> {
     clearTimeout(this.roundLoopTimeout);
     this.baseConfig.isRoundPaused = true;
     this.config.isRoundPaused = true;
-    this.emitAll('onRoundPaused');
-    this.emitAll.onBroadcast.mutate({ message: `Round Paused`, priority: 0 });
+    this.emitAll.onRoundPaused.mutate();
+    this.emitAll.onBroadcast.mutate([`Round Paused`, 0]);
     return { status: 1 };
   }
 
-  async startRound(input: Shard.StartRoundInput, ctx: Shard.ServiceContext) {
+  async startRound(
+    ...[input, { client }]: Parameters<Shard.Service['startRound']>
+  ): ReturnType<Shard.Service['startRound']> {
     clearTimeout(this.roundLoopTimeout);
     if (this.config.isRoundPaused) {
       this.baseConfig.isRoundPaused = false;
@@ -2332,60 +2337,78 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async enableForceLevel2(input: Shard.EnableForceLevel2Input, ctx: Shard.ServiceContext) {
+  async enableForceLevel2(
+    ...[input, { client }]: Parameters<Shard.Service['enableForceLevel2']>
+  ): ReturnType<Shard.Service['enableForceLevel2']> {
     this.baseConfig.level2forced = true;
     this.config.level2forced = true;
     return { status: 1 };
   }
 
-  async disableForceLevel2(input: Shard.DisableForceLevel2Input, ctx: Shard.ServiceContext) {
+  async disableForceLevel2(
+    ...[input, { client }]: Parameters<Shard.Service['disableForceLevel2']>
+  ): ReturnType<Shard.Service['disableForceLevel2']> {
     this.baseConfig.level2forced = false;
     this.config.level2forced = false;
     return { status: 1 };
   }
 
-  async startGodParty(input: Shard.StartGodPartyInput, ctx: Shard.ServiceContext) {
+  async startGodParty(
+    ...[input, { client }]: Parameters<Shard.Service['startGodParty']>
+  ): ReturnType<Shard.Service['startGodParty']> {
     this.baseConfig.isGodParty = true;
     this.config.isGodParty = true;
-    this.emitAll.onBroadcast.mutate({ message: `God Party Started`, priority: 0 });
+    this.emitAll.onBroadcast.mutate([`God Party Started`, 0]);
     return { status: 1 };
   }
 
-  async stopGodParty(input: Shard.StopGodPartyInput, ctx: Shard.ServiceContext) {
+  async stopGodParty(
+    ...[input, { client }]: Parameters<Shard.Service['stopGodParty']>
+  ): ReturnType<Shard.Service['stopGodParty']> {
     this.baseConfig.isGodParty = false;
     this.config.isGodParty = false;
     for (const client of this.clients) {
       client.isInvincible = false;
     }
-    this.emitAll.onBroadcast.mutate({ message: `God Party Stopped`, priority: 2 });
+    this.emitAll.onBroadcast.mutate([`God Party Stopped`, 2]);
     return { status: 1 };
   }
 
-  async startRoyale(input: Shard.StartBattleRoyaleInput, ctx: Shard.ServiceContext) {
+  async startRoyale(
+    ...[input, { client }]: Parameters<Shard.Service['startRoyale']>
+  ): ReturnType<Shard.Service['startRoyale']> {
     this.baseConfig.isRoyale = true;
     this.config.isRoyale = true;
-    this.emitAll.onBroadcast.mutate({ message: `Royale Started`, priority: 0 });
+    this.emitAll.onBroadcast.mutate([`Royale Started`, 0]);
     return { status: 1 };
   }
 
-  async pauseRoyale(input: Shard.PauseRoundInput, ctx: Shard.ServiceContext) {
-    this.emitAll.onBroadcast.mutate({ message: `Royale Paused`, priority: 2 });
+  async pauseRoyale(
+    ...[input, { client }]: Parameters<Shard.Service['pauseRoyale']>
+  ): ReturnType<Shard.Service['pauseRoyale']> {
+    this.emitAll.onBroadcast.mutate([`Royale Paused`, 2]);
     return { status: 1 };
   }
 
-  async unpauseRoyale(input: Shard.UnpauseRoyaleInput, ctx: Shard.ServiceContext) {
-    this.emitAll.onBroadcast.mutate({ message: `Royale Unpaused`, priority: 2 });
+  async unpauseRoyale(
+    ...[input, { client }]: Parameters<Shard.Service['unpauseRoyale']>
+  ): ReturnType<Shard.Service['unpauseRoyale']> {
+    this.emitAll.onBroadcast.mutate([`Royale Unpaused`, 2]);
     return { status: 1 };
   }
 
-  async stopRoyale(input: Shard.StopBattleRoyaleInput, ctx: Shard.ServiceContext) {
+  async stopRoyale(
+    ...[input, { client }]: Parameters<Shard.Service['stopRoyale']>
+  ): ReturnType<Shard.Service['stopRoyale']> {
     this.baseConfig.isRoyale = false;
     this.config.isRoyale = false;
-    this.emitAll.onBroadcast.mutate({ message: `Royale Stopped`, priority: 2 });
+    this.emitAll.onBroadcast.mutate([`Royale Stopped`, 2]);
     return { status: 1 };
   }
 
-  async makeBattleHarder(input: Shard.MakeBattleHarderInput, ctx: Shard.ServiceContext) {
+  async makeBattleHarder(
+    ...[input, { client }]: Parameters<Shard.Service['makeBattleHarder']>
+  ): ReturnType<Shard.Service['makeBattleHarder']> {
     this.baseConfig.dynamicDecayPower = false;
     this.config.dynamicDecayPower = false;
     this.sharedConfig.decayPower += 2;
@@ -2401,11 +2424,13 @@ class Service implements Shard.Service {
     this.emitAll.onSetPositionMonitor.mutate(
       `${this.config.checkPositionDistance}:${this.config.checkInterval}:${this.config.resetInterval}`
     );
-    this.emitAll.onBroadcast.mutate({ message: `Difficulty Increased!`, priority: 2 });
+    this.emitAll.onBroadcast.mutate([`Difficulty Increased!`, 2]);
     return { status: 1 };
   }
 
-  async makeBattleEasier({ client }: { client: Shard.Client }, input: { signature: string }) {
+  async makeBattleEasier(
+    ...[input, { client }]: Parameters<Shard.Service['makeBattleEasier']>
+  ): ReturnType<Shard.Service['makeBattleEasier']> {
     this.baseConfig.dynamicDecayPower = false;
     this.config.dynamicDecayPower = false;
     this.sharedConfig.decayPower -= 2;
@@ -2421,11 +2446,13 @@ class Service implements Shard.Service {
     this.emitAll.onSetPositionMonitor.mutate(
       `${this.config.checkPositionDistance}:${this.config.checkInterval}:${this.config.resetInterval}`
     );
-    this.emitAll.onBroadcast.mutate({ message: `Difficulty Decreased!`, priority: 0 });
+    this.emitAll.onBroadcast.mutate([`Difficulty Decreased!`, 0]);
     return { status: 1 };
   }
 
-  async resetBattleDifficulty({ client }: { client: Shard.Client }, input: { signature: string }) {
+  async resetBattleDifficulty(
+    ...[input, { client }]: Parameters<Shard.Service['resetBattleDifficulty']>
+  ): ReturnType<Shard.Service['resetBattleDifficulty']> {
     this.baseConfig.dynamicDecayPower = true;
     this.config.dynamicDecayPower = true;
     this.sharedConfig.decayPower = 1.4;
@@ -2439,21 +2466,22 @@ class Service implements Shard.Service {
     this.emitAll.onSetPositionMonitor.mutate(
       `${this.config.checkPositionDistance}:${this.config.checkInterval}:${this.config.resetInterval}`
     );
-    this.emitAll.onBroadcast.mutate({ message: `Difficulty Reset!`, priority: 0 });
+    this.emitAll.onBroadcast.mutate([`Difficulty Reset!`, 0]);
     return { status: 1 };
   }
 
-  async messageUser({ client }: { client: Shard.Client }, input: { data: any; signature: string }) {
+  async messageUser(
+    ...[input, { client }]: Parameters<Shard.Service['messageUser']>
+  ): ReturnType<Shard.Service['messageUser']> {
     const targetClient = this.clients.find((c) => c.address === input.data.target);
     if (!targetClient) return { status: 0 };
-    this.sockets[targetClient.id].emitAll.onBroadcast.mutate({
-      message: input.data.message.replace(/:/gi, ''),
-      priority: 0,
-    });
+    this.sockets[targetClient.id].emitAll.onBroadcast.mutate([input.data.message.replace(/:/gi, ''), 0]);
     return { status: 1 };
   }
 
-  async changeUser({ client }: { client: Shard.Client }, input: { data: any; signature: string }) {
+  async changeUser(
+    ...[input, { client }]: Parameters<Shard.Service['changeUser']>
+  ): ReturnType<Shard.Service['changeUser']> {
     const newClient = this.clients.find((c) => c.address === input.data.target);
     if (!newClient) return { status: 0 };
     for (const key of Object.keys(input.data.this.config)) {
@@ -2465,12 +2493,16 @@ class Service implements Shard.Service {
     return { status: 1 };
   }
 
-  async broadcast({ client }: { client: Shard.Client }, input: { data: any; signature: string }) {
-    this.emitAll.onBroadcast.mutate(input.data.message.replace(/:/gi, ''), 0);
+  async broadcast(
+    ...[input, { client }]: Parameters<Shard.Service['broadcast']>
+  ): ReturnType<Shard.Service['broadcast']> {
+    this.emitAll.onBroadcast.mutate([input.data.message.replace(/:/gi, ''), 0]);
     return { status: 1 };
   }
 
-  async kickClient({ client }: { client: Shard.Client }, input: { data: any; signature: string }) {
+  async kickClient(
+    ...[input, { client }]: Parameters<Shard.Service['kickClient']>
+  ): ReturnType<Shard.Service['kickClient']> {
     const targetClient = this.clients.find((c) => c.address === input.data.target);
     if (!targetClient) return { status: 0 };
     this.disconnectClient(targetClient, 'kicked');
@@ -2663,7 +2695,7 @@ export async function init(app) {
           client.log.clientDisconnected += 1;
           service.disconnectClient(client, 'client disconnected');
           if (client.isRealm) {
-            service.emitAll.onBroadcast.mutate({ message: `Realm disconnected`, priority: 0 });
+            service.emitAll.onBroadcast.mutate([`Realm disconnected`, 0]);
           }
         });
       } catch (e) {
