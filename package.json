@@ -3,6 +3,17 @@
   "version": "0.3.0",
   "description": "",
   "main": "build/index.js",
+  "scripts": {
+    "dev": "node --require ./ts-hook.js ./src/index.ts",
+    "inspect": "NODE_ENV=development rushx build && PORT=3001 NODE_ENV=production node --inspect build/index.js",
+    "prod": "NODE_ENV=production rushx run nodemon --config nodemon.production.json",
+    "build": "NODE_ENV=production tsc",
+    "start": "NODE_ENV=production node build/index.js",
+    "forever": "NODE_ENV=production rushx build && sudo nohup forever start forever-config.json &",
+    "config": "sudo /opt/bitnami/ctlscript.sh stop apache",
+    "kill": "sudo pkill -f node",
+    "nohup": "sudo nohup node --max_semi_space_size=30000 --max-old-space-size=30000 --initial-old-space-size=8000 --optimize-for-size --experimental-modules --experimental-json-modules build/index.js &"
+  },
   "dependencies": {
     "@arken/node": "workspace:*",
     "@arken/seer": "workspace:*",
@@ -34,13 +45,13 @@
     "morgan": "^1.10.0",
     "semver": "^7.3.5",
     "shortid": "^2.2.2",
-    "socket.io": "^4.1.2",
+    "socket.io": "4.1.2",
     "typescript": "^4.3.4",
     "utf8": "^3.0.0",
     "web3": "^1.3.6",
     "@types/jest": "~29.5.12",
-    "@trpc/client": "~10.45.2",
-    "@trpc/server": "~10.45.2",
+    "@trpc/client": "next",
+    "@trpc/server": "next",
     "jest": "~29.7.0",
     "ts-jest": "~29.2.3"
   },
@@ -61,16 +72,5 @@
     "eslint-plugin-react-hooks": "^4.0.0",
     "nodemon": "^1.18.10",
     "ts-node": "^8.3.0"
-  },
-  "scripts": {
-    "dev": "NODE_ENV=development yarn build && PORT=3001 yarn start",
-    "inspect": "NODE_ENV=development yarn build && PORT=3001 NODE_ENV=production node --inspect build/index.js",
-    "prod": "NODE_ENV=production yarn run nodemon --config nodemon.production.json",
-    "build": "NODE_ENV=production tsc",
-    "start": "NODE_ENV=production node build/index.js",
-    "forever": "NODE_ENV=production yarn build && sudo nohup forever start forever-config.json &",
-    "config": "sudo /opt/bitnami/ctlscript.sh stop apache",
-    "kill": "sudo pkill -f node",
-    "nohup": "sudo nohup node --max_semi_space_size=30000 --max-old-space-size=30000 --initial-old-space-size=8000 --optimize-for-size --experimental-modules --experimental-json-modules build/index.js &"
   }
 }

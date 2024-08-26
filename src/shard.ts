@@ -2,7 +2,6 @@ import { httpBatchLink, createTRPCProxyClient, loggerLink } from '@trpc/client';
 import { observable } from '@trpc/server/observable';
 import axios from 'axios';
 import shortId from 'shortid';
-import semver from 'semver/preload.js';
 import {
   log,
   getTime,
@@ -15,29 +14,14 @@ import {
   ipHashFromSocket,
 } from '@arken/node/util';
 import { sleep } from '@arken/node/util/time';
+import { awaitEnter } from '@arken/node/util/process';
 import { customErrorFormatter, hasRole, transformer } from '@arken/node/util/rpc';
 import { testMode, baseConfig, sharedConfig } from '@arken/evolution-protocol/config';
 import { presets } from '@arken/evolution-protocol/presets';
-import * as schema from '@arken/evolution-protocol/shard/schema';
-import type * as Schema from '@arken/evolution-protocol/shard/schema';
-import {
-  procedure,
-  createCallerFactory,
-  createRouter as createShardRouter,
-} from '@arken/evolution-protocol/shard/server';
+import { createCallerFactory, createRouter as createShardRouter } from '@arken/evolution-protocol/shard/server';
 import type { ShardClientRouter, Realm } from '@arken/evolution-protocol/types';
-import type {
-  Orb,
-  Boundary,
-  Reward,
-  PowerUp,
-  RoundEvent,
-  Round,
-  Preset,
-  Event,
-} from '@arken/evolution-protocol/shard/types';
+import type { Orb, Boundary, Reward, PowerUp, Round, Preset, Event } from '@arken/evolution-protocol/shard/types';
 import { EvolutionMechanic as Mechanic, Position } from '@arken/node/types';
-import type { Signature } from '@arken/node/types';
 import mapData from '../public/data/map.json'; // TODO: get this from the embedded game client
 import type * as Shard from '@arken/evolution-protocol/shard/types';
 
@@ -89,7 +73,8 @@ class Service implements Shard.Service {
   emitAllDirect: ReturnType<typeof createTRPCProxyClient<ShardClientRouter>>;
 
   constructor() {
-    // this.realm = new Realm();
+    log('Process running on PID: ' + process.pid);
+
     this.guestNames = [
       'Robin Banks',
       'Rick Axely',
@@ -181,6 +166,8 @@ class Service implements Shard.Service {
         () =>
           ({ op, next }) => {
             return observable((observer) => {
+              log('emit', op);
+
               const { input, context } = op;
               const { name, args } = input as Event;
               const client = context.client as Shard.Client;
@@ -218,10 +205,11 @@ class Service implements Shard.Service {
         () =>
           ({ op, next }) => {
             return observable((observer) => {
+              log('emitDirect', op);
               const { input, context } = op;
               const { name, args } = input as Event;
               if (this.loggableEvents.includes(name)) {
-                console.log(`emitDirect: ${name}`, args);
+                log(`emitDirect: ${name}`, args);
               }
 
               (context.client as Shard.Client).socket.emit(name, Object.values(args));
@@ -238,6 +226,7 @@ class Service implements Shard.Service {
         () =>
           ({ op, next }) => {
             return observable((observer) => {
+              log('emitAll', op);
               const { input, context } = op;
               const { name, args } = input as Event;
               this.eventQueue.push({ name, args });
@@ -281,7 +270,7 @@ class Service implements Shard.Service {
                     }
 
                     if (this.loggableEvents.includes(e.name)) {
-                      console.log(`Publish Event: ${e.name}`, e.args);
+                      log(`Publish Event: ${e.name}`, e.args);
                     }
 
                     this.io.emit('events', this.getPayload(compiled));
@@ -1119,8 +1108,9 @@ class Service implements Shard.Service {
   async connected(
     ...[input, { client }]: Parameters<Shard.Service['connected']>
   ): ReturnType<Shard.Service['connected']> {
+    log('connected', input);
     // async connected(input: Shard.ConnectedInput, { client }: Shard.ServiceContext): Shard.ConnectedOutput {
-    if (this.realm.client?.socket?.connected) {
+    if (this.realm?.client?.socket?.connected) {
       this.disconnectClient(this.realm.client, 'Realm already connected');
 
       return { status: 2 };
@@ -1128,7 +1118,7 @@ class Service implements Shard.Service {
 
     client.isRealm = true;
 
-    this.realm.client = client;
+    this.realm = { client, emit: client.emit };
 
     // Initialize the realm server with status 1
     const res = await this.realm.emit.init.mutate();
@@ -2538,7 +2528,7 @@ export async function init(app) {
     const service = new Service();
 
     log('Starting event handler');
-    this.app.io.on('connection', function (socket) {
+    app.io.on('connection', async function (socket) {
       try {
         log('Connection', socket.id);
 
@@ -2546,6 +2536,7 @@ export async function init(app) {
         const spawnPoint = service.clientSpawnPoints[Math.floor(Math.random() * service.clientSpawnPoints.length)];
         const client: Shard.Client = {
           name: 'Unknown' + Math.floor(Math.random() * 999),
+          roles: [],
           emit: undefined,
           startedRoundAt: null,
           lastTouchClientId: null,
@@ -2599,7 +2590,7 @@ export async function init(app) {
           hash: ipHashFromSocket(socket),
           lastReportedTime: getTime(),
           lastUpdate: 0,
-          gameMode: this.config.gameMode,
+          gameMode: service.config.gameMode,
           phasedUntil: getTime(),
           overrideSpeedUntil: 0,
           joinedRoundAt: getTime(),
@@ -2673,25 +2664,31 @@ export async function init(app) {
         service.clients.push(client);
 
         client.emit = createShardRouter(service);
+        console.log(client.emit);
 
         const ctx = { client };
 
         socket.on('trpc', async (message) => {
-          const { id, method, params } = message;
+          log('Shard client trpc message', message);
+          const { id, method, type, params } = message;
           try {
             const createCaller = createCallerFactory(client.emit);
             const caller = createCaller(ctx);
-            const result = await caller[method](params);
 
-            socket.emitAll('trpcResponse', { id, result });
+            console.log('trpc method', caller);
+            const result = await caller.connected(params); // caller[method](params);
+            // console.log(client.emit[method]);
+            // const result = await client.emit[method](params);
+
+            socket.emit('trpcResponse', { id, result });
           } catch (error) {
-            console.log('user connection error', id, error.message);
-            socket.emitAll('trpcResponse', { id, error: error.message });
+            console.log('user connection error', id, error);
+            socket.emit('trpcResponse', { id, error: error + '' });
           }
         });
 
         socket.on('disconnect', function () {
-          log('User has disconnected');
+          log('Shard client disconnected');
           client.log.clientDisconnected += 1;
           service.disconnectClient(client, 'client disconnected');
           if (client.isRealm) {
