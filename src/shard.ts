@@ -1506,9 +1506,9 @@ class Service implements Shard.Service {
   }
 
   async login(...[input, { client }]: Parameters<Shard.Service['login']>): ReturnType<Shard.Service['login']> {
-    log('Login', input.data);
+    log('Login', input);
 
-    const pack = decodePayload(input.data);
+    const pack = decodePayload(input);
     if (!pack.signature || !pack.network || !pack.device || !pack.address) {
       client.log.signinProblem += 1;
       this.disconnectClient(client, 'signin problem');
@@ -2664,7 +2664,7 @@ export async function init(app) {
         service.clients.push(client);
 
         client.emit = createShardRouter(service);
-        console.log(client.emit);
+        // console.log(client.emit);
 
         const ctx = { client };
 
