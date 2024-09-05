@@ -2670,7 +2670,9 @@ export async function init(app) {
 
         socket.on('trpc', async (message) => {
           log('Shard client trpc message', message);
-          const { id, method, type, params } = message;
+          const pack = decodePayload(message);
+          console.log('pack', pack);
+          const { id, method, type, params } = pack;
           try {
             const createCaller = createCallerFactory(client.emit);
             const caller = createCaller(ctx);
