@@ -1497,7 +1497,7 @@ class Service implements Shard.Service {
     try {
       log(`Getting username for ${address}`);
       // TODO: replace with realm call
-      const response = await axios.get(`https://envoy.arken.gg/profile/${address}`);
+      const response = await axios.get(`https://s1.envoy.arken.asi.sh/profile/${address}`);
       const { username = '' } = response.data;
       return username;
     } catch (error) {
