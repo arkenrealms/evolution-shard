@@ -2675,7 +2675,7 @@ export async function init(app) {
             const createCaller = createCallerFactory(client.emit);
             const caller = createCaller(ctx);
 
-            console.log('trpc method', caller);
+            console.log('trpc method', id, method, type, params);
             const result = await caller[method](params);
             // console.log(client.emit[method]);
             // const result = await client.emit[method](params);
