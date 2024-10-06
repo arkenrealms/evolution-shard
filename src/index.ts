@@ -8,7 +8,7 @@ import express, { Express } from 'express';
 import { Server as SocketIOServer } from 'socket.io';
 import { log, logError, isDebug } from '@arken/node/util';
 import { catchExceptions } from '@arken/node/util/process';
-import { init as initShard } from './shard';
+import { init as initShard } from './shard.service';
 import { initMonitor } from './monitor';
 // export { Router } from './shard';
 

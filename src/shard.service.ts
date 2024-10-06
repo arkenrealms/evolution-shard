@@ -1,8 +1,8 @@
 import { httpBatchLink, createTRPCProxyClient, loggerLink, TRPCClientError } from '@trpc/client';
 import { observable } from '@trpc/server/observable';
 import axios from 'axios';
-import shortId from 'shortid';
 import { generateShortId } from '@arken/node/util/db';
+import { serialize, deserialize } from '@arken/node/util/rpc';
 import {
   log,
   getTime,
@@ -19,13 +19,13 @@ import { awaitEnter } from '@arken/node/util/process';
 import { customErrorFormatter, hasRole, transformer } from '@arken/node/util/rpc';
 import { testMode, baseConfig, sharedConfig } from '@arken/evolution-protocol/config';
 import { presets } from '@arken/evolution-protocol/presets';
-import { createCallerFactory, createRouter as createShardRouter } from '@arken/evolution-protocol/shard/server';
+import { createCallerFactory, createRouter as createShardRouter } from '@arken/evolution-protocol/shard/shard.router';
 import type { ShardClientRouter, Realm } from '@arken/evolution-protocol/types';
-import type { Orb, Boundary, Reward, PowerUp, Round, Preset, Event } from '@arken/evolution-protocol/shard/types';
+import type { Orb, Boundary, Reward, PowerUp, Round, Preset, Event } from '@arken/evolution-protocol/shard/shard.types';
 import { EvolutionMechanic as Mechanic, Position } from '@arken/node/types';
 import mapData from '../public/data/map.json'; // TODO: get this from the embedded game client
-import type * as Shard from '@arken/evolution-protocol/shard/types';
-import type * as Bridge from '@arken/evolution-protocol/bridge/types';
+import type * as Shard from '@arken/evolution-protocol/shard/shard.types';
+import type * as Bridge from '@arken/evolution-protocol/bridge/bridge.types';
 // import { createRouter as createBridgeRouter } from '@arken/evolution-protocol/bridge/router';
 import { dummyTransformer } from '@arken/node/util/rpc';
 
@@ -71,6 +71,7 @@ class Service implements Shard.Service {
   clientSpawnPoints: Position[];
   lastFastGameloopTime: number;
   lastFastestGameloopTime: number;
+  router: Shard.Router;
   emit: ReturnType<typeof createTRPCProxyClient<ShardClientRouter>>;
   emitDirect: ReturnType<typeof createTRPCProxyClient<ShardClientRouter>>;
   emitAll: ReturnType<typeof createTRPCProxyClient<ShardClientRouter>>;
@@ -164,6 +165,8 @@ class Service implements Shard.Service {
     ];
     this.lastFastGameloopTime = getTime();
     this.lastFastestGameloopTime = getTime();
+
+    this.router = createShardRouter(this as Shard.Service);
 
     this.emit = createTRPCProxyClient<ShardClientRouter>({
       links: [
@@ -326,9 +329,7 @@ class Service implements Shard.Service {
 
       if (this.config.rewardWinnerAmount === 0 && calcRewardsRes.data.rewardWinnerAmount !== 0) {
         const roundTimer = this.round.startedDate + this.config.roundLoopSeconds - Math.round(this.getTime() / 1000);
-        this.emit.onSetRoundInfo.mutate(
-          roundTimer + ':' + this.getRoundInfo().join(':') + ':' + this.getGameModeGuide().join(':')
-        );
+        this.emit.onSetRoundInfo.mutate([roundTimer, this.getRoundInfo().join(':'), this.getGameModeGuide().join(':')]);
       }
     }
   }
@@ -515,13 +516,13 @@ class Service implements Shard.Service {
     this.syncSprites();
 
     const roundTimer = this.round.startedDate + this.config.roundLoopSeconds - Math.round(this.getTime() / 1000);
-    this.emitAll.onSetRoundInfo.mutate(
-      roundTimer + ':' + this.getRoundInfo().join(':') + ':' + this.getGameModeGuide().join(':')
-    );
+    this.emitAll.onSetRoundInfo.mutate([roundTimer, this.getRoundInfo().join(':'), this.getGameModeGuide().join(':')]);
 
     log(
       'roundInfo',
-      roundTimer + ':' + this.getRoundInfo().join(':') + ':' + this.getGameModeGuide().join(':'),
+      roundTimer,
+      this.getRoundInfo().join(':'),
+      this.getGameModeGuide().join(':'),
       (
         this.config.roundLoopSeconds +
         ':' +
@@ -1058,7 +1059,7 @@ class Service implements Shard.Service {
     this.disconnectClient(loser, 'got killed');
 
     const orb: Orb = {
-      id: shortId.generate(),
+      id: generateShortId(),
       type: 4,
       points: orbPoints,
       scale: orbPoints,
@@ -1110,8 +1111,9 @@ class Service implements Shard.Service {
   }
 
   async connected(
-    ...[input, { client }]: Parameters<Shard.Service['connected']>
-  ): ReturnType<Shard.Service['connected']> {
+    input: Shard.RouterInput['connected'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['connected']> {
     console.log('connected', input);
     // async connected(input: Shard.ConnectedInput, { client }: Shard.ServiceContext): Shard.ConnectedOutput {
     if (this.realm?.client?.socket?.connected) {
@@ -1121,6 +1123,7 @@ class Service implements Shard.Service {
     }
 
     client.isRealm = true;
+    client.roles.push('realm');
 
     client.ioCallbacks = {};
 
@@ -1130,7 +1133,7 @@ class Service implements Shard.Service {
         links: [
           () =>
             ({ op, next }) => {
-              const uuid = generateShortId();
+              const id = generateShortId();
               return observable((observer) => {
                 const { input } = op;
 
@@ -1139,43 +1142,47 @@ class Service implements Shard.Service {
                 op.context.client.roles = ['admin', 'user', 'guest'];
 
                 if (!client) {
-                  console.log('EShard -> Bridge: mit Direct failed, no client', op);
+                  console.log('Shard -> Bridge: mit Direct failed, no client', op);
                   observer.complete();
                   return;
                 }
 
                 if (!client.socket || !client.socket.emit) {
-                  console.log('Shard -> Bridge: Emit Direct failed, bad socket', op);
+                  console.log('Shard -> Realm: Emit Direct failed, bad socket', op);
                   observer.complete();
                   return;
                 }
-                console.log('Shard -> Bridge: Emit Direct', op, client.socket);
+                console.log('Shard -> Realm: Emit Direct', op, client.socket);
 
-                const request = { id: uuid, method: op.path, type: op.type, params: input };
+                const request = { id, method: op.path, type: op.type, params: serialize(input) };
                 client.socket.emit('trpc', request);
 
                 // save the ID and callback when finished
                 const timeout = setTimeout(() => {
-                  console.log('Shard -> Bridge: Request timed out', op);
-                  delete client.ioCallbacks[uuid];
-                  observer.error(new TRPCClientError('Shard -> Bridge: Request timeout'));
+                  console.log('Shard -> Realm: Request timed out', op);
+                  delete client.ioCallbacks[id];
+                  observer.error(new TRPCClientError('Shard -> Realm: Request timeout'));
                 }, 15000); // 15 seconds timeout
 
-                client.ioCallbacks[uuid] = {
+                client.ioCallbacks[id] = {
                   request,
                   timeout,
                   resolve: (response) => {
-                    console.log('Shard -> Bridge: ioCallbacks.resolve', uuid, response);
+                    console.log('Shard -> Realm: ioCallbacks.resolve', id, response);
                     clearTimeout(timeout);
-                    observer.next(response);
-                    observer.complete();
-                    delete client.ioCallbacks[uuid]; // Cleanup after completion
+                    if (response.error) {
+                      observer.error(response.error);
+                    } else {
+                      observer.next(response);
+                      observer.complete();
+                    }
+                    delete client.ioCallbacks[id]; // Cleanup after completion
                   },
                   reject: (error) => {
-                    console.log('Shard -> Bridge: ioCallbacks.reject', error);
+                    console.log('Shard -> Realm: ioCallbacks.reject', error);
                     clearTimeout(timeout);
                     observer.error(error);
-                    delete client.ioCallbacks[uuid]; // Cleanup on error
+                    delete client.ioCallbacks[id]; // Cleanup on error
                   },
                 };
               });
@@ -1201,17 +1208,18 @@ class Service implements Shard.Service {
               // });
             },
         ],
-        transformer: dummyTransformer,
+        // transformer: dummyTransformer,
       }),
     };
 
+    console.log('Shard -> Realm: calling init');
     // Initialize the realm server with status 1
     const res = await this.realm.emit.init.mutate({ status: 1 });
     log('init', res);
 
     // Check if initialization was successful
     if (res?.status !== 1) {
-      logError('Could not init');
+      logError('Error: Could not init');
       return { status: 0 };
     }
 
@@ -1315,7 +1323,7 @@ class Service implements Shard.Service {
   spawnSprites(amount: number): void {
     for (let i = 0; i < amount; i++) {
       const position = this.getUnobstructedPosition();
-      const powerupSpawnPoint = { id: shortId.generate(), type: Math.floor(Math.random() * 4), scale: 1, position };
+      const powerupSpawnPoint = { id: generateShortId(), type: Math.floor(Math.random() * 4), scale: 1, position };
       this.powerups.push(powerupSpawnPoint);
       this.powerupLookup[powerupSpawnPoint.id] = powerupSpawnPoint;
       this.emitAll.onSpawnPowerUp.mutate([
@@ -1346,20 +1354,25 @@ class Service implements Shard.Service {
   }
 
   async seerConnected(
-    ...[input, { client }]: Parameters<Shard.Service['seerConnected']>
-  ): ReturnType<Shard.Service['seerConnected']> {
+    input: Shard.RouterInput['seerConnected'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['seerConnected']> {
     this.emitAll.onBroadcast.mutate(['Seer connected', 0]);
     return { status: 1 };
   }
 
   async seerDisconnected(
-    ...[input, { client }]: Parameters<Shard.Service['seerDisconnected']>
-  ): ReturnType<Shard.Service['seerDisconnected']> {
+    input: Shard.RouterInput['seerDisconnected'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['seerDisconnected']> {
     this.emitAll.onBroadcast.mutate(['Seer disconnected', 0]);
     return { status: 1 };
   }
 
-  broadcastMechanics(input: Shard.BroadcastInput, { client }: Shard.ServiceContext): void {
+  async broadcastMechanics(
+    input: Shard.RouterInput['broadcastMechanics'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['broadcastMechanics']> {
     if (this.isMechanicEnabled({ id: Mechanic.WinRewardsIncrease }, { client })) {
       this.emit.onBroadcast.mutate([
         `${this.formatNumber(
@@ -1431,54 +1444,69 @@ class Service implements Shard.Service {
         { context: { client } }
       );
     }
+
+    return { status: 1 };
   }
 
-  isMechanicEnabled({ id }: { id: number }, { client }: Shard.ServiceContext): boolean {
-    return !!client.character.meta[id];
+  async isMechanicEnabled(
+    input: Shard.RouterInput['isMechanicEnabled'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['isMechanicEnabled']> {
+    if (!input) throw new Error('Input should not be void');
+
+    return !!client.character.meta[input.id];
   }
 
   async setCharacter(
-    ...[input, { client }]: Parameters<Shard.Service['setCharacter']>
-  ): ReturnType<Shard.Service['setCharacter']> {
+    input: Shard.RouterInput['setCharacter'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['setCharacter']> {
+    if (!input) throw new Error('Input should not be void');
+
     // Check if the client is a realm client
     if (!client.isRealm) {
       return { status: 0 };
     }
 
     // Find the client with the specified address
-    const newClient = this.clients.find((c) => c.address === input.data.address);
+    const newClient = this.clients.find((c) => c.address === input.address);
     if (!newClient) {
       return { status: 0 };
     }
 
     // Update the character information
     newClient.character = {
-      ...input.data.character,
-      meta: { ...newClient.character.meta, ...input.data.character.meta },
+      ...input.character,
+      meta: { ...newClient.character.meta, ...input.character.meta },
     };
 
     return { status: 1 };
   }
 
   async setConfig(
-    ...[input, { client }]: Parameters<Shard.Service['setConfig']>
-  ): ReturnType<Shard.Service['setConfig']> {
+    input: Shard.RouterInput['setConfig'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['setConfig']> {
     return { status: 1 };
   }
 
   async getConfig(
-    ...[input, { client }]: Parameters<Shard.Service['getConfig']>
-  ): ReturnType<Shard.Service['getConfig']> {
+    input: Shard.RouterInput['getConfig'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['getConfig']> {
     return { status: 1, data: this.config };
   }
 
-  async load(...[input, { client }]: Parameters<Shard.Service['load']>): ReturnType<Shard.Service['load']> {
+  async load(input: Shard.RouterInput['load'], { client }: Shard.ServiceContext): Promise<Shard.RouterOutput['load']> {
     log('Load', client.hash);
     this.emit.onLoaded.mutate(1, { context: { client } });
     return { status: 1 };
   }
 
-  async spectate(...[input, { client }]: Parameters<Shard.Service['spectate']>): ReturnType<Shard.Service['spectate']> {
+  async spectate(
+    input: Shard.RouterInput['spectate'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['spectate']> {
     // Spectating is not allowed during maintenance unless the client is a moderator
     if (this.config.isMaintenance && !client.isMod) return { status: 0 };
 
@@ -1590,7 +1618,10 @@ class Service implements Shard.Service {
     }
   }
 
-  async login(...[input, { client }]: Parameters<Shard.Service['login']>): ReturnType<Shard.Service['login']> {
+  async login(
+    input: Shard.RouterInput['login'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['login']> {
     log('Login', input);
 
     const pack = decodePayload(input);
@@ -1698,14 +1729,14 @@ class Service implements Shard.Service {
   }
 
   // Method to verify if a signature request is valid
-  async auth(
-    ...[{ data, signature }, { client }]: Parameters<Shard.Service['auth']>
-  ): ReturnType<Shard.Service['auth']> {
-    log('Verifying', data);
+  async auth(input: Shard.RouterInput['auth'], { client }: Shard.ServiceContext): Promise<Shard.RouterOutput['auth']> {
+    if (!input) throw new Error('Input should not be void');
 
-    if (!signature.address) return { status: 0 };
+    log('Verifying', input.data);
 
-    const res = await this.realm.emit.auth.mutate({ data, signature });
+    if (!input.signature.address) return { status: 0 };
+
+    const res = await this.realm.emit.auth.mutate({ data: input.data, signatur: input.signature });
 
     if (res.status !== 1) return { status: 0 };
 
@@ -1733,7 +1764,7 @@ class Service implements Shard.Service {
     return parseFloat(value.toFixed(precision));
   }
 
-  async join(...[input, { client }]: Parameters<Shard.Service['join']>): ReturnType<Shard.Service['join']> {
+  async join(input: Shard.RouterInput['join'], { client }: Shard.ServiceContext): Promise<Shard.RouterOutput['join']> {
     log('JoinShard', client.id, client.hash);
 
     try {
@@ -1777,11 +1808,11 @@ class Service implements Shard.Service {
       log('[INFO] Total clients: ' + Object.keys(this.clientLookup).length);
 
       const roundTimer = this.round.startedDate + this.config.roundLoopSeconds - Math.round(getTime() / 1000);
-      this.emit.onSetPositionMonitor.mutate(
-        `${Math.round(this.config.checkPositionDistance)}:${Math.round(this.config.checkInterval)}:${Math.round(
-          this.config.resetInterval
-        )}`
-      );
+      this.emit.onSetPositionMonitor.mutate([
+        Math.round(this.config.checkPositionDistance),
+        Math.round(this.config.checkInterval),
+        Math.round(this.config.resetInterval),
+      ]);
 
       this.emit.onJoinGame.mutate(
         [
@@ -1804,7 +1835,7 @@ class Service implements Shard.Service {
 
       if (!this.config.isRoundPaused) {
         this.emit.onSetRoundInfo.mutate(
-          `${roundTimer}:${this.getRoundInfo().join(':')}:${this.getGameModeGuide().join(':')}`,
+          [roundTimer, this.getRoundInfo().join(':'), this.getGameModeGuide().join(':')],
           { context: { client } }
         );
         this.emit.onBroadcast.mutate([`Game Mode - ${this.config.gameMode} (Round ${this.config.roundId})`, 0], {
@@ -1853,7 +1884,7 @@ class Service implements Shard.Service {
 
       for (const powerup of this.powerups) {
         this.emit.onSpawnPowerUp.mutate(
-          [powerup.id, powerup.type, powerup.position.x, powerup.position.y, powerup.scale],
+          [powerup.id, parseInt(powerup.type + ''), powerup.position.x, powerup.position.y, powerup.scale],
           { context: { client } }
         );
       }
@@ -2258,86 +2289,89 @@ class Service implements Shard.Service {
     this.currentReward = null;
   }
 
-  async updateMyself(
-    ...[{ data }, { client }]: Parameters<Shard.Service['updateMyself']>
-  ): ReturnType<Shard.Service['updateMyself']> {
-    if (client.isDead && !client.isJoining) return { status: 0 };
-    if (client.isSpectating) return { status: 0 };
-    if (this.config.isMaintenance && !client.isMod) {
-      this.emit.onMaintenance.mutate([true], { context: { client } });
-      this.disconnectClient(client, 'maintenance');
-      return { status: 0 };
-    }
+  // async updateMyself(
+  //   ...[{ data }, { client }]: Parameters<Shard.Service['updateMyself']>
+  // ): ReturnType<Shard.Service['updateMyself']> {
+  //   if (client.isDead && !client.isJoining) return { status: 0 };
+  //   if (client.isSpectating) return { status: 0 };
+  //   if (this.config.isMaintenance && !client.isMod) {
+  //     this.emit.onMaintenance.mutate([true], { context: { client } });
+  //     this.disconnectClient(client, 'maintenance');
+  //     return { status: 0 };
+  //   }
 
-    const now = getTime();
-    if (now - client.lastUpdate < this.config.forcedLatency) return { status: 0 };
-    if (client.name === 'Testman' && now - client.lastUpdate < 200) return { status: 0 };
+  //   const now = getTime();
+  //   if (now - client.lastUpdate < this.config.forcedLatency) return { status: 0 };
+  //   if (client.name === 'Testman' && now - client.lastUpdate < 200) return { status: 0 };
 
-    if (client.isJoining) {
-      client.isDead = false;
-      client.isJoining = false;
-      client.joinedAt = Math.round(getTime() / 1000);
-      client.invincibleUntil = client.joinedAt + this.config.immunitySeconds;
+  //   if (client.isJoining) {
+  //     client.isDead = false;
+  //     client.isJoining = false;
+  //     client.joinedAt = Math.round(getTime() / 1000);
+  //     client.invincibleUntil = client.joinedAt + this.config.immunitySeconds;
 
-      if (this.config.isBattleRoyale) {
-        this.emit.onBroadcast.mutate(['Spectate until the round is over', 0], { context: { client } });
+  //     if (this.config.isBattleRoyale) {
+  //       this.emit.onBroadcast.mutate(['Spectate until the round is over', 0], { context: { client } });
 
-        return this.spectate({}, { client });
-      }
+  //       return this.spectate({}, { client });
+  //     }
 
-      this.addToRecentClients(client);
-      this.emitAll.onSpawnClient.mutate([
-        client.id,
-        client.name,
-        client.overrideSpeed || client.speed,
-        client.avatar,
-        client.position.x,
-        client.position.y,
-        client.position.x,
-        client.position.y,
-      ]);
+  //     this.addToRecentClients(client);
+  //     this.emitAll.onSpawnClient.mutate([
+  //       client.id,
+  //       client.name,
+  //       client.overrideSpeed || client.speed,
+  //       client.avatar,
+  //       client.position.x,
+  //       client.position.y,
+  //       client.position.x,
+  //       client.position.y,
+  //     ]);
 
-      if (this.config.isRoundPaused) {
-        this.emit.onRoundPaused.mutate([], { context: { client } });
-        return { status: 0 };
-      }
-    }
+  //     if (this.config.isRoundPaused) {
+  //       this.emit.onRoundPaused.mutate([], { context: { client } });
+  //       return { status: 0 };
+  //     }
+  //   }
 
-    const pack = decodePayload(data);
-    const positionX = parseFloat(parseFloat(pack.position.split(':')[0].replace(',', '.')).toFixed(3));
-    const positionY = parseFloat(parseFloat(pack.position.split(':')[1].replace(',', '.')).toFixed(3));
-    const targetX = parseFloat(parseFloat(pack.target.split(':')[0].replace(',', '.')).toFixed(3));
-    const targetY = parseFloat(parseFloat(pack.target.split(':')[1].replace(',', '.')).toFixed(3));
+  //   const pack = decodePayload(data);
+  //   const positionX = parseFloat(parseFloat(pack.position.split(':')[0].replace(',', '.')).toFixed(3));
+  //   const positionY = parseFloat(parseFloat(pack.position.split(':')[1].replace(',', '.')).toFixed(3));
+  //   const targetX = parseFloat(parseFloat(pack.target.split(':')[0].replace(',', '.')).toFixed(3));
+  //   const targetY = parseFloat(parseFloat(pack.target.split(':')[1].replace(',', '.')).toFixed(3));
 
-    if (
-      !Number.isFinite(positionX) ||
-      !Number.isFinite(positionY) ||
-      !Number.isFinite(targetX) ||
-      !Number.isFinite(targetY) ||
-      positionX < this.mapBoundary.x.min ||
-      positionX > this.mapBoundary.x.max ||
-      positionY < this.mapBoundary.y.min ||
-      positionY > this.mapBoundary.y.max
-    )
-      return { status: 0 };
+  //   if (
+  //     !Number.isFinite(positionX) ||
+  //     !Number.isFinite(positionY) ||
+  //     !Number.isFinite(targetX) ||
+  //     !Number.isFinite(targetY) ||
+  //     positionX < this.mapBoundary.x.min ||
+  //     positionX > this.mapBoundary.x.max ||
+  //     positionY < this.mapBoundary.y.min ||
+  //     positionY > this.mapBoundary.y.max
+  //   )
+  //     return { status: 0 };
 
-    if (
-      this.config.anticheat.disconnectPositionJumps &&
-      this.distanceBetweenPoints(client.position, { x: positionX, y: positionY }) > 5
-    ) {
-      client.log.positionJump += 1;
-      this.disconnectClient(client, 'position jumped');
-      return { status: 0 };
-    }
+  //   if (
+  //     this.config.anticheat.disconnectPositionJumps &&
+  //     this.distanceBetweenPoints(client.position, { x: positionX, y: positionY }) > 5
+  //   ) {
+  //     client.log.positionJump += 1;
+  //     this.disconnectClient(client, 'position jumped');
+  //     return { status: 0 };
+  //   }
 
-    client.clientPosition = { x: this.normalizeFloat(positionX, 4), y: this.normalizeFloat(positionY, 4) };
-    client.clientTarget = { x: this.normalizeFloat(targetX, 4), y: this.normalizeFloat(targetY, 4) };
-    client.lastReportedTime = client.name === 'Testman' ? parseFloat(pack.time) - 300 : parseFloat(pack.time);
-    client.lastUpdate = now;
-    return { status: 1 };
-  }
+  //   client.clientPosition = { x: this.normalizeFloat(positionX, 4), y: this.normalizeFloat(positionY, 4) };
+  //   client.clientTarget = { x: this.normalizeFloat(targetX, 4), y: this.normalizeFloat(targetY, 4) };
+  //   client.lastReportedTime = client.name === 'Testman' ? parseFloat(pack.time) - 300 : parseFloat(pack.time);
+  //   client.lastUpdate = now;
+  //   return { status: 1 };
+  // }
 
-  async restart(...[input, { client }]: Parameters<Shard.Service['restart']>): ReturnType<Shard.Service['restart']> {
+  async restart(
+    input: Shard.RouterInput['restart'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['restart']> {
     this.emitAll.onBroadcast.mutate([`Server is rebooting in 10 seconds`, 3]);
     await sleep(10 * 1000);
     process.exit(1);
@@ -2345,8 +2379,9 @@ class Service implements Shard.Service {
   }
 
   async maintenance(
-    ...[input, { client }]: Parameters<Shard.Service['maintenance']>
-  ): ReturnType<Shard.Service['maintenance']> {
+    input: Shard.RouterInput['maintenance'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['maintenance']> {
     this.sharedConfig.isMaintenance = true;
     this.config.isMaintenance = true;
     this.emitAll.onMaintenance.mutate(this.config.isMaintenance);
@@ -2354,8 +2389,9 @@ class Service implements Shard.Service {
   }
 
   async unmaintenance(
-    ...[input, { client }]: Parameters<Shard.Service['unmaintenance']>
-  ): ReturnType<Shard.Service['unmaintenance']> {
+    input: Shard.RouterInput['unmaintenance'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['unmaintenance']> {
     this.sharedConfig.isMaintenance = false;
     this.config.isMaintenance = false;
     this.emitAll.onUnmaintenance.mutate(this.config.isMaintenance);
@@ -2363,8 +2399,9 @@ class Service implements Shard.Service {
   }
 
   async startBattleRoyale(
-    ...[input, { client }]: Parameters<Shard.Service['startBattleRoyale']>
-  ): ReturnType<Shard.Service['startBattleRoyale']> {
+    input: Shard.RouterInput['startBattleRoyale'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['startBattleRoyale']> {
     this.emitAll.onBroadcast.mutate([`Battle Royale in 3...`, 1]);
     await sleep(1 * 1000);
     this.emitAll.onBroadcast.mutate([`Battle Royale in 2...`, 1]);
@@ -2381,8 +2418,9 @@ class Service implements Shard.Service {
   }
 
   async stopBattleRoyale(
-    ...[input, { client }]: Parameters<Shard.Service['stopBattleRoyale']>
-  ): ReturnType<Shard.Service['stopBattleRoyale']> {
+    input: Shard.RouterInput['stopBattleRoyale'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['stopBattleRoyale']> {
     this.baseConfig.isBattleRoyale = false;
     this.config.isBattleRoyale = false;
     this.emitAll.onBroadcast.mutate([`Battle Royale Stopped`, 0]);
@@ -2390,8 +2428,9 @@ class Service implements Shard.Service {
   }
 
   async pauseRound(
-    ...[input, { client }]: Parameters<Shard.Service['pauseRound']>
-  ): ReturnType<Shard.Service['pauseRound']> {
+    input: Shard.RouterInput['pauseRound'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['pauseRound']> {
     clearTimeout(this.roundLoopTimeout);
     this.baseConfig.isRoundPaused = true;
     this.config.isRoundPaused = true;
@@ -2401,8 +2440,10 @@ class Service implements Shard.Service {
   }
 
   async startRound(
-    ...[input, { client }]: Parameters<Shard.Service['startRound']>
-  ): ReturnType<Shard.Service['startRound']> {
+    input: Shard.RouterInput['startRound'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['startRound']> {
+    if (!input) throw new Error('Input should not be void');
     clearTimeout(this.roundLoopTimeout);
     if (this.config.isRoundPaused) {
       this.baseConfig.isRoundPaused = false;
@@ -2413,24 +2454,27 @@ class Service implements Shard.Service {
   }
 
   async enableForceLevel2(
-    ...[input, { client }]: Parameters<Shard.Service['enableForceLevel2']>
-  ): ReturnType<Shard.Service['enableForceLevel2']> {
+    input: Shard.RouterInput['enableForceLevel2'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['enableForceLevel2']> {
     this.baseConfig.level2forced = true;
     this.config.level2forced = true;
     return { status: 1 };
   }
 
   async disableForceLevel2(
-    ...[input, { client }]: Parameters<Shard.Service['disableForceLevel2']>
-  ): ReturnType<Shard.Service['disableForceLevel2']> {
+    input: Shard.RouterInput['disableForceLevel2'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['disableForceLevel2']> {
     this.baseConfig.level2forced = false;
     this.config.level2forced = false;
     return { status: 1 };
   }
 
   async startGodParty(
-    ...[input, { client }]: Parameters<Shard.Service['startGodParty']>
-  ): ReturnType<Shard.Service['startGodParty']> {
+    input: Shard.RouterInput['startGodParty'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['startGodParty']> {
     this.baseConfig.isGodParty = true;
     this.config.isGodParty = true;
     this.emitAll.onBroadcast.mutate([`God Party Started`, 0]);
@@ -2438,8 +2482,9 @@ class Service implements Shard.Service {
   }
 
   async stopGodParty(
-    ...[input, { client }]: Parameters<Shard.Service['stopGodParty']>
-  ): ReturnType<Shard.Service['stopGodParty']> {
+    input: Shard.RouterInput['stopGodParty'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['stopGodParty']> {
     this.baseConfig.isGodParty = false;
     this.config.isGodParty = false;
     for (const client of this.clients) {
@@ -2450,8 +2495,9 @@ class Service implements Shard.Service {
   }
 
   async startRoyale(
-    ...[input, { client }]: Parameters<Shard.Service['startRoyale']>
-  ): ReturnType<Shard.Service['startRoyale']> {
+    input: Shard.RouterInput['startRoyale'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['startRoyale']> {
     this.baseConfig.isRoyale = true;
     this.config.isRoyale = true;
     this.emitAll.onBroadcast.mutate([`Royale Started`, 0]);
@@ -2459,22 +2505,25 @@ class Service implements Shard.Service {
   }
 
   async pauseRoyale(
-    ...[input, { client }]: Parameters<Shard.Service['pauseRoyale']>
-  ): ReturnType<Shard.Service['pauseRoyale']> {
+    input: Shard.RouterInput['pauseRoyale'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['pauseRoyale']> {
     this.emitAll.onBroadcast.mutate([`Royale Paused`, 2]);
     return { status: 1 };
   }
 
   async unpauseRoyale(
-    ...[input, { client }]: Parameters<Shard.Service['unpauseRoyale']>
-  ): ReturnType<Shard.Service['unpauseRoyale']> {
+    input: Shard.RouterInput['unpauseRoyale'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['unpauseRoyale']> {
     this.emitAll.onBroadcast.mutate([`Royale Unpaused`, 2]);
     return { status: 1 };
   }
 
   async stopRoyale(
-    ...[input, { client }]: Parameters<Shard.Service['stopRoyale']>
-  ): ReturnType<Shard.Service['stopRoyale']> {
+    input: Shard.RouterInput['stopRoyale'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['stopRoyale']> {
     this.baseConfig.isRoyale = false;
     this.config.isRoyale = false;
     this.emitAll.onBroadcast.mutate([`Royale Stopped`, 2]);
@@ -2482,8 +2531,9 @@ class Service implements Shard.Service {
   }
 
   async makeBattleHarder(
-    ...[input, { client }]: Parameters<Shard.Service['makeBattleHarder']>
-  ): ReturnType<Shard.Service['makeBattleHarder']> {
+    input: Shard.RouterInput['makeBattleHarder'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['makeBattleHarder']> {
     this.baseConfig.dynamicDecayPower = false;
     this.config.dynamicDecayPower = false;
     this.sharedConfig.decayPower += 2;
@@ -2496,16 +2546,19 @@ class Service implements Shard.Service {
     this.config.checkInterval += 1;
     this.sharedConfig.spritesStartCount -= 10;
     this.config.spritesStartCount -= 10;
-    this.emitAll.onSetPositionMonitor.mutate(
-      `${this.config.checkPositionDistance}:${this.config.checkInterval}:${this.config.resetInterval}`
-    );
+    this.emitAll.onSetPositionMonitor.mutate([
+      this.config.checkPositionDistance,
+      this.config.checkInterval,
+      this.config.resetInterval,
+    ]);
     this.emitAll.onBroadcast.mutate([`Difficulty Increased!`, 2]);
     return { status: 1 };
   }
 
   async makeBattleEasier(
-    ...[input, { client }]: Parameters<Shard.Service['makeBattleEasier']>
-  ): ReturnType<Shard.Service['makeBattleEasier']> {
+    input: Shard.RouterInput['makeBattleEasier'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['makeBattleEasier']> {
     this.baseConfig.dynamicDecayPower = false;
     this.config.dynamicDecayPower = false;
     this.sharedConfig.decayPower -= 2;
@@ -2518,16 +2571,19 @@ class Service implements Shard.Service {
     this.config.checkInterval -= 1;
     this.sharedConfig.spritesStartCount += 10;
     this.config.spritesStartCount += 10;
-    this.emitAll.onSetPositionMonitor.mutate(
-      `${this.config.checkPositionDistance}:${this.config.checkInterval}:${this.config.resetInterval}`
-    );
+    this.emitAll.onSetPositionMonitor.mutate([
+      this.config.checkPositionDistance,
+      this.config.checkInterval,
+      this.config.resetInterval,
+    ]);
     this.emitAll.onBroadcast.mutate([`Difficulty Decreased!`, 0]);
     return { status: 1 };
   }
 
   async resetBattleDifficulty(
-    ...[input, { client }]: Parameters<Shard.Service['resetBattleDifficulty']>
-  ): ReturnType<Shard.Service['resetBattleDifficulty']> {
+    input: Shard.RouterInput['resetBattleDifficulty'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['resetBattleDifficulty']> {
     this.baseConfig.dynamicDecayPower = true;
     this.config.dynamicDecayPower = true;
     this.sharedConfig.decayPower = 1.4;
@@ -2538,16 +2594,20 @@ class Service implements Shard.Service {
     this.config.checkPositionDistance = 2;
     this.sharedConfig.checkInterval = 1;
     this.config.checkInterval = 1;
-    this.emitAll.onSetPositionMonitor.mutate(
-      `${this.config.checkPositionDistance}:${this.config.checkInterval}:${this.config.resetInterval}`
-    );
+    this.emitAll.onSetPositionMonitor.mutate([
+      this.config.checkPositionDistance,
+      this.config.checkInterval,
+      this.config.resetInterval,
+    ]);
     this.emitAll.onBroadcast.mutate([`Difficulty Reset!`, 0]);
     return { status: 1 };
   }
 
   async messageUser(
-    ...[input, { client }]: Parameters<Shard.Service['messageUser']>
-  ): ReturnType<Shard.Service['messageUser']> {
+    input: Shard.RouterInput['messageUser'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['messageUser']> {
+    if (!input) throw new Error('Input should not be void');
     const targetClient = this.clients.find((c) => c.address === input.data.target);
     if (!targetClient) return { status: 0 };
     this.sockets[targetClient.id].emitAll.onBroadcast.mutate([input.data.message.replace(/:/gi, ''), 0]);
@@ -2555,12 +2615,14 @@ class Service implements Shard.Service {
   }
 
   async changeUser(
-    ...[input, { client }]: Parameters<Shard.Service['changeUser']>
-  ): ReturnType<Shard.Service['changeUser']> {
+    input: Shard.RouterInput['changeUser'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['changeUser']> {
+    if (!input) throw new Error('Input should not be void');
     const newClient = this.clients.find((c) => c.address === input.data.target);
     if (!newClient) return { status: 0 };
-    for (const key of Object.keys(input.data.this.config)) {
-      const value = input.data.this.config[key];
+    for (const key of Object.keys(input.data.config)) {
+      const value = input.data.config[key];
       const val = value === 'true' ? true : value === 'false' ? false : isNumeric(value) ? parseFloat(value) : value;
       if (client.hasOwnProperty(key)) (newClient as any)[key] = val;
       else throw new Error("User doesn't have that option");
@@ -2569,22 +2631,26 @@ class Service implements Shard.Service {
   }
 
   async broadcast(
-    ...[input, { client }]: Parameters<Shard.Service['broadcast']>
-  ): ReturnType<Shard.Service['broadcast']> {
+    input: Shard.RouterInput['broadcast'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['broadcast']> {
+    if (!input) throw new Error('Input should not be void');
     this.emitAll.onBroadcast.mutate([input.data.message.replace(/:/gi, ''), 0]);
     return { status: 1 };
   }
 
   async kickClient(
-    ...[input, { client }]: Parameters<Shard.Service['kickClient']>
-  ): ReturnType<Shard.Service['kickClient']> {
+    input: Shard.RouterInput['kickClient'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['kickClient']> {
+    if (!input) throw new Error('Input should not be void');
     const targetClient = this.clients.find((c) => c.address === input.data.target);
     if (!targetClient) return { status: 0 };
     this.disconnectClient(targetClient, 'kicked');
     return { status: 1 };
   }
 
-  async info(...[input, { client }]: Parameters<Shard.Service['info']>): ReturnType<Shard.Service['info']> {
+  async info(input: Shard.RouterInput['info'], { client }: Shard.ServiceContext): Promise<Shard.RouterOutput['info']> {
     return {
       status: 1,
       data: {
@@ -2613,220 +2679,222 @@ export async function init(app) {
     const service = new Service();
 
     log('Starting event handler');
+
     app.io.on('connection', async function (socket) {
-      try {
-        log('Connection', socket.id);
+      // try {
+      log('Connection', socket.id);
 
-        const hash = ipHashFromSocket(socket);
-        const spawnPoint = service.clientSpawnPoints[Math.floor(Math.random() * service.clientSpawnPoints.length)];
-        const client: Shard.Client = {
-          name: 'Unknown' + Math.floor(Math.random() * 999),
-          roles: [],
-          emit: undefined,
-          ioCallbacks: {},
-          startedRoundAt: null,
-          lastTouchClientId: null,
-          lastTouchTime: null,
-          id: socket.id,
-          avatar: null,
-          network: null,
-          address: null,
-          device: null,
-          position: spawnPoint,
-          target: spawnPoint,
-          clientPosition: spawnPoint,
-          clientTarget: spawnPoint,
-          phasedPosition: undefined,
-          socket, // TODO: might be a problem
-          rotation: null,
-          xp: 50,
-          maxHp: 100,
-          latency: 0,
-          kills: 0,
-          killStreak: 0,
-          deaths: 0,
-          points: 0,
-          evolves: 0,
-          powerups: 0,
-          rewards: 0,
-          orbs: 0,
-          pickups: [],
-          isSeer: false,
-          isAdmin: false,
-          isMod: false,
-          isBanned: false,
-          isMasterClient: false,
-          isDisconnected: false,
-          isDead: true,
-          isJoining: false,
-          isSpectating: false,
-          isStuck: false,
-          isGod: false,
-          isRealm: false,
-          isGuest: false,
-          isInvincible: service.config.isGodParty ? true : false,
-          isPhased: false,
-          overrideSpeed: null as any,
-          overrideCameraSize: null as any,
-          cameraSize: service.config.cameraSize,
-          speed: service.config.baseSpeed * service.config.avatarSpeedMultiplier0,
-          joinedAt: 0,
-          invincibleUntil: 0,
-          decayPower: 1,
-          hash: ipHashFromSocket(socket),
-          lastReportedTime: getTime(),
-          lastUpdate: 0,
-          gameMode: service.config.gameMode,
-          phasedUntil: getTime(),
-          overrideSpeedUntil: 0,
-          joinedRoundAt: getTime(),
-          baseSpeed: 1,
-          character: {
-            meta: {
-              [Mechanic.MovementSpeedIncrease]: 0,
-              [Mechanic.DeathPenaltyAvoid]: 0,
-              [Mechanic.EnergyDecayIncrease]: 0,
-              [Mechanic.WinRewardsIncrease]: 0,
-              [Mechanic.WinRewardsDecrease]: 0,
-              [Mechanic.IncreaseMovementSpeedOnKill]: 0,
-              [Mechanic.EvolveMovementBurst]: 0,
-              [Mechanic.DoublePickupChance]: 0,
-              [Mechanic.IncreaseHealthOnKill]: 0,
-              [Mechanic.SpriteFuelIncrease]: 0,
-            },
+      const hash = ipHashFromSocket(socket);
+      const spawnPoint = service.clientSpawnPoints[Math.floor(Math.random() * service.clientSpawnPoints.length)];
+      const client: Shard.Client = {
+        name: 'Unknown' + Math.floor(Math.random() * 999),
+        roles: [],
+        emit: undefined,
+        ioCallbacks: {},
+        startedRoundAt: null,
+        lastTouchClientId: null,
+        lastTouchTime: null,
+        id: socket.id,
+        avatar: null,
+        network: null,
+        address: null,
+        device: null,
+        position: spawnPoint,
+        target: spawnPoint,
+        clientPosition: spawnPoint,
+        clientTarget: spawnPoint,
+        phasedPosition: undefined,
+        socket, // TODO: might be a problem
+        rotation: null,
+        xp: 50,
+        maxHp: 100,
+        latency: 0,
+        kills: 0,
+        killStreak: 0,
+        deaths: 0,
+        points: 0,
+        evolves: 0,
+        powerups: 0,
+        rewards: 0,
+        orbs: 0,
+        pickups: [],
+        isSeer: false,
+        isAdmin: false,
+        isMod: false,
+        isBanned: false,
+        isMasterClient: false,
+        isDisconnected: false,
+        isDead: true,
+        isJoining: false,
+        isSpectating: false,
+        isStuck: false,
+        isGod: false,
+        isRealm: false,
+        isGuest: false,
+        isInvincible: service.config.isGodParty ? true : false,
+        isPhased: false,
+        overrideSpeed: null as any,
+        overrideCameraSize: null as any,
+        cameraSize: service.config.cameraSize,
+        speed: service.config.baseSpeed * service.config.avatarSpeedMultiplier0,
+        joinedAt: 0,
+        invincibleUntil: 0,
+        decayPower: 1,
+        hash: ipHashFromSocket(socket),
+        lastReportedTime: getTime(),
+        lastUpdate: 0,
+        gameMode: service.config.gameMode,
+        phasedUntil: getTime(),
+        overrideSpeedUntil: 0,
+        joinedRoundAt: getTime(),
+        baseSpeed: 1,
+        character: {
+          meta: {
+            [Mechanic.MovementSpeedIncrease]: 0,
+            [Mechanic.DeathPenaltyAvoid]: 0,
+            [Mechanic.EnergyDecayIncrease]: 0,
+            [Mechanic.WinRewardsIncrease]: 0,
+            [Mechanic.WinRewardsDecrease]: 0,
+            [Mechanic.IncreaseMovementSpeedOnKill]: 0,
+            [Mechanic.EvolveMovementBurst]: 0,
+            [Mechanic.DoublePickupChance]: 0,
+            [Mechanic.IncreaseHealthOnKill]: 0,
+            [Mechanic.SpriteFuelIncrease]: 0,
           },
-          log: {
-            kills: [],
-            deaths: [],
-            revenge: 0,
-            resetPosition: 0,
-            phases: 0,
-            stuck: 0,
-            collided: 0,
-            timeoutDisconnect: 0,
-            speedProblem: 0,
-            clientDistanceProblem: 0,
-            outOfBounds: 0,
-            ranOutOfHealth: 0,
-            notReallyTrying: 0,
-            tooManyKills: 0,
-            killingThemselves: 0,
-            sameNetworkDisconnect: 0,
-            connectedTooSoon: 0,
-            clientDisconnected: 0,
-            positionJump: 0,
-            pauses: 0,
-            connects: 0,
-            path: '',
-            positions: 0,
-            spectating: 0,
-            replay: [],
-            addressProblem: 0,
-            recentJoinProblem: 0,
-            usernameProblem: 0,
-            maintenanceJoin: 0,
-            signatureProblem: 0,
-            signinProblem: 0,
-            versionProblem: 0,
-            failedRealmCheck: 0,
-          },
-        };
-        log('User connected from hash ' + hash);
+        },
+        log: {
+          kills: [],
+          deaths: [],
+          revenge: 0,
+          resetPosition: 0,
+          phases: 0,
+          stuck: 0,
+          collided: 0,
+          timeoutDisconnect: 0,
+          speedProblem: 0,
+          clientDistanceProblem: 0,
+          outOfBounds: 0,
+          ranOutOfHealth: 0,
+          notReallyTrying: 0,
+          tooManyKills: 0,
+          killingThemselves: 0,
+          sameNetworkDisconnect: 0,
+          connectedTooSoon: 0,
+          clientDisconnected: 0,
+          positionJump: 0,
+          pauses: 0,
+          connects: 0,
+          path: '',
+          positions: 0,
+          spectating: 0,
+          replay: [],
+          addressProblem: 0,
+          recentJoinProblem: 0,
+          usernameProblem: 0,
+          maintenanceJoin: 0,
+          signatureProblem: 0,
+          signinProblem: 0,
+          versionProblem: 0,
+          failedRealmCheck: 0,
+        },
+      };
+      log('User connected from hash ' + hash);
 
-        if (!testMode && service.config.killSameNetworkClients) {
-          const sameNetworkClient = service.clients.find((r) => r.hash === client.hash && r.id !== client.id);
-          if (sameNetworkClient) {
-            client.log.sameNetworkDisconnect += 1;
-            service.disconnectClient(client, 'same network');
-            return;
-          }
+      if (!testMode && service.config.killSameNetworkClients) {
+        const sameNetworkClient = service.clients.find((r) => r.hash === client.hash && r.id !== client.id);
+        if (sameNetworkClient) {
+          client.log.sameNetworkDisconnect += 1;
+          service.disconnectClient(client, 'same network');
+          return;
         }
-        service.sockets[client.id] = socket;
-        service.clientLookup[client.id] = client;
-        if (Object.keys(service.clientLookup).length == 1) {
-          client.isMasterClient = true;
-        }
-        service.clients = service.clients.filter((c) => c.hash !== client.hash);
-        service.clients.push(client);
-
-        // client.emit = createShardRouter(service);
-        // console.log(client.emit);
-
-        const ctx = { client };
-
-        const createCaller = createCallerFactory(createShardRouter(service));
-
-        client.emit = createCaller(ctx);
-
-        socket.on('trpc', async (message) => {
-          log('Shard client trpc message', message);
-          const pack = typeof message === 'string' ? decodePayload(message) : message;
-          console.log('Shard client trpc pack', pack);
-          const { id, method, type, params } = pack;
-          try {
-            // const createCaller = createCallerFactory(client.emit);
-            // const caller = createCaller(ctx);
-
-            console.log(
-              `Shard client trpc method: client.emit[${method}](${JSON.stringify(params)})`,
-              id,
-              method,
-              type,
-              params
-            );
-            const result = await client.emit[method](params);
-            console.log('Shard client trpc method call result', result);
-            // console.log(client.emit[method]);
-            // const result = await client.emit[method](params);
-
-            socket.emit('trpcResponse', { id, result });
-          } catch (e) {
-            console.log('Shard client trpc error', id, e);
-            socket.emit('trpcResponse', { id, error: e + '' });
-          }
-        });
-
-        socket.on('trpcResponse', async (message) => {
-          log('Shard client trpcResponse message', message);
-          const pack = typeof message === 'string' ? decodePayload(message) : message;
-          console.log('Shard client trpcResponse pack', pack);
-          const { id } = pack;
-
-          if (pack.error) {
-            console.log(
-              'Shard client callback - error occurred',
-              pack,
-              client.ioCallbacks[id] ? client.ioCallbacks[id].request : ''
-            );
-            return;
-          }
-
-          try {
-            log(`Shard client callback ${client.ioCallbacks[id] ? 'Exists' : 'Doesnt Exist'}`);
-
-            if (client.ioCallbacks[id]) {
-              clearTimeout(client.ioCallbacks[id].timeout);
-
-              client.ioCallbacks[id].resolve(pack.result);
-
-              delete client.ioCallbacks[id];
-            }
-          } catch (e) {
-            console.log('Shard client trpcResponse error', id, e);
-          }
-        });
-
-        socket.on('disconnect', function () {
-          log('Shard client trpcResponse disconnected');
-          client.log.clientDisconnected += 1;
-          service.disconnectClient(client, 'client disconnected');
-          if (client.isRealm) {
-            service.emitAll.onBroadcast.mutate([`Shard client: bridge disconnected`, 0]);
-          }
-        });
-      } catch (e) {
-        console.log('Shard client trpcResponse error', e);
       }
+      service.sockets[client.id] = socket;
+      service.clientLookup[client.id] = client;
+      if (Object.keys(service.clientLookup).length == 1) {
+        client.isMasterClient = true;
+      }
+      service.clients = service.clients.filter((c) => c.hash !== client.hash);
+      service.clients.push(client);
+
+      // client.emit = createShardRouter(service);
+      // console.log(client.emit);
+
+      const ctx = { client };
+
+      const createCaller = createCallerFactory(service.router);
+
+      client.emit = createCaller(ctx);
+
+      socket.on('trpc', async (message) => {
+        log('Shard client trpc message', message);
+        const pack = typeof message === 'string' ? decodePayload(message) : message;
+        console.log('Shard client trpc pack', pack);
+        const { id, method, type, params } = pack;
+        try {
+          // const createCaller = createCallerFactory(client.emit);
+          // const caller = createCaller(ctx);
+
+          console.log(
+            `Shard client trpc method: client.emit.${method}(${JSON.stringify(params)})`,
+            id,
+            method,
+            type,
+            params
+          );
+          // @ts-ignore
+          const result = params ? await client.emit[method](params) : await client.emit[method]();
+          console.log('Shard client trpc method call result', result);
+          // console.log(client.emit[method]);
+          // const result = await client.emit[method](params);
+
+          socket.emit('trpcResponse', { id: generateShortId(), oid: id, result });
+        } catch (e) {
+          console.log('Shard client trpc error', id, e);
+          socket.emit('trpcResponse', { id: generateShortId(), oid: id, error: e + '' });
+        }
+      });
+
+      socket.on('trpcResponse', async (message) => {
+        log('Shard client trpcResponse message', message);
+        const pack = typeof message === 'string' ? decodePayload(message) : message;
+        console.log('Shard client trpcResponse pack', pack);
+        const { oid } = pack;
+
+        if (pack.error) {
+          console.log(
+            'Shard client callback - error occurred',
+            pack,
+            client.ioCallbacks[oid] ? client.ioCallbacks[oid].request : ''
+          );
+          return;
+        }
+
+        try {
+          log(`Shard client callback ${client.ioCallbacks[oid] ? 'Exists' : 'Doesnt Exist'}`);
+
+          if (client.ioCallbacks[oid]) {
+            clearTimeout(client.ioCallbacks[oid].timeout);
+
+            client.ioCallbacks[oid].resolve({ result: { data: deserialize(pack.result) } });
+
+            delete client.ioCallbacks[oid];
+          }
+        } catch (e) {
+          console.log('Shard client trpcResponse error', oid, e);
+        }
+      });
+
+      socket.on('disconnect', function () {
+        log('Shard client trpcResponse disconnected');
+        client.log.clientDisconnected += 1;
+        service.disconnectClient(client, 'client disconnected');
+        if (client.isRealm) {
+          service.emitAll.onBroadcast.mutate([`Shard client: bridge disconnected`, 0]);
+        }
+      });
+      // } catch (e) {
+      //   console.log('Shard client error during connection', e);
+      // }
     });
   } catch (e) {
     log('init game world failed', e);
