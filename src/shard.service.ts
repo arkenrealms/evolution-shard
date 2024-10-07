@@ -76,9 +76,12 @@ class Service implements Shard.Service {
   emitDirect: ReturnType<typeof createTRPCProxyClient<ShardClientRouter>>;
   emitAll: ReturnType<typeof createTRPCProxyClient<ShardClientRouter>>;
   emitAllDirect: ReturnType<typeof createTRPCProxyClient<ShardClientRouter>>;
+  app: any;
 
-  constructor() {
+  constructor(app: any) {
     log('Process running on PID: ' + process.pid);
+
+    this.app = app;
 
     this.guestNames = [
       'Robin Banks',
@@ -128,7 +131,7 @@ class Service implements Shard.Service {
     this.lastLeaderName = undefined;
     this.eventFlushedAt = getTime();
     this.round = {
-      id: shortId(),
+      id: generateShortId(),
       startedDate: Math.round(getTime() / 1000),
       endedAt: null,
       events: [],
@@ -147,7 +150,37 @@ class Service implements Shard.Service {
     this.maxRequestsPerWindow = 5;
     this.requestTimestamps = {};
     this.realm = undefined;
-    this.loggableEvents = ['onMaintenance', 'saveRound'];
+    this.loggableEvents = [
+      // 'onEvents',
+      'onBroadcast',
+      'onGameOver',
+      'onJoinGame',
+      'onRoundWinner',
+      'onClearLeaderboard',
+      'onSpawnReward',
+      'onUpdateReward',
+      'onUpdateBestClient',
+      'onSpectate',
+      'onUserDisconnected',
+      'onBanned',
+      'onLogin',
+      'onMaintenance',
+      'onUpdateEvolution',
+      'onHideMinimap',
+      'onShowMinimap',
+      'onSetRoundInfo',
+      'onLoaded',
+      'onOpenLevel2',
+      'onCloseLevel2',
+      // 'onSpawnPowerUp',
+      // 'onUpdatePickup',
+      'onRoundPaused',
+      'onUnmaintenance',
+      'onSetPositionMonitor',
+      // 'onUpdatePlayer',
+      'onSpawnClient',
+      'onUpdateRegression',
+    ];
     this.currentPreset = presets[Math.floor(Math.random() * presets.length)];
     this.baseConfig = baseConfig;
     this.sharedConfig = sharedConfig;
@@ -176,23 +209,25 @@ class Service implements Shard.Service {
               log('emit', op);
 
               const { input, context } = op;
-              const { name, args } = input as Event;
+              // const { name, args } = input as Event;
               const client = context.client as Shard.Client;
 
+              log('Emit Direct', input);
+
               if (!client) {
-                log('Emit Direct failed, no client', ...args);
+                log('Emit Direct failed, no client', input);
                 observer.complete();
                 return;
               }
 
               if (!client.socket || !client.socket.emit) {
-                log('Emit Direct failed, bad socket', ...args);
+                log('Emit Direct failed, bad socket', input);
                 observer.complete();
                 return;
               }
-              log('Emit Direct', ...args);
+
               const compiled: any[] = [];
-              const eventQueue = [{ name, args }];
+              const eventQueue = [{ name: op.path, args: input as Array<any> }];
               for (const e of eventQueue) {
                 compiled.push(`["${e.name}","${Object.values(e.args).join(':')}"]`);
                 this.round.events.push({ type: 'emitDirect', client: client.id, name: e.name, args: e.args });
@@ -200,11 +235,15 @@ class Service implements Shard.Service {
 
               (context.client as Shard.Client).socket.emit('onEvents', this.getPayload(compiled));
 
+              observer.next({
+                result: { data: { status: 1 } },
+              });
+
               observer.complete();
             });
           },
       ],
-      transformer,
+      // transformer,
     });
 
     this.emitDirect = createTRPCProxyClient<ShardClientRouter>({
@@ -214,18 +253,22 @@ class Service implements Shard.Service {
             return observable((observer) => {
               log('emitDirect', op);
               const { input, context } = op;
-              const { name, args } = input as Event;
-              if (this.loggableEvents.includes(name)) {
-                log(`emitDirect: ${name}`, args);
+              // const { name, args } = input as Event;
+              if (this.loggableEvents.includes(op.path)) {
+                log(`emitDirect: ${op.path}`, input);
               }
 
-              (context.client as Shard.Client).socket.emit(name, Object.values(args));
+              (context.client as Shard.Client).socket.emit(op.path, Object.values(input));
+
+              observer.next({
+                result: { data: { status: 1 } },
+              });
 
               observer.complete();
             });
           },
       ],
-      transformer,
+      // transformer,
     });
 
     this.emitAll = createTRPCProxyClient<ShardClientRouter>({
@@ -235,13 +278,18 @@ class Service implements Shard.Service {
             return observable((observer) => {
               log('emitAll', op);
               const { input, context } = op;
-              const { name, args } = input as Event;
-              this.eventQueue.push({ name, args });
+              // const { name, args } = input as Event;
+              this.eventQueue.push({ name: op.path, args: input as Array<any> });
+
+              observer.next({
+                result: { data: { status: 1 } },
+              });
+
               observer.complete();
             });
           },
       ],
-      transformer,
+      // transformer,
     });
 
     this.emitAllDirect = createTRPCProxyClient<ShardClientRouter>({
@@ -251,7 +299,7 @@ class Service implements Shard.Service {
             return observable((observer) => {
               const { input, context } = op;
 
-              if (op.path === 'events') {
+              if (op.path === 'onEvents') {
                 const events = input as Event[];
 
                 if (events.length) {
@@ -277,21 +325,31 @@ class Service implements Shard.Service {
                     }
 
                     if (this.loggableEvents.includes(e.name)) {
-                      log(`Publish Event: ${e.name}`, e.args);
+                      log(`emitAllDirect: ${e.name}`, e.args);
                     }
 
-                    this.io.emit('events', this.getPayload(compiled));
+                    // log('Emitting onEvents directly to all subscribers', op.path, compiled);
+
+                    this.app.io.emit('onEvents', this.getPayload(compiled));
                   }
                 }
               } else {
-                this.io.emit(op.path, ...Object.values(input));
+                if (this.loggableEvents.includes(op.path)) {
+                  log(`emitAllDirect: ${op.path}`, input);
+                }
+
+                this.app.io.emit(op.path, ...Object.values(input));
               }
+
+              observer.next({
+                result: { data: { status: 1 } },
+              });
 
               observer.complete();
             });
           },
       ],
-      transformer,
+      // transformer,
     });
   }
 
@@ -371,7 +429,7 @@ class Service implements Shard.Service {
       log('Leader: ', winners[0]);
 
       if (winners[0]?.address) {
-        this.emitAll.onRoundWinner.mutate(winners[0].name);
+        this.emitAll.onRoundWinner.mutate([winners[0].name]);
       }
 
       if (this.config.isBattleRoyale) {
@@ -1499,7 +1557,7 @@ class Service implements Shard.Service {
 
   async load(input: Shard.RouterInput['load'], { client }: Shard.ServiceContext): Promise<Shard.RouterOutput['load']> {
     log('Load', client.hash);
-    this.emit.onLoaded.mutate(1, { context: { client } });
+    this.emit.onLoaded.mutate([1], { context: { client } });
     return { status: 1 };
   }
 
@@ -1593,7 +1651,7 @@ class Service implements Shard.Service {
       const oldSocket = this.sockets[client.id];
       setTimeout(
         () => {
-          this.emitAll.onUserDisconnected.mutate(client.id);
+          this.emitAll.onUserDisconnected.mutate([client.id]);
           this.syncSprites();
           this.flushEventQueue();
           if (oldSocket && oldSocket.emit && oldSocket.connected) oldSocket.disconnect();
@@ -1609,10 +1667,8 @@ class Service implements Shard.Service {
   public async getUsername(address: string): Promise<string> {
     try {
       log(`Getting username for ${address}`);
-      // TODO: replace with realm call
-      const response = await axios.get(`https://s1.envoy.arken.asi.sh/profile/${address}`);
-      const { username = '' } = response.data;
-      return username;
+      const res = await this.realm.emit.normalizeAddress.mutate({ address });
+      return res.data.address;
     } catch (error) {
       return ''; // Return an empty string or a default value if needed
     }
@@ -1622,21 +1678,22 @@ class Service implements Shard.Service {
     input: Shard.RouterInput['login'],
     { client }: Shard.ServiceContext
   ): Promise<Shard.RouterOutput['login']> {
+    if (!input) throw new Error('Input should not be void');
+
     log('Login', input);
 
-    const pack = decodePayload(input);
-    if (!pack.signature || !pack.network || !pack.device || !pack.address) {
+    if (!input.signature || !input.network || !input.device || !input.address) {
       client.log.signinProblem += 1;
       this.disconnectClient(client, 'signin problem');
       return { status: 0 };
     }
 
-    // if (!this.realm && pack.address === '') {
+    // if (!this.realm && input.address === '') {
     //   this.realm = { client, emit: null };
     // }
 
-    const address = await this.normalizeAddress(pack.address);
-    log('Login normalizeAddress', pack.address, address);
+    const address = await this.normalizeAddress(input.address);
+    log('Login normalizeAddress', input.address, address);
     if (!address) {
       client.log.addressProblem += 1;
       this.disconnectClient(client, 'address problem');
@@ -1647,7 +1704,7 @@ class Service implements Shard.Service {
       !(await this.auth(
         {
           data: 'evolution',
-          signature: { hash: pack.signature.trim(), address },
+          signature: { hash: input.signature.trim(), address },
         },
         { client }
       ))
@@ -1682,8 +1739,8 @@ class Service implements Shard.Service {
     if (client.name !== name || client.address !== address) {
       client.name = name;
       client.address = address;
-      client.network = pack.network;
-      client.device = pack.device;
+      client.network = input.network;
+      client.device = input.device;
       const recentClient = this.round.clients.find((r) => r.address === address);
       if (recentClient && now - recentClient.lastUpdate < 3000) {
         client.log.recentJoinProblem += 1;
@@ -1721,7 +1778,7 @@ class Service implements Shard.Service {
     try {
       const res = await this.realm.emit.normalizeAddress.mutate({ address });
       log('normalizeAddressResponse', res);
-      return res.address;
+      return res.data.address;
     } catch (e) {
       log('Error:', e);
       return false;
@@ -1736,13 +1793,13 @@ class Service implements Shard.Service {
 
     if (!input.signature.address) return { status: 0 };
 
-    const res = await this.realm.emit.auth.mutate({ data: input.data, signatur: input.signature });
+    const res = await this.realm.emit.auth.mutate({ data: input.data, signature: input.signature });
 
     if (res.status !== 1) return { status: 0 };
 
-    client.isSeer = res.groups.includes('seer');
-    client.isAdmin = res.groups.includes('admin');
-    client.isMod = res.groups.includes('mod');
+    client.isSeer = res.data.roles.includes('seer');
+    client.isAdmin = res.data.roles.includes('admin');
+    client.isMod = res.data.roles.includes('mod');
 
     return { status: 1 };
   }
@@ -1765,7 +1822,7 @@ class Service implements Shard.Service {
   }
 
   async join(input: Shard.RouterInput['join'], { client }: Shard.ServiceContext): Promise<Shard.RouterOutput['join']> {
-    log('JoinShard', client.id, client.hash);
+    log('join', client.id, client.hash);
 
     try {
       const confirmUser = await this.realm.emit.confirmUser.mutate({ address: client.address });
@@ -2384,7 +2441,7 @@ class Service implements Shard.Service {
   ): Promise<Shard.RouterOutput['maintenance']> {
     this.sharedConfig.isMaintenance = true;
     this.config.isMaintenance = true;
-    this.emitAll.onMaintenance.mutate(this.config.isMaintenance);
+    this.emitAll.onMaintenance.mutate([this.config.isMaintenance]);
     return { status: 1 };
   }
 
@@ -2394,7 +2451,7 @@ class Service implements Shard.Service {
   ): Promise<Shard.RouterOutput['unmaintenance']> {
     this.sharedConfig.isMaintenance = false;
     this.config.isMaintenance = false;
-    this.emitAll.onUnmaintenance.mutate(this.config.isMaintenance);
+    this.emitAll.onUnmaintenance.mutate([this.config.isMaintenance]);
     return { status: 1 };
   }
 
@@ -2654,10 +2711,10 @@ class Service implements Shard.Service {
     return {
       status: 1,
       data: {
-        id: this.config.id,
+        id: this.config.id || 'Unknown',
         version: this.serverVersion,
-        port: this.state.spawnPort,
-        round: { id: this.config.roundId, startedDate: this.round.startedDate },
+        // port: this.state.spawnPort,
+        round: { id: parseInt(this.config.roundId), startedDate: this.round.startedDate },
         clientCount: this.clients.length,
         // clientCount: this.clients.filter((c) => !c.isDead && !c.isSpectating).length,
         spectatorCount: this.clients.filter((c) => c.isSpectating).length,
@@ -2676,7 +2733,7 @@ class Service implements Shard.Service {
 
 export async function init(app) {
   try {
-    const service = new Service();
+    const service = new Service(app);
 
     log('Starting event handler');
 
@@ -2826,7 +2883,7 @@ export async function init(app) {
       client.emit = createCaller(ctx);
 
       socket.on('trpc', async (message) => {
-        log('Shard client trpc message', message);
+        // log('Shard client trpc message', message);
         const pack = typeof message === 'string' ? decodePayload(message) : message;
         console.log('Shard client trpc pack', pack);
         const { id, method, type, params } = pack;
