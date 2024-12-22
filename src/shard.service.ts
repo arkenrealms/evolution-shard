@@ -14,6 +14,7 @@ import {
   isNumeric,
   ipHashFromSocket,
 } from '@arken/node/util';
+import * as Arken from '@arken/node';
 import { sleep } from '@arken/node/util/time';
 import { awaitEnter } from '@arken/node/util/process';
 import { customErrorFormatter, hasRole, transformer } from '@arken/node/util/rpc';
@@ -22,12 +23,13 @@ import { presets } from '@arken/evolution-protocol/presets';
 import { createCallerFactory, createRouter as createShardRouter } from '@arken/evolution-protocol/shard/shard.router';
 import type { ShardClientRouter, Realm } from '@arken/evolution-protocol/types';
 import type { Orb, Boundary, Reward, PowerUp, Round, Preset, Event } from '@arken/evolution-protocol/shard/shard.types';
-import { EvolutionMechanic as Mechanic, Position } from '@arken/node/types';
+import { Position } from '@arken/node/types';
+import { EvolutionMechanic as Mechanic } from '@arken/node/legacy/types';
 import mapData from '../public/data/map.json'; // TODO: get this from the embedded game client
 import type * as Shard from '@arken/evolution-protocol/shard/shard.types';
 import type * as Bridge from '@arken/evolution-protocol/bridge/bridge.types';
 // import { createRouter as createBridgeRouter } from '@arken/evolution-protocol/bridge/router';
-import { dummyTransformer } from '@arken/node/util/rpc';
+// import { dummyTransformer } from '@arken/node/util/rpc';
 
 class Service implements Shard.Service {
   io: any;
@@ -36,7 +38,7 @@ class Service implements Shard.Service {
   guestNames: string[];
   serverVersion: string;
   roundLoopTimeout?: NodeJS.Timeout;
-  addressToUsername: Record<string, string>;
+  addressToProfile: Record<string, Arken.Profile.Types.Profile>;
   announceReboot: boolean;
   rebootAfterRound: boolean;
   debugQueue: boolean;
@@ -111,9 +113,9 @@ class Service implements Shard.Service {
       'Zyphon',
       'Smaug',
     ];
-    this.serverVersion = '2.0.0';
+    this.serverVersion = '1.9.0';
     this.roundLoopTimeout;
-    this.addressToUsername = {};
+    this.addressToProfile = {};
     this.announceReboot = false;
     this.rebootAfterRound = false;
     this.debugQueue = false;
@@ -177,7 +179,7 @@ class Service implements Shard.Service {
       'onRoundPaused',
       'onUnmaintenance',
       'onSetPositionMonitor',
-      // 'onUpdatePlayer',
+      'onUpdatePlayer',
       'onSpawnClient',
       'onUpdateRegression',
     ];
@@ -188,7 +190,7 @@ class Service implements Shard.Service {
     this.roundConfig = { ...baseConfig, ...sharedConfig, ...this.currentPreset };
     this.spawnBoundary1 = { x: { min: -17, max: 0 }, y: { min: -13, max: -4 } };
     this.spawnBoundary2 = { x: { min: -37, max: 0 }, y: { min: -13, max: -2 } };
-    this.mapBoundary = { x: { min: -38, max: 2 }, y: { min: -20, max: 2 } };
+    this.mapBoundary = { x: { min: -38, max: 40 }, y: { min: -20, max: 2 } };
     this.clientSpawnPoints = [
       { x: -4.14, y: -11.66 },
       { x: -11.14, y: -8.55 },
@@ -212,33 +214,42 @@ class Service implements Shard.Service {
               // const { name, args } = input as Event;
               const client = context.client as Shard.Client;
 
-              log('Emit Direct', input);
+              // if (!client) {
+              //   log('Emit Direct failed, no client', input);
+              //   observer.complete();
+              //   return;
+              // }
 
-              if (!client) {
-                log('Emit Direct failed, no client', input);
-                observer.complete();
-                return;
+              // if (!client.socket || !client.socket.emit) {
+              //   log('Emit Direct failed, bad socket', input);
+              //   observer.complete();
+              //   return;
+              // }
+
+              if (client?.socket?.emit) {
+                log('Emit Direct', op.path, input, client.id);
+
+                const compiled: any[] = [];
+                const eventQueue = [{ name: op.path, args: input as Array<any> }];
+                for (const e of eventQueue) {
+                  compiled.push(`["${e.name}","${Object.values(e.args).join(':')}"]`);
+                  this.round.events.push({ type: 'emitDirect', client: client.id, name: e.name, args: e.args });
+                }
+
+                const id = generateShortId();
+                const data = `{"id":"${id}","method":"onEvents","type":"mutation","params":[${compiled.join(',')}]}`;
+
+                console.log(data);
+
+                client.socket.emit(
+                  'trpc',
+                  Buffer.from(data) // JSON.stringify({ id, method: 'onEvents', type: 'mutation', params: [compiled] }))
+                );
+              } else {
+                log('Fake Emit Direct', input);
+
+                this.eventQueue.push({ name: op.path, args: input as Array<any> });
               }
-
-              if (!client.socket || !client.socket.emit) {
-                log('Emit Direct failed, bad socket', input);
-                observer.complete();
-                return;
-              }
-
-              const compiled: any[] = [];
-              const eventQueue = [{ name: op.path, args: input as Array<any> }];
-              for (const e of eventQueue) {
-                compiled.push(`["${e.name}","${Object.values(e.args).join(':')}"]`);
-                this.round.events.push({ type: 'emitDirect', client: client.id, name: e.name, args: e.args });
-              }
-
-              const id = generateShortId();
-
-              (context.client as Shard.Client).socket.emit(
-                'trpc',
-                Buffer.from(`{"id":"${id}","method":"onEvents","type":"mutation","params":[${compiled.join(',')}]}`) // JSON.stringify({ id, method: 'onEvents', type: 'mutation', params: [compiled] }))
-              );
 
               observer.next({
                 result: { data: { status: 1 } },
@@ -263,7 +274,14 @@ class Service implements Shard.Service {
                 log(`emitDirect: ${op.path}`, input);
               }
 
-              (context.client as Shard.Client).socket.emit(op.path, Object.values(input));
+              (context.client as Shard.Client).socket.emit(
+                'trpc',
+                Buffer.from(
+                  `{"id":"${generateShortId()}","method":"onEvents","type":"mutation","params":[["${
+                    op.path
+                  }",${Object.values(input)}]]}`
+                )
+              );
 
               observer.next({
                 result: { data: { status: 1 } },
@@ -312,7 +330,9 @@ class Service implements Shard.Service {
                 if (events.length) {
                   const now = this.getTime();
 
-                  if (this.debugQueue) log('Sending queue', this.eventQueue);
+                  const events = op.input as Array<{ name: string; args: Array<any> }>;
+
+                  if (this.debugQueue) log('Sending queue', events);
 
                   let recordDetailed = now - this.eventFlushedAt > 500;
                   if (recordDetailed) {
@@ -320,7 +340,7 @@ class Service implements Shard.Service {
                   }
 
                   const compiled: string[] = [];
-                  for (const e of this.eventQueue) {
+                  for (const e of events) {
                     compiled.push(e.args ? `["${e.name}","${e.args.join(':')}"]` : `["${e.name}"]`);
 
                     if (e.name === 'onUpdateClient' || e.name === 'onSpawnPowerup') {
@@ -334,28 +354,30 @@ class Service implements Shard.Service {
                     if (this.loggableEvents.includes(e.name)) {
                       log(`emitAllDirect: ${e.name}`, e.args);
                     }
-
                     // log('Emitting onEvents directly to all subscribers', op.path, compiled);
-
-                    this.app.io.emit('trpc', {
-                      id: generateShortId(),
-                      method: 'onEvents',
-                      type: 'mutate',
-                      params: this.getPayload(compiled),
-                    });
                   }
+
+                  this.app.io.emit(
+                    'trpc',
+                    Buffer.from(
+                      `{"id":"${generateShortId()}","method":"onEvents","type":"mutation","params":[${compiled.join(
+                        ','
+                      )}]}`
+                    )
+                  );
                 }
               } else {
                 if (this.loggableEvents.includes(op.path)) {
                   log(`emitAllDirect: ${op.path}`, input);
                 }
-
-                this.app.io.emit('trpc', {
-                  id: generateShortId(),
-                  method: op.path,
-                  type: 'mutate',
-                  params: Object.values(input),
-                });
+                this.app.io.emit(
+                  'trpc',
+                  Buffer.from(
+                    `{"id":"${generateShortId()}","method":"onEvents","type":"mutation","params":[["${
+                      op.path
+                    }",${Object.values(input)}]]}`
+                  )
+                );
               }
 
               observer.next({
@@ -375,11 +397,12 @@ class Service implements Shard.Service {
   }
 
   init() {
-    if (Object.keys(this.clientLookup).length == 0) {
-      this.randomRoundPreset();
-      this.clearSprites();
-      this.spawnSprites(this.config.spritesStartCount);
-    }
+    // if (Object.keys(this.clientLookup).length == 0) {
+    this.randomRoundPreset();
+    this.clearSprites();
+    this.spawnSprites(this.config.spritesStartCount);
+    // }
+    console.log('ccccc', this.config);
     setTimeout(() => this.monitorRealm(), 30 * 1000);
     setTimeout(() => this.fastGameloop(), this.config.fastLoopSeconds * 1000);
     setTimeout(() => this.slowGameloop(), this.config.slowLoopSeconds * 1000);
@@ -391,9 +414,30 @@ class Service implements Shard.Service {
     }, this.config.roundLoopSeconds * 1000);
   }
 
-  public async calcRoundRewards() {
+  public async calcRoundRewards(input: any, ctx: any) {
     const calcRewardsRes = await this.realm.emit.configure.mutate({
-      clients: this.clients,
+      clients: this.clients.map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        joinedRoundAt: c.joinedRoundAt,
+        points: c.points,
+        kills: c.kills,
+        killStreak: c.killStreak,
+        deaths: c.deaths,
+        evolves: c.evolves,
+        rewards: c.rewards,
+        orbs: c.orbs,
+        powerups: c.powerups,
+        baseSpeed: c.baseSpeed,
+        decayPower: c.decayPower,
+        pickups: c.pickups,
+        xp: c.xp,
+        maxHp: c.maxHp,
+        avatar: c.avatar,
+        speed: c.speed,
+        cameraSize: c.cameraSize,
+        log: c.log,
+      })),
     });
 
     if (calcRewardsRes) {
@@ -404,7 +448,10 @@ class Service implements Shard.Service {
 
       if (this.config.rewardWinnerAmount === 0 && calcRewardsRes.rewardWinnerAmount !== 0) {
         const roundTimer = this.round.startedDate + this.config.roundLoopSeconds - Math.round(this.getTime() / 1000);
-        this.emit.onSetRoundInfo.mutate([roundTimer, this.getRoundInfo().join(':'), this.getGameModeGuide().join(':')]);
+        this.emit.onSetRoundInfo.mutate(
+          [roundTimer, this.getRoundInfo().join(':'), this.getGameModeGuide().join(':')],
+          { context: ctx }
+        );
       }
     }
   }
@@ -417,224 +464,260 @@ class Service implements Shard.Service {
     this.config.powerupXp3 = shuffledValues[3];
   }
 
-  public async resetLeaderboard(preset: any = null) {
+  public async resetLeaderboard(preset: any = null, context: any = null) {
     log('resetLeaderboard', preset);
 
-    if (this.config.gameMode === 'Pandamonium') {
-      this.roundLoopTimeout = setTimeout(() => this.resetLeaderboard(), this.config.roundLoopSeconds * 1000);
-      return;
-    }
-
-    if (!this.realm.client?.socket?.connected) {
-      this.emit.onBroadcast.mutate([`Realm not connected. Contact support.`, 0]);
-      this.roundLoopTimeout = setTimeout(() => this.resetLeaderboard(), this.config.roundLoopSeconds * 1000);
-      return;
-    }
-
-    this.round.endedAt = Math.round(this.getTime() / 1000);
-
-    const fiveSecondsAgo = this.getTime() - 7000;
-    const thirtySecondsAgo = this.getTime() - 30 * 1000;
-
-    const winners = this.round.clients
-      .filter((p) => p.lastUpdate >= fiveSecondsAgo)
-      .sort((a, b) => b.points - a.points)
-      .slice(0, 10);
-
-    if (winners.length) {
-      this.lastLeaderName = winners[0].name;
-      log('Leader: ', winners[0]);
-
-      if (winners[0]?.address) {
-        this.emitAll.onRoundWinner.mutate([winners[0].name]);
+    try {
+      if (this.config.gameMode === 'Pandamonium') {
+        this.roundLoopTimeout = setTimeout(
+          () => this.resetLeaderboard(preset, context),
+          this.config.roundLoopSeconds * 1000
+        );
+        return;
       }
 
-      if (this.config.isBattleRoyale) {
-        this.emitAll.onBroadcast.mutate([
-          `Top 5 - ${winners
-            .slice(0, 5)
-            .map((l) => l.name)
-            .join(', ')}`,
-          0,
-        ]);
+      if (!this.realm.client?.socket?.connected) {
+        this.emit.onBroadcast.mutate([`Realm not connected. Contact support.`, 0], { context: context });
+        this.roundLoopTimeout = setTimeout(
+          () => this.resetLeaderboard(preset, context),
+          this.config.roundLoopSeconds * 1000
+        );
+        return;
       }
-    }
 
-    const saveRoundRes = await this.realm.emit.saveRound.mutate({
-      startedDate: this.round.startedDate,
-      endedAt: this.round.endedAt,
-      players: this.round.clients,
-      winners,
-    });
+      this.round.endedAt = Math.round(this.getTime() / 1000);
 
-    if (saveRoundRes?.status !== 1) {
+      const fiveSecondsAgo = this.getTime() - 7000;
+      const thirtySecondsAgo = this.getTime() - 30 * 1000;
+
+      const winners = this.round.clients
+        .filter((p) => p.lastUpdate >= fiveSecondsAgo)
+        .sort((a, b) => b.points - a.points)
+        .slice(0, 10);
+
+      if (winners.length) {
+        this.lastLeaderName = winners[0].name;
+        log('Leader: ', winners[0]);
+
+        if (winners[0]?.address) {
+          this.emitAll.onRoundWinner.mutate([winners[0].name]);
+        }
+
+        if (this.config.isBattleRoyale) {
+          this.emitAll.onBroadcast.mutate([
+            `Top 5 - ${winners
+              .slice(0, 5)
+              .map((l) => l.name)
+              .join(', ')}`,
+            0,
+          ]);
+        }
+      }
+
+      await this.realm.emit.saveRound.mutate({
+        id: this.round.id + '',
+        startedAt: this.round.startedDate,
+        endedAt: this.round.endedAt,
+        events: [],
+        clients: this.round.clients.map((c: any) => ({
+          id: c.id,
+          name: c.name,
+          joinedRoundAt: c.joinedRoundAt,
+          points: c.points,
+          kills: c.kills,
+          killStreak: c.killStreak,
+          deaths: c.deaths,
+          evolves: c.evolves,
+          rewards: c.rewards,
+          orbs: c.orbs,
+          powerups: c.powerups,
+          baseSpeed: c.baseSpeed,
+          decayPower: c.decayPower,
+          pickups: c.pickups,
+          xp: c.xp,
+          maxHp: c.maxHp,
+          avatar: c.avatar,
+          speed: c.speed,
+          cameraSize: c.cameraSize,
+          log: c.log,
+        })),
+        states: [],
+      });
+
+      if (this.config.calcRoundRewards) {
+        await this.calcRoundRewards(null, context);
+      }
+
+      if (preset) {
+        this.roundConfig = {
+          ...this.baseConfig,
+          ...this.sharedConfig,
+          ...preset,
+        };
+        this.config = JSON.parse(JSON.stringify(this.roundConfig));
+      } else {
+        this.randomRoundPreset();
+      }
+
+      // TODO: get ID from realm
+      // this.baseConfig.roundId = this.baseConfig.roundId + 1;
+      // this.config.roundId = this.baseConfig.roundId;
+
+      this.round = {
+        id: this.config.roundId,
+        startedDate: Math.round(this.getTime() / 1000),
+        endedAt: null,
+        clients: [],
+        events: [],
+        states: [],
+      };
+
+      for (const client of this.clients) {
+        if (!this.ranks[client.address]) this.ranks[client.address] = {};
+        if (!this.ranks[client.address].kills) this.ranks[client.address].kills = 0;
+
+        this.ranks[client.address].kills += client.kills;
+
+        client.joinedRoundAt = this.getTime();
+        client.points = 0;
+        client.kills = 0;
+        client.killStreak = 0;
+        client.deaths = 0;
+        client.evolves = 0;
+        client.rewards = 0;
+        client.orbs = 0;
+        client.powerups = 0;
+        client.baseSpeed = 1;
+        client.decayPower = 1;
+        client.pickups = [];
+        client.xp = 50;
+        client.maxHp = 100;
+        client.avatar = this.config.startAvatar;
+        client.speed = this.getClientSpeed(client);
+        client.cameraSize = client.overrideCameraSize || this.config.cameraSize;
+        client.log = {
+          kills: [],
+          deaths: [],
+          revenge: 0,
+          resetPosition: 0,
+          phases: 0,
+          stuck: 0,
+          collided: 0,
+          timeoutDisconnect: 0,
+          speedProblem: 0,
+          clientDistanceProblem: 0,
+          outOfBounds: 0,
+          ranOutOfHealth: 0,
+          notReallyTrying: 0,
+          tooManyKills: 0,
+          killingThemselves: 0,
+          sameNetworkDisconnect: 0,
+          connectedTooSoon: 0,
+          clientDisconnected: 0,
+          positionJump: 0,
+          pauses: 0,
+          connects: 0,
+          path: '',
+          positions: 0,
+          spectating: 0,
+          recentJoinProblem: 0,
+          usernameProblem: 0,
+          maintenanceJoin: 0,
+          signatureProblem: 0,
+          signinProblem: 0,
+          versionProblem: 0,
+          failedRealmCheck: 0,
+          addressProblem: 0,
+          replay: [],
+        };
+        client.gameMode = this.config.gameMode;
+
+        if (this.config.gameMode === 'Pandamonium' && this.pandas.includes(client.address)) {
+          client.avatar = 2;
+          this.emitAll.onUpdateEvolution.mutate([client.id, client.avatar, client.speed]);
+        } else {
+          this.emitAll.onUpdateRegression.mutate([client.id, client.avatar, client.speed]);
+        }
+
+        if (client.isDead || client.isSpectating) continue;
+
+        client.startedRoundAt = Math.round(this.getTime() / 1000);
+
+        this.round.clients.push(client);
+      }
+
+      for (let i = 0; i < this.orbs.length; i++) {
+        this.emitAll.onUpdatePickup.mutate(['null', this.orbs[i].id, 0]);
+      }
+
+      this.orbs.splice(0, this.orbs.length);
+
+      this.randomizeSpriteXp();
+
+      this.syncSprites();
+
+      const roundTimer = this.round.startedDate + this.config.roundLoopSeconds - Math.round(this.getTime() / 1000);
+      this.emitAll.onSetRoundInfo.mutate([
+        roundTimer,
+        this.getRoundInfo().join(':'),
+        this.getGameModeGuide().join(':'),
+      ]);
+
+      log(
+        'roundInfo',
+        roundTimer,
+        this.getRoundInfo().join(':'),
+        this.getGameModeGuide().join(':'),
+        (
+          this.config.roundLoopSeconds +
+          ':' +
+          this.getRoundInfo().join(':') +
+          ':' +
+          this.getGameModeGuide().join(':')
+        ).split(':').length
+      );
+
+      this.emitAll.onClearLeaderboard.mutate();
+
+      this.emitAll.onBroadcast.mutate([`Game Mode - ${this.config.gameMode} (Round ${this.config.roundId})`, 0]);
+
+      if (this.config.hideMap) {
+        this.emitAll.onHideMinimap.mutate();
+        this.emitAll.onBroadcast.mutate([`Minimap hidden in this mode!`, 2]);
+      } else {
+        this.emitAll.onShowMinimap.mutate();
+      }
+
+      if (this.config.periodicReboots && this.rebootAfterRound) {
+        this.emitAll.onMaintenance.mutate([true]);
+
+        setTimeout(() => {
+          process.exit();
+        }, 3 * 1000);
+      }
+
+      if (this.config.periodicReboots && this.announceReboot) {
+        const value = 'Restarting server at end of this round.';
+
+        this.emitAll.onBroadcast.mutate([value, 1]);
+
+        this.rebootAfterRound = true;
+      }
+
+      this.roundLoopTimeout = setTimeout(
+        () => this.resetLeaderboard(preset, context),
+        this.config.roundLoopSeconds * 1000
+      );
+    } catch (e) {
       this.sharedConfig.rewardWinnerAmount = 0;
       this.config.rewardWinnerAmount = 0;
       this.sharedConfig.rewardItemAmount = 0;
       this.config.rewardItemAmount = 0;
 
       setTimeout(() => {
-        this.emit.onBroadcast.mutate([`Maintenance`, 3]);
+        this.emit.onBroadcast.mutate([`Maintenance`, 3], { context: context });
       }, 30 * 1000);
     }
-
-    if (this.config.calcRoundRewards) {
-      await this.calcRoundRewards();
-    }
-
-    if (preset) {
-      this.roundConfig = {
-        ...this.baseConfig,
-        ...this.sharedConfig,
-        ...preset,
-      };
-      this.config = JSON.parse(JSON.stringify(this.roundConfig));
-    } else {
-      this.randomRoundPreset();
-    }
-
-    // TODO: get ID from realm
-    // this.baseConfig.roundId = this.baseConfig.roundId + 1;
-    // this.config.roundId = this.baseConfig.roundId;
-
-    this.round = {
-      id: this.config.roundId,
-      startedDate: Math.round(this.getTime() / 1000),
-      endedAt: null,
-      clients: [],
-      events: [],
-      states: [],
-    };
-
-    for (const client of this.clients) {
-      if (!this.ranks[client.address]) this.ranks[client.address] = {};
-      if (!this.ranks[client.address].kills) this.ranks[client.address].kills = 0;
-
-      this.ranks[client.address].kills += client.kills;
-
-      client.joinedRoundAt = this.getTime();
-      client.points = 0;
-      client.kills = 0;
-      client.killStreak = 0;
-      client.deaths = 0;
-      client.evolves = 0;
-      client.rewards = 0;
-      client.orbs = 0;
-      client.powerups = 0;
-      client.baseSpeed = 1;
-      client.decayPower = 1;
-      client.pickups = [];
-      client.xp = 50;
-      client.maxHp = 100;
-      client.avatar = this.config.startAvatar;
-      client.speed = this.getClientSpeed(client);
-      client.cameraSize = client.overrideCameraSize || this.config.cameraSize;
-      client.log = {
-        kills: [],
-        deaths: [],
-        revenge: 0,
-        resetPosition: 0,
-        phases: 0,
-        stuck: 0,
-        collided: 0,
-        timeoutDisconnect: 0,
-        speedProblem: 0,
-        clientDistanceProblem: 0,
-        outOfBounds: 0,
-        ranOutOfHealth: 0,
-        notReallyTrying: 0,
-        tooManyKills: 0,
-        killingThemselves: 0,
-        sameNetworkDisconnect: 0,
-        connectedTooSoon: 0,
-        clientDisconnected: 0,
-        positionJump: 0,
-        pauses: 0,
-        connects: 0,
-        path: '',
-        positions: 0,
-        spectating: 0,
-        recentJoinProblem: 0,
-        usernameProblem: 0,
-        maintenanceJoin: 0,
-        signatureProblem: 0,
-        signinProblem: 0,
-        versionProblem: 0,
-        failedRealmCheck: 0,
-        addressProblem: 0,
-        replay: [],
-      };
-      client.gameMode = this.config.gameMode;
-
-      if (this.config.gameMode === 'Pandamonium' && this.pandas.includes(client.address)) {
-        client.avatar = 2;
-        this.emitAll.onUpdateEvolution.mutate([client.id, client.avatar, client.speed]);
-      } else {
-        this.emitAll.onUpdateRegression.mutate([client.id, client.avatar, client.speed]);
-      }
-
-      if (client.isDead || client.isSpectating) continue;
-
-      client.startedRoundAt = Math.round(this.getTime() / 1000);
-
-      this.round.clients.push(client);
-    }
-
-    for (let i = 0; i < this.orbs.length; i++) {
-      this.emitAll.onUpdatePickup.mutate(['null', this.orbs[i].id, 0]);
-    }
-
-    this.orbs.splice(0, this.orbs.length);
-
-    this.randomizeSpriteXp();
-
-    this.syncSprites();
-
-    const roundTimer = this.round.startedDate + this.config.roundLoopSeconds - Math.round(this.getTime() / 1000);
-    this.emitAll.onSetRoundInfo.mutate([roundTimer, this.getRoundInfo().join(':'), this.getGameModeGuide().join(':')]);
-
-    log(
-      'roundInfo',
-      roundTimer,
-      this.getRoundInfo().join(':'),
-      this.getGameModeGuide().join(':'),
-      (
-        this.config.roundLoopSeconds +
-        ':' +
-        this.getRoundInfo().join(':') +
-        ':' +
-        this.getGameModeGuide().join(':')
-      ).split(':').length
-    );
-
-    this.emitAll.onClearLeaderboard.mutate();
-
-    this.emitAll.onBroadcast.mutate([`Game Mode - ${this.config.gameMode} (Round ${this.config.roundId})`, 0]);
-
-    if (this.config.hideMap) {
-      this.emitAll.onHideMinimap.mutate();
-      this.emitAll.onBroadcast.mutate([`Minimap hidden in this mode!`, 2]);
-    } else {
-      this.emitAll.onShowMinimap.mutate();
-    }
-
-    if (this.config.periodicReboots && this.rebootAfterRound) {
-      this.emitAll.onMaintenance.mutate([true]);
-
-      setTimeout(() => {
-        process.exit();
-      }, 3 * 1000);
-    }
-
-    if (this.config.periodicReboots && this.announceReboot) {
-      const value = 'Restarting server at end of this round.';
-
-      this.emitAll.onBroadcast.mutate([value, 1]);
-
-      this.rebootAfterRound = true;
-    }
-
-    this.roundLoopTimeout = setTimeout(() => this.resetLeaderboard(), this.config.roundLoopSeconds * 1000);
   }
 
   checkConnectionLoop(): void {
@@ -704,18 +787,22 @@ class Service implements Shard.Service {
     }
 
     await sleep(3 * 1000);
-    this.currentReward = { ...tempReward };
 
-    this.emitAll.onSpawnReward.mutate([
-      this.currentReward.id,
-      this.currentReward.rewardItemType,
-      this.currentReward.rewardItemName,
-      this.currentReward.quantity,
-      this.currentReward.position.x,
-      this.currentReward.position.y,
-    ]);
+    if (tempReward.rewardItemName) {
+      this.currentReward = { ...tempReward };
 
-    await sleep(3 * 1000);
+      // rewardItemType = 0 = token | 1 = item | 2 = guardian | 3 = cube | 4 = trinket | 5 = old | 6 = santahat
+      this.emitAll.onSpawnReward.mutate([
+        this.currentReward.id,
+        this.currentReward.rewardItemType,
+        this.currentReward.rewardItemName,
+        this.currentReward.quantity,
+        this.currentReward.position.x,
+        this.currentReward.position.y,
+      ]);
+    }
+
+    await sleep(30 * 1000);
     if (!this.currentReward) return;
     if (this.currentReward.id !== tempReward.id) return;
 
@@ -754,6 +841,7 @@ class Service implements Shard.Service {
   }
 
   fastGameloop(): void {
+    // console.log('fastGameloop');
     try {
       const now = this.getTime();
 
@@ -761,7 +849,7 @@ class Service implements Shard.Service {
 
       for (let i = 0; i < this.clients.length; i++) {
         const client = this.clients[i];
-
+        // console.log(client);
         if (client.isDisconnected || client.isDead || client.isSpectating || client.isJoining) continue;
 
         const currentTime = Math.round(now / 1000);
@@ -847,7 +935,7 @@ class Service implements Shard.Service {
       this.disconnectAllClients();
       setTimeout(() => process.exit(1), 2 * 1000);
     }
-
+    // console.log('this.config.fastLoopSeconds');
     setTimeout(() => this.fastGameloop(), this.config.fastLoopSeconds * 1000);
   }
 
@@ -956,7 +1044,8 @@ class Service implements Shard.Service {
               if (client.lastTouchTime > now - 2000) {
                 this.registerKill(this.clientLookup[client.lastTouchClientId], client);
               } else {
-                this.disconnectClient(client, 'starved');
+                // this.disconnectClient(client, 'starved');
+                this.spectate(null, { client });
               }
             }
           } else {
@@ -1127,7 +1216,8 @@ class Service implements Shard.Service {
 
     this.emitAll.onGameOver.mutate([loser.id, winner.id]);
 
-    this.disconnectClient(loser, 'got killed');
+    // this.disconnectClient(loser, 'got killed');
+    this.spectate(null, { client: loser });
 
     const orb: Orb = {
       id: generateShortId(),
@@ -1293,12 +1383,6 @@ class Service implements Shard.Service {
       throw new Error('Could not init self with realm');
     }
 
-    // Update this.app configuration based on the response
-    // this.baseConfig.id = res.id;
-    // this.config.id = res.id;
-    // this.baseConfig.roundId = res.roundId;
-    // this.config.roundId = res.roundId;
-
     for (const key of Object.keys(res)) {
       console.log(key, res[key]);
       this.baseConfig[key] = res[key];
@@ -1375,9 +1459,10 @@ class Service implements Shard.Service {
             maxY: gameCollider.Max[1],
           };
           if (this.config.level2open && gameObject.Name === 'Level2Divider') {
-            const diff = 25;
-            collider.minY -= diff;
-            collider.maxY -= diff;
+            continue;
+            // const diff = 25;
+            // collider.minY -= diff;
+            // collider.maxY -= diff;
           }
           if (
             position.x >= collider.minX &&
@@ -1522,13 +1607,13 @@ class Service implements Shard.Service {
     }
   }
 
-  async isMechanicEnabled(
+  isMechanicEnabled(
     input: Shard.RouterInput['isMechanicEnabled'],
     { client }: Shard.ServiceContext
-  ): Promise<Shard.RouterOutput['isMechanicEnabled']> {
+  ): Shard.RouterOutput['isMechanicEnabled'] {
     if (!input) throw new Error('Input should not be void');
 
-    return !!client.character.meta[input.id];
+    return this.config.mechanicsAllowed && !!client.character.meta[input.id];
   }
 
   async setCharacter(
@@ -1568,7 +1653,7 @@ class Service implements Shard.Service {
   }
 
   async load(input: Shard.RouterInput['load'], { client }: Shard.ServiceContext): Promise<Shard.RouterOutput['load']> {
-    log('Load', client.hash);
+    log('Load', client.id, client.hash);
     this.emit.onLoaded.mutate([1], { context: { client } });
   }
 
@@ -1586,9 +1671,9 @@ class Service implements Shard.Service {
       // Enable spectating for the client
       client.isSpectating = true;
       client.isInvincible = true;
-      client.points = 0;
-      client.xp = 0;
-      client.maxHp = 100;
+      // client.points = 0;
+      // client.xp = 0;
+      // client.maxHp = 100;
       client.avatar = this.config.startAvatar;
       client.speed = 7;
       client.overrideSpeed = 7;
@@ -1626,6 +1711,8 @@ class Service implements Shard.Service {
   flushEventQueue() {
     if (!this.eventQueue.length) return;
 
+    log('Flushing event queue', this.eventQueue.length);
+
     this.emitAllDirect.onEvents.mutate(this.eventQueue);
 
     this.eventQueue = [];
@@ -1635,6 +1722,8 @@ class Service implements Shard.Service {
     if (client.isRealm) return;
 
     this.clients = this.clients.filter((c) => c.id !== client.id);
+
+    delete this.clientLookup[client.id];
 
     if (this.config.gameMode === 'Pandamonium') {
       this.emitAll.onBroadcast.mutate([
@@ -1651,7 +1740,7 @@ class Service implements Shard.Service {
 
     try {
       log(`Disconnecting (${reason})`, client.id, client.name);
-      delete this.clientLookup[client.id];
+
       client.isDisconnected = true;
       client.isDead = true;
       client.joinedAt = 0;
@@ -1738,8 +1827,27 @@ class Service implements Shard.Service {
       throw new Error('Maintenance');
     }
 
-    let name = this.addressToUsername[address] || (await this.getUsername(address)) || this.generateGuestName();
-    this.addressToUsername[address] = name;
+    const profile = this.addressToProfile[address] || (await this.realm.emit.confirmProfile.mutate({ address }));
+
+    this.addressToProfile[address] = profile;
+
+    if (this.config.isMaintenance && !client.isMod) {
+      this.emit.onMaintenance.mutate([true], { context: { client } });
+      this.disconnectClient(client, 'maintenance');
+      throw new Error('Maintenance');
+    }
+
+    if (profile.isBanned) {
+      this.disconnectClient(client, 'banned');
+      throw new Error('Banned');
+    }
+
+    if (profile.isMod) {
+      client.isMod = true;
+    }
+
+    let name = this.addressToProfile[address].name || this.generateGuestName();
+
     if (['Testman', 'join'].includes(name)) {
       client.overrideCameraSize = 12;
     }
@@ -1758,7 +1866,7 @@ class Service implements Shard.Service {
         this.disconnectClient(client, 'joined too soon', true);
         throw new Error('Joined too soon');
       }
-      Object.assign(client, recentClient);
+      // Object.assign(client, recentClient);
       client.log.connects += 1;
     }
 
@@ -1833,18 +1941,6 @@ class Service implements Shard.Service {
     log('join', client.id, client.hash);
 
     try {
-      const confirmProfile = await this.realm.emit.confirmProfile.mutate({ address: client.address });
-
-      // if (confirmProfile?.status !== 1) {
-      //   client.log.failedRealmCheck += 1;
-      //   this.disconnectClient(client, 'failed realm check');
-      //   throw new Error('Failed realm check');
-      // }
-
-      if (confirmProfile.isMod) {
-        client.isMod = true;
-      }
-
       const now = getTime();
       const recentClient = this.round.clients.find((r) => r.address === client.address);
 
@@ -1854,15 +1950,16 @@ class Service implements Shard.Service {
         throw new Error('Connected too soon');
       }
 
-      if (this.config.isMaintenance && !client.isMod) {
-        this.emit.onMaintenance.mutate([true], { context: { client } });
-        this.disconnectClient(client, 'maintenance');
-        throw new Error('Maintenance');
-      }
-
-      client.isJoining = true;
+      client.isSpectating = false;
+      client.isInvincible = false;
       client.avatar = this.config.startAvatar;
       client.speed = this.getClientSpeed(client);
+      client.overrideSpeed = null;
+      client.cameraSize = this.config.cameraSize;
+      client.overrideCameraSize = null;
+
+      client.isDisconnected = false;
+      client.isJoining = true;
 
       if (this.config.gameMode === 'Pandamonium' && this.pandas.includes(client.address)) {
         client.avatar = 2;
@@ -1873,11 +1970,14 @@ class Service implements Shard.Service {
       log('[INFO] Total clients: ' + Object.keys(this.clientLookup).length);
 
       const roundTimer = this.round.startedDate + this.config.roundLoopSeconds - Math.round(getTime() / 1000);
-      this.emit.onSetPositionMonitor.mutate([
-        Math.round(this.config.checkPositionDistance),
-        Math.round(this.config.checkInterval),
-        Math.round(this.config.resetInterval),
-      ]);
+      this.emit.onSetPositionMonitor.mutate(
+        [
+          Math.round(this.config.checkPositionDistance),
+          Math.round(this.config.checkInterval),
+          Math.round(this.config.resetInterval),
+        ],
+        { context: { client } }
+      );
 
       this.emit.onJoinGame.mutate(
         [
@@ -2105,9 +2205,13 @@ class Service implements Shard.Service {
                 } else {
                   collided = true;
                 }
-              } else {
+              } else if (gameObject.Name.indexOf('Collider') === 0) {
                 stuck = true;
+              } else if (gameObject.Name.indexOf('Level2Divider') === 0) {
+                if (!this.config.level2open) stuck = true;
               }
+
+              if (stuck) console.log('collide', gameObject.Name);
             }
           }
 
@@ -2353,84 +2457,86 @@ class Service implements Shard.Service {
     this.currentReward = null;
   }
 
-  // async updateMyself(
-  //   ...[{ data }, { client }]: Parameters<Shard.Service['updateMyself']>
-  // ): ReturnType<Shard.Service['updateMyself']> {
-  //   if (client.isDead && !client.isJoining) return { status: 0 };
-  //   if (client.isSpectating) return { status: 0 };
-  //   if (this.config.isMaintenance && !client.isMod) {
-  //     this.emit.onMaintenance.mutate([true], { context: { client } });
-  //     this.disconnectClient(client, 'maintenance');
-  //     return { status: 0 };
-  //   }
+  async updateMyself(
+    ...[input, { client }]: Parameters<Shard.Service['updateMyself']>
+  ): ReturnType<Shard.Service['updateMyself']> {
+    if (!input) throw new Error('Input should not be void');
 
-  //   const now = getTime();
-  //   if (now - client.lastUpdate < this.config.forcedLatency) return { status: 0 };
-  //   if (client.name === 'Testman' && now - client.lastUpdate < 200) return { status: 0 };
+    if (client.isDead && !client.isJoining) return { status: 0 };
+    if (client.isSpectating) return { status: 0 };
+    if (this.config.isMaintenance && !client.isMod) {
+      this.emit.onMaintenance.mutate([true], { context: { client } });
+      this.disconnectClient(client, 'maintenance');
+      return;
+    }
 
-  //   if (client.isJoining) {
-  //     client.isDead = false;
-  //     client.isJoining = false;
-  //     client.joinedAt = Math.round(getTime() / 1000);
-  //     client.invincibleUntil = client.joinedAt + this.config.immunitySeconds;
+    const now = getTime();
+    if (now - client.lastUpdate < this.config.forcedLatency) return { status: 0 };
+    if (client.name === 'Testman' && now - client.lastUpdate < 200) return { status: 0 };
 
-  //     if (this.config.isBattleRoyale) {
-  //       this.emit.onBroadcast.mutate(['Spectate until the round is over', 0], { context: { client } });
+    if (client.isJoining) {
+      client.isDead = false;
+      client.isJoining = false;
+      client.joinedAt = Math.round(getTime() / 1000);
+      client.invincibleUntil = client.joinedAt + this.config.immunitySeconds;
 
-  //       return this.spectate({}, { client });
-  //     }
+      if (this.config.isBattleRoyale) {
+        this.emit.onBroadcast.mutate(['Spectate until the round is over', 0], { context: { client } });
 
-  //     this.addToRecentClients(client);
-  //     this.emitAll.onSpawnClient.mutate([
-  //       client.id,
-  //       client.name,
-  //       client.overrideSpeed || client.speed,
-  //       client.avatar,
-  //       client.position.x,
-  //       client.position.y,
-  //       client.position.x,
-  //       client.position.y,
-  //     ]);
+        this.spectate(null, { client });
+        return;
+      }
 
-  //     if (this.config.isRoundPaused) {
-  //       this.emit.onRoundPaused.mutate([], { context: { client } });
-  //       return { status: 0 };
-  //     }
-  //   }
+      this.addToRecentClients(client);
+      this.emitAll.onSpawnClient.mutate([
+        client.id,
+        client.name,
+        client.overrideSpeed || client.speed,
+        client.avatar,
+        client.position.x,
+        client.position.y,
+        client.position.x,
+        client.position.y,
+      ]);
 
-  //   const pack = decodePayload(data);
-  //   const positionX = parseFloat(parseFloat(pack.position.split(':')[0].replace(',', '.')).toFixed(3));
-  //   const positionY = parseFloat(parseFloat(pack.position.split(':')[1].replace(',', '.')).toFixed(3));
-  //   const targetX = parseFloat(parseFloat(pack.target.split(':')[0].replace(',', '.')).toFixed(3));
-  //   const targetY = parseFloat(parseFloat(pack.target.split(':')[1].replace(',', '.')).toFixed(3));
+      if (this.config.isRoundPaused) {
+        this.emit.onRoundPaused.mutate(null, { context: { client } });
+        return;
+      }
+    }
 
-  //   if (
-  //     !Number.isFinite(positionX) ||
-  //     !Number.isFinite(positionY) ||
-  //     !Number.isFinite(targetX) ||
-  //     !Number.isFinite(targetY) ||
-  //     positionX < this.mapBoundary.x.min ||
-  //     positionX > this.mapBoundary.x.max ||
-  //     positionY < this.mapBoundary.y.min ||
-  //     positionY > this.mapBoundary.y.max
-  //   )
-  //     return { status: 0 };
+    // const pack = decodePayload(input);
+    const positionX = parseFloat(parseFloat(input.position.split(':')[0].replace(',', '.')).toFixed(3));
+    const positionY = parseFloat(parseFloat(input.position.split(':')[1].replace(',', '.')).toFixed(3));
+    const targetX = parseFloat(parseFloat(input.target.split(':')[0].replace(',', '.')).toFixed(3));
+    const targetY = parseFloat(parseFloat(input.target.split(':')[1].replace(',', '.')).toFixed(3));
 
-  //   if (
-  //     this.config.anticheat.disconnectPositionJumps &&
-  //     this.distanceBetweenPoints(client.position, { x: positionX, y: positionY }) > 5
-  //   ) {
-  //     client.log.positionJump += 1;
-  //     this.disconnectClient(client, 'position jumped');
-  //     return { status: 0 };
-  //   }
+    if (
+      !Number.isFinite(positionX) ||
+      !Number.isFinite(positionY) ||
+      !Number.isFinite(targetX) ||
+      !Number.isFinite(targetY) ||
+      positionX < this.mapBoundary.x.min ||
+      positionX > this.mapBoundary.x.max ||
+      positionY < this.mapBoundary.y.min ||
+      positionY > this.mapBoundary.y.max
+    )
+      return;
 
-  //   client.clientPosition = { x: this.normalizeFloat(positionX, 4), y: this.normalizeFloat(positionY, 4) };
-  //   client.clientTarget = { x: this.normalizeFloat(targetX, 4), y: this.normalizeFloat(targetY, 4) };
-  //   client.lastReportedTime = client.name === 'Testman' ? parseFloat(pack.time) - 300 : parseFloat(pack.time);
-  //   client.lastUpdate = now;
-  //
-  // }
+    if (
+      this.config.anticheat.disconnectPositionJumps &&
+      this.distanceBetweenPoints(client.position, { x: positionX, y: positionY }) > 5
+    ) {
+      client.log.positionJump += 1;
+      this.disconnectClient(client, 'position jumped');
+      return;
+    }
+
+    client.clientPosition = { x: this.normalizeFloat(positionX, 4), y: this.normalizeFloat(positionY, 4) };
+    client.clientTarget = { x: this.normalizeFloat(targetX, 4), y: this.normalizeFloat(targetY, 4) };
+    client.lastReportedTime = client.name === 'Testman' ? parseFloat(input.time) - 300 : parseFloat(input.time);
+    client.lastUpdate = now;
+  }
 
   async restart(
     input: Shard.RouterInput['restart'],
@@ -2507,7 +2613,10 @@ class Service implements Shard.Service {
       this.baseConfig.isRoundPaused = false;
       this.config.isRoundPaused = false;
     }
-    this.resetLeaderboard(presets.find((p) => p.gameMode === input.gameMode));
+    this.resetLeaderboard(
+      presets.find((p) => p.gameMode === input.gameMode),
+      { client }
+    );
   }
 
   async enableForceLevel2(
@@ -2697,7 +2806,7 @@ class Service implements Shard.Service {
       id: this.config.id || 'Unknown',
       version: this.serverVersion,
       // port: this.state.spawnPort,
-      round: { id: parseInt(this.config.roundId), startedDate: this.round.startedDate },
+      round: { id: this.config.roundId, startedDate: this.round.startedDate },
       clientCount: this.clients.length,
       // clientCount: this.clients.filter((c) => !c.isDead && !c.isSpectating).length,
       spectatorCount: this.clients.filter((c) => c.isSpectating).length,
@@ -2710,6 +2819,32 @@ class Service implements Shard.Service {
       orbs: this.orbs,
       currentReward: this.currentReward,
     };
+  }
+
+  async handleClientMessage(socket: any, message: any) {
+    // log('Shard client trpc message', message);
+    const pack = typeof message === 'string' ? decodePayload(message) : message;
+    log('Shard client trpc pack', pack, socket.shardClient.id, socket.shardClient.id);
+    const { id, method, type, params } = pack;
+
+    if (method === 'onEvents') return;
+
+    try {
+      // const createCaller = createCallerFactory(client.emit);
+      // const caller = createCaller(ctx);
+
+      log(`Shard client trpc method: client.emit.${method}(${JSON.stringify(params)})`, id, method, type, params);
+      // @ts-ignore
+      const result = params ? await socket.shardClient.emit[method](params) : await socket.shardClient.emit[method]();
+      log('Shard client trpc method call result', result);
+      // log(client.emit[method]);
+      // const result = await client.emit[method](params);
+
+      socket.emit('trpcResponse', { id: generateShortId(), oid: id, result });
+    } catch (e) {
+      log('Shard client trpc error', id, e);
+      socket.emit('trpcResponse', { id: generateShortId(), oid: id, error: e.stack + '' });
+    }
   }
 }
 
@@ -2855,6 +2990,10 @@ export async function init(app) {
       service.clients = service.clients.filter((c) => c.hash !== client.hash);
       service.clients.push(client);
 
+      socket.shardClient = client;
+
+      console.log('client.id', client.id);
+
       // client.emit = createShardRouter(service);
       // log(client.emit);
 
@@ -2865,29 +3004,7 @@ export async function init(app) {
       client.emit = createCaller(ctx);
 
       socket.on('trpc', async (message) => {
-        // log('Shard client trpc message', message);
-        const pack = typeof message === 'string' ? decodePayload(message) : message;
-        log('Shard client trpc pack', pack);
-        const { id, method, type, params } = pack;
-
-        if (method === 'onEvents') return;
-
-        try {
-          // const createCaller = createCallerFactory(client.emit);
-          // const caller = createCaller(ctx);
-
-          log(`Shard client trpc method: client.emit.${method}(${JSON.stringify(params)})`, id, method, type, params);
-          // @ts-ignore
-          const result = params ? await client.emit[method](params) : await client.emit[method]();
-          log('Shard client trpc method call result', result);
-          // log(client.emit[method]);
-          // const result = await client.emit[method](params);
-
-          socket.emit('trpcResponse', { id: generateShortId(), oid: id, result });
-        } catch (e) {
-          log('Shard client trpc error', id, e);
-          socket.emit('trpcResponse', { id: generateShortId(), oid: id, error: e.stack + '' });
-        }
+        await service.handleClientMessage(socket, message);
       });
 
       socket.on('trpcResponse', async (message) => {
@@ -2921,7 +3038,7 @@ export async function init(app) {
       });
 
       socket.on('disconnect', function () {
-        log('Shard client trpcResponse disconnected');
+        log('Shard client disconnected');
         client.log.clientDisconnected += 1;
         service.disconnectClient(client, 'client disconnected');
         if (client.isRealm) {
