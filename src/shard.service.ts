@@ -163,7 +163,7 @@ class Service implements Shard.Service {
       'onUpdateReward',
       'onUpdateBestClient',
       'onSpectate',
-      'onUserDisconnected',
+      'onDisconnected',
       'onBanned',
       'onLogin',
       'onMaintenance',
@@ -1749,7 +1749,7 @@ class Service implements Shard.Service {
       const oldSocket = this.sockets[client.id];
       setTimeout(
         () => {
-          this.emitAll.onUserDisconnected.mutate([client.id]);
+          this.emitAll.onDisconnected.mutate([client.id]);
           this.syncSprites();
           this.flushEventQueue();
           if (oldSocket && oldSocket.emit && oldSocket.connected) oldSocket.disconnect();
@@ -2229,19 +2229,19 @@ class Service implements Shard.Service {
         if (collided && !isClientInvincible) {
           client.position = position;
           client.target = client.clientTarget;
-          client.phasedUntil = this.getTime() + 5000;
+          client.phasedUntil = this.getTime() + 3000;
           client.phasedPosition = client.phasedPosition || position;
           client.log.phases += 1;
           client.log.collided += 1;
-          client.overrideSpeed = 0.02;
+          client.overrideSpeed = 0.5;
           client.overrideSpeedUntil = this.getTime() + 1000;
         } else if (stuck && !isClientInvincible) {
           client.position = position;
           client.target = client.clientTarget;
-          client.phasedUntil = this.getTime() + 5000;
+          client.phasedUntil = this.getTime() + 3000;
           client.log.phases += 1;
           client.log.stuck += 1;
-          client.overrideSpeed = 0.02;
+          client.overrideSpeed = 0.5;
           client.overrideSpeedUntil = this.getTime() + 1000;
           if (this.config.stickyIslands) {
             client.isStuck = true;
