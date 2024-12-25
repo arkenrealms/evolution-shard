@@ -2827,7 +2827,7 @@ class Service implements Shard.Service {
   async handleClientMessage(socket: any, message: any) {
     // log('Shard client trpc message', message);
     const pack = typeof message === 'string' ? decodePayload(message) : message;
-    log('Shard client trpc pack', pack, socket.shardClient.id, socket.shardClient.id);
+    // log('Shard client trpc pack', pack, socket.shardClient.id, socket.shardClient.id);
     const { id, method, type, params } = pack;
 
     if (method === 'onEvents') return;
@@ -2836,10 +2836,13 @@ class Service implements Shard.Service {
       // const createCaller = createCallerFactory(client.emit);
       // const caller = createCaller(ctx);
 
-      log(`Shard client trpc method: client.emit.${method}(${JSON.stringify(params)})`, id, method, type, params);
+      if (this.loggableEvents.includes(method))
+        log(`Shard client trpc method: client.emit.${method}(${JSON.stringify(params)})`, id, method, type, params);
+
       // @ts-ignore
       const result = params ? await socket.shardClient.emit[method](params) : await socket.shardClient.emit[method]();
-      log('Shard client trpc method call result', result);
+
+      if (this.loggableEvents.includes(method)) log('Shard client trpc method call result', result);
       // log(client.emit[method]);
       // const result = await client.emit[method](params);
 
