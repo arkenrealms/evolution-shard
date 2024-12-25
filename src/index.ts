@@ -64,8 +64,8 @@ export class Application {
     if (this.isHttps) {
       this.https = https.createServer(
         {
-          key: fs.readFileSync(path.resolve('../privkey.pem')),
-          cert: fs.readFileSync(path.resolve('../fullchain.pem')),
+          key: fs.readFileSync('/etc/letsencrypt/live/hoff.arken.gg/privkey.pem'), //fs.readFileSync(path.resolve('../privkey.pem')),
+          cert: fs.readFileSync('/etc/letsencrypt/live/hoff.arken.gg/fullchain.pem'), // fs.readFileSync(path.resolve('../fullchain.pem')),
         },
         // @ts-ignore
         this.server
