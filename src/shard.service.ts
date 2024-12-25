@@ -209,8 +209,6 @@ class Service implements Shard.Service {
         () =>
           ({ op, next }) => {
             return observable((observer) => {
-              log('emit', op);
-
               const { input, context } = op;
               // const { name, args } = input as Event;
               const client = context.client as Shard.Client;
@@ -228,7 +226,7 @@ class Service implements Shard.Service {
               // }
 
               if (client?.socket?.emit) {
-                log('Emit Direct', op.path, input, client.id);
+                if (this.loggableEvents.includes(op.path)) log('Emit Direct', op.path, input, client.id);
 
                 const compiled: any[] = [];
                 const eventQueue = [{ name: op.path, args: input as Array<any> }];
@@ -240,14 +238,14 @@ class Service implements Shard.Service {
                 const id = generateShortId();
                 const data = `{"id":"${id}","method":"onEvents","type":"mutation","params":[${compiled.join(',')}]}`;
 
-                console.log(data);
+                // console.log(data);
 
                 client.socket.emit(
                   'trpc',
                   Buffer.from(data) // JSON.stringify({ id, method: 'onEvents', type: 'mutation', params: [compiled] }))
                 );
               } else {
-                log('Fake Emit Direct', input);
+                if (this.loggableEvents.includes(op.path)) log('Fake Emit Direct', op.path, input);
 
                 this.eventQueue.push({ name: op.path, args: input as Array<any> });
               }
@@ -268,12 +266,9 @@ class Service implements Shard.Service {
         () =>
           ({ op, next }) => {
             return observable((observer) => {
-              log('emitDirect', op);
               const { input, context } = op;
               // const { name, args } = input as Event;
-              if (this.loggableEvents.includes(op.path)) {
-                log(`emitDirect: ${op.path}`, input);
-              }
+              if (this.loggableEvents.includes(op.path)) log(`emitDirect: ${op.path}`, op, input);
 
               (context.client as Shard.Client).socket.emit(
                 'trpc',
@@ -302,7 +297,7 @@ class Service implements Shard.Service {
             return observable((observer) => {
               const { input, context } = op;
 
-              if (this.loggableEvents.includes(op.path)) log('emitAll', op);
+              // if (this.loggableEvents.includes(op.path)) log('emitAll', op);
 
               // const { name, args } = input as Event;
               this.eventQueue.push({ name: op.path, args: input as Array<any> });
