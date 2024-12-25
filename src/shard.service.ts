@@ -712,6 +712,8 @@ class Service implements Shard.Service {
         this.config.roundLoopSeconds * 1000
       );
     } catch (e) {
+      console.log('Exception during resetLeaderboard', e);
+
       this.sharedConfig.rewardWinnerAmount = 0;
       this.config.rewardWinnerAmount = 0;
       this.sharedConfig.rewardItemAmount = 0;
