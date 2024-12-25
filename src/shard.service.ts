@@ -302,7 +302,7 @@ class Service implements Shard.Service {
             return observable((observer) => {
               const { input, context } = op;
 
-              if (this.loggableEvents.includes(op.path)) log(`emitAll`, op);
+              if (this.loggableEvents.includes(op.path)) log('emitAll', op);
 
               // const { name, args } = input as Event;
               this.eventQueue.push({ name: op.path, args: input as Array<any> });
@@ -1713,7 +1713,7 @@ class Service implements Shard.Service {
   flushEventQueue() {
     if (!this.eventQueue.length) return;
 
-    log('Flushing event queue', this.eventQueue.length);
+    // log('Flushing event queue', this.eventQueue.length);
 
     this.emitAllDirect.onEvents.mutate(this.eventQueue);
 
