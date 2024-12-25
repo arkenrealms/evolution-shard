@@ -511,7 +511,6 @@ class Service implements Shard.Service {
         id: this.round.id + '',
         startedAt: this.round.startedDate,
         endedAt: this.round.endedAt,
-        round: this.round,
         events: [],
         clients: this.round.clients.map((c: any) => ({
           id: c.id,
