@@ -180,7 +180,7 @@ class Service implements Shard.Service {
       'onRoundPaused',
       'onUnmaintenance',
       'onSetPositionMonitor',
-      'onUpdatePlayer',
+      // 'onUpdatePlayer',
       'onSpawnClient',
       'onUpdateRegression',
     ];
@@ -323,8 +323,6 @@ class Service implements Shard.Service {
             return observable((observer) => {
               const { input, context } = op;
 
-              console.log('emitAllDirect', op.path, input);
-
               if (op.path === 'onEvents') {
                 const events = input as Event[];
 
@@ -352,9 +350,7 @@ class Service implements Shard.Service {
                       this.round.events.push({ type: 'emitAll', name: e.name, args: e.args });
                     }
 
-                    if (this.loggableEvents.includes(e.name)) {
-                      log(`emitAllDirect: ${e.name}`, e.args);
-                    }
+                    if (this.loggableEvents.includes('onEvents')) log(`emitAllDirect: ${e.name}`, e.args);
                     // log('Emitting onEvents directly to all subscribers', op.path, compiled);
                   }
 
@@ -368,9 +364,8 @@ class Service implements Shard.Service {
                   );
                 }
               } else {
-                if (this.loggableEvents.includes(op.path)) {
-                  log(`emitAllDirect: ${op.path}`, input);
-                }
+                if (this.loggableEvents.includes(op.path)) log(`emitAllDirect: ${op.path}`, input);
+
                 this.app.io.emit(
                   'trpc',
                   Buffer.from(
