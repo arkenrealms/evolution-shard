@@ -101,7 +101,7 @@ class Service implements Shard.Service {
       'Rezoth',
       'Felscathor',
       'Kathax',
-      'Rokk',
+      "I'Rokk",
       'Terra',
       'Valaebal',
       'Nox',
@@ -134,6 +134,7 @@ class Service implements Shard.Service {
     this.eventFlushedAt = getTime();
     this.round = {
       id: generateShortId(),
+      gameMode: 'Standard',
       startedDate: Math.round(getTime() / 1000),
       endedAt: null,
       events: [],
@@ -514,10 +515,11 @@ class Service implements Shard.Service {
         }
       }
 
-      await this.realm.emit.saveRound.mutate({
+      const res = await this.realm.emit.saveRound.mutate({
         id: this.round.id + '',
         startedAt: this.round.startedDate,
         endedAt: this.round.endedAt,
+        round: this.round,
         events: [],
         clients: this.round.clients.map((c: any) => ({
           id: c.id,
@@ -561,10 +563,11 @@ class Service implements Shard.Service {
 
       // TODO: get ID from realm
       // this.baseConfig.roundId = this.baseConfig.roundId + 1;
-      // this.config.roundId = this.baseConfig.roundId;
+      // this.round.id = this.baseConfig.roundId;
 
       this.round = {
-        id: this.config.roundId,
+        id: res.roundId,
+        gameMode: this.config.gameMode,
         startedDate: Math.round(this.getTime() / 1000),
         endedAt: null,
         clients: [],
@@ -679,7 +682,7 @@ class Service implements Shard.Service {
 
       this.emitAll.onClearLeaderboard.mutate();
 
-      this.emitAll.onBroadcast.mutate([`Game Mode - ${this.config.gameMode} (Round ${this.config.roundId})`, 0]);
+      this.emitAll.onBroadcast.mutate([`Game Mode - ${this.config.gameMode} (Round ${this.round.id})`, 0]);
 
       if (this.config.hideMap) {
         this.emitAll.onHideMinimap.mutate();
@@ -1231,11 +1234,11 @@ class Service implements Shard.Service {
       },
     };
 
-    const currentRound = this.config.roundId;
+    const currentRound = this.round.id;
 
     if (this.config.orbOnDeathPercent > 0 && !this.roundEndingSoon(this.config.orbCutoffSeconds)) {
       setTimeout(() => {
-        if (this.config.roundId !== currentRound) return;
+        if (this.round.id !== currentRound) return;
 
         this.orbs.push(orb);
         this.orbLookup[orb.id] = orb;
@@ -2003,7 +2006,7 @@ class Service implements Shard.Service {
           [roundTimer, this.getRoundInfo().join(':'), this.getGameModeGuide().join(':')],
           { context: { client } }
         );
-        this.emit.onBroadcast.mutate([`Game Mode - ${this.config.gameMode} (Round ${this.config.roundId})`, 0], {
+        this.emit.onBroadcast.mutate([`Game Mode - ${this.config.gameMode} (Round ${this.round.id})`, 0], {
           context: { client },
         });
       }
@@ -2806,7 +2809,7 @@ class Service implements Shard.Service {
       id: this.config.id || 'Unknown',
       version: this.serverVersion,
       // port: this.state.spawnPort,
-      round: { id: this.config.roundId, startedDate: this.round.startedDate },
+      round: { id: this.round.id, startedDate: this.round.startedDate },
       clientCount: this.clients.length,
       // clientCount: this.clients.filter((c) => !c.isDead && !c.isSpectating).length,
       spectatorCount: this.clients.filter((c) => c.isSpectating).length,

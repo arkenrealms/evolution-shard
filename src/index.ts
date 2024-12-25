@@ -33,7 +33,7 @@ export class Application {
       port: process.env.SHARD_PORT ? parseInt(process.env.SHARD_PORT, 10) : 8080,
       sslPort: process.env.SHARD_SSL_PORT ? parseInt(process.env.SHARD_SSL_PORT, 10) : 8443,
     };
-    this.isHttps = false; // process.env.ARKEN_ENV !== 'local';
+    this.isHttps = process.env.ARKEN_ENV !== 'local';
     this.setupMiddleware();
     this.setupServer();
   }
