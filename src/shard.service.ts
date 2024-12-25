@@ -300,8 +300,10 @@ class Service implements Shard.Service {
         () =>
           ({ op, next }) => {
             return observable((observer) => {
-              log('emitAll', op);
               const { input, context } = op;
+
+              if (this.loggableEvents.includes(op.path)) log(`emitAll`, op);
+
               // const { name, args } = input as Event;
               this.eventQueue.push({ name: op.path, args: input as Array<any> });
 
