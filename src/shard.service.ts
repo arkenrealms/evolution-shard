@@ -413,6 +413,7 @@ class Service implements Shard.Service {
       clients: this.clients.map((c: any) => ({
         id: c.id,
         name: c.name,
+        address: c.address,
         joinedRoundAt: c.joinedRoundAt,
         points: c.points,
         kills: c.kills,
@@ -518,6 +519,7 @@ class Service implements Shard.Service {
         clients: this.round.clients.map((c: any) => ({
           id: c.id,
           name: c.name,
+          address: c.address,
           joinedRoundAt: c.joinedRoundAt,
           points: c.points,
           kills: c.kills,
@@ -818,7 +820,7 @@ class Service implements Shard.Service {
       return;
     }
 
-    if (tempReward.type !== 'rune') {
+    if (tempReward.type !== 'token') {
       this.emitAll.onBroadcast.mutate([`Powerful Energy Detected - ${tempReward.rewardItemName}`, 3]);
     }
 
