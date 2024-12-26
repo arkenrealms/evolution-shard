@@ -570,6 +570,41 @@ class Service implements Shard.Service {
         states: [],
       };
 
+      if (
+        !this.config.level2open &&
+        (this.config.level2forced ||
+          (this.config.level2allowed && this.clients.length >= this.config.clientsRequiredForLevel2))
+      ) {
+        this.config.level2open = true;
+        this.emitAll.onBroadcast.mutate([`Wall going down...`, 0]);
+
+        // setTimeout(() => {
+        //   this.config.spritesStartCount = 200;
+        //   this.clearSprites();
+        //   this.spawnSprites(this.config.spritesStartCount);
+        // }, 2000);
+
+        this.emitAll.onOpenLevel2.mutate();
+      }
+
+      if (this.config.level2open && !this.config.level2forced) {
+        this.config.level2open = false;
+
+        this.emitAll.onBroadcast.mutate([`Wall going up...`, 0]);
+
+        // this.config.spritesStartCount = 50;
+        // this.clearSprites();
+        // this.spawnSprites(this.config.spritesStartCount);
+
+        // setTimeout(() => {
+        //   for (const client of this.clients) {
+        //     this.resetClient(client);
+        //   }
+        // }, 2000);
+
+        this.emitAll.onCloseLevel2.mutate();
+      }
+
       for (const client of this.clients) {
         if (!this.ranks[client.address]) this.ranks[client.address] = {};
         if (!this.ranks[client.address].kills) this.ranks[client.address].kills = 0;
@@ -2249,41 +2284,6 @@ class Service implements Shard.Service {
         if (!client.log.path.includes(pos)) {
           client.log.positions += 1;
         }
-      }
-
-      if (
-        !this.config.level2open &&
-        (this.config.level2forced ||
-          (this.config.level2allowed && this.clients.length >= this.config.clientsRequiredForLevel2))
-      ) {
-        this.config.level2open = true;
-        this.emitAll.onBroadcast.mutate([`Wall going down...`, 0]);
-
-        setTimeout(() => {
-          this.config.spritesStartCount = 200;
-          this.clearSprites();
-          this.spawnSprites(this.config.spritesStartCount);
-        }, 2000);
-
-        this.emitAll.onOpenLevel2.mutate();
-      }
-
-      if (this.config.level2open && !this.config.level2forced) {
-        this.config.level2open = false;
-
-        this.emitAll.onBroadcast.mutate([`Wall going up...`, 0]);
-
-        this.config.spritesStartCount = 50;
-        this.clearSprites();
-        this.spawnSprites(this.config.spritesStartCount);
-
-        setTimeout(() => {
-          for (const client of this.clients) {
-            this.resetClient(client);
-          }
-        }, 2000);
-
-        this.emitAll.onCloseLevel2.mutate();
       }
 
       if (!this.config.isRoundPaused) {
