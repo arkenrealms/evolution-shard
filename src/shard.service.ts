@@ -585,8 +585,8 @@ class Service implements Shard.Service {
         client.rewards = 0;
         client.orbs = 0;
         client.powerups = 0;
-        client.baseSpeed = this.config.baseSpeed;
-        client.decayPower = this.config.decayPower;
+        client.baseSpeed = 1;
+        client.decayPower = 1;
         client.pickups = [];
         client.xp = 50;
         client.maxHp = 100;
