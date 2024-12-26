@@ -585,9 +585,7 @@ class Service implements Shard.Service {
         // }, 2000);
 
         this.emitAll.onOpenLevel2.mutate();
-      }
-
-      if (this.config.level2open && !this.config.level2forced) {
+      } else if (this.config.level2open && !this.config.level2forced) {
         this.config.level2open = false;
 
         this.emitAll.onBroadcast.mutate([`Wall going up...`, 0]);
