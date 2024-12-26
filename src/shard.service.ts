@@ -1421,6 +1421,8 @@ class Service implements Shard.Service {
       throw new Error('Could not init self with realm');
     }
 
+    this.round.id = res.roundId;
+
     for (const key of Object.keys(res)) {
       console.log(key, res[key]);
       this.baseConfig[key] = res[key];
