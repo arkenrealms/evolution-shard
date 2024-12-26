@@ -1,6 +1,0 @@
-{
-    "watch": ["build/index.js"],
-    "ignore": [],
-    "ext": "js json ts",
-    "exec": "PORT=80 node --max_semi_space_size=30000 --max-old-space-size=30000 --initial-old-space-size=8000 --optimize-for-size --experimental-modules --experimental-json-modules ./build/index.js"
-}

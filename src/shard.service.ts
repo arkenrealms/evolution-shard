@@ -6,7 +6,6 @@ import { serialize, deserialize } from '@arken/node/util/rpc';
 import {
   log,
   getTime,
-  logError,
   shuffleArray,
   randomPosition,
   sha256,
@@ -25,7 +24,7 @@ import type { ShardClientRouter, Realm } from '@arken/evolution-protocol/types';
 import type { Orb, Boundary, Reward, PowerUp, Round, Preset, Event } from '@arken/evolution-protocol/shard/shard.types';
 import { Position } from '@arken/node/types';
 import { EvolutionMechanic as Mechanic } from '@arken/node/legacy/types';
-import mapData from '../public/data/map.json'; // TODO: get this from the embedded game client
+import mapData from './data/map.json'; // TODO: get this from the embedded game client
 import type * as Shard from '@arken/evolution-protocol/shard/shard.types';
 import type * as Bridge from '@arken/evolution-protocol/bridge/bridge.types';
 // import { createRouter as createBridgeRouter } from '@arken/evolution-protocol/bridge/router';
