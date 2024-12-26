@@ -2252,10 +2252,9 @@ class Service implements Shard.Service {
       }
 
       if (
-        this.config.level2forced ||
-        (!this.config.level2open &&
-          this.config.level2allowed &&
-          this.clients.length >= this.config.clientsRequiredForLevel2)
+        !this.config.level2open &&
+        (this.config.level2forced ||
+          (this.config.level2allowed && this.clients.length >= this.config.clientsRequiredForLevel2))
       ) {
         this.config.level2open = true;
         this.emitAll.onBroadcast.mutate([`Wall going down...`, 0]);
