@@ -402,6 +402,8 @@ class Service implements Shard.Service {
     setTimeout(() => this.sendUpdates(), this.config.sendUpdateLoopSeconds * 1000);
     setTimeout(() => this.spawnRewards(), this.config.rewardSpawnLoopSeconds * 1000);
     setTimeout(() => this.checkConnectionLoop(), this.config.checkConnectionLoopSeconds * 1000);
+
+    clearTimeout(this.roundLoopTimeout);
     this.roundLoopTimeout = setTimeout(() => {
       this.resetLeaderboard();
     }, this.config.roundLoopSeconds * 1000);
@@ -462,6 +464,7 @@ class Service implements Shard.Service {
 
     try {
       if (this.config.gameMode === 'Pandamonium') {
+        clearTimeout(this.roundLoopTimeout);
         this.roundLoopTimeout = setTimeout(
           () => this.resetLeaderboard(preset, context),
           this.config.roundLoopSeconds * 1000
@@ -471,6 +474,7 @@ class Service implements Shard.Service {
 
       if (!this.realm.client?.socket?.connected) {
         this.emit.onBroadcast.mutate([`Realm not connected. Contact support.`, 0], { context: context });
+        clearTimeout(this.roundLoopTimeout);
         this.roundLoopTimeout = setTimeout(
           () => this.resetLeaderboard(preset, context),
           this.config.roundLoopSeconds * 1000
@@ -581,8 +585,8 @@ class Service implements Shard.Service {
         client.rewards = 0;
         client.orbs = 0;
         client.powerups = 0;
-        client.baseSpeed = 1;
-        client.decayPower = 1;
+        client.baseSpeed = this.config.baseSpeed;
+        client.decayPower = this.config.decayPower;
         client.pickups = [];
         client.xp = 50;
         client.maxHp = 100;
@@ -698,6 +702,7 @@ class Service implements Shard.Service {
         this.rebootAfterRound = true;
       }
 
+      clearTimeout(this.roundLoopTimeout);
       this.roundLoopTimeout = setTimeout(
         () => this.resetLeaderboard(preset, context),
         this.config.roundLoopSeconds * 1000
@@ -711,8 +716,11 @@ class Service implements Shard.Service {
       this.config.rewardItemAmount = 0;
 
       setTimeout(() => {
-        this.emit.onBroadcast.mutate([`Maintenance`, 3], { context: context });
+        this.emit.onBroadcast.mutate([`Error Occurred. Please report.`, 3], { context: context });
       }, 30 * 1000);
+
+      clearTimeout(this.roundLoopTimeout);
+      this.roundLoopTimeout = setTimeout(() => this.resetLeaderboard(preset, context), 5 * 1000);
     }
   }
 
@@ -2604,11 +2612,11 @@ class Service implements Shard.Service {
     { client }: Shard.ServiceContext
   ): Promise<Shard.RouterOutput['startRound']> {
     if (!input) throw new Error('Input should not be void');
-    clearTimeout(this.roundLoopTimeout);
     if (this.config.isRoundPaused) {
       this.baseConfig.isRoundPaused = false;
       this.config.isRoundPaused = false;
     }
+    clearTimeout(this.roundLoopTimeout);
     this.resetLeaderboard(
       presets.find((p) => p.gameMode === input.gameMode),
       { client }
@@ -2920,7 +2928,7 @@ export async function init(app) {
         phasedUntil: getTime(),
         overrideSpeedUntil: 0,
         joinedRoundAt: getTime(),
-        baseSpeed: 1,
+        baseSpeed: service.config.baseSpeed,
         character: {
           meta: {
             [Mechanic.MovementSpeedIncrease]: 0,
