@@ -1766,16 +1766,6 @@ class Service implements Shard.Service {
     }
   }
 
-  public async getUsername(address: string): Promise<string> {
-    try {
-      log(`Getting username for ${address}`);
-      const res = await this.realm.emit.normalizeAddress.mutate(address);
-      return res;
-    } catch (error) {
-      return ''; // Return an empty string or a default value if needed
-    }
-  }
-
   async login(
     input: Shard.RouterInput['login'],
     { client }: Shard.ServiceContext
@@ -1856,7 +1846,7 @@ class Service implements Shard.Service {
       client.overrideCameraSize = 12;
     }
 
-    log('User ' + name + ' with address ' + address + ' with hash ' + client.hash);
+    log('Profile ' + name + ' with address ' + address + ' with hash ' + client.hash);
 
     const now = getTime();
     if (client.name !== name || client.address !== address) {
@@ -2261,47 +2251,40 @@ class Service implements Shard.Service {
         }
       }
 
-      if (this.config.level2allowed) {
-        if (
-          this.config.level2forced ||
-          this.clients.filter((c) => !c.isSpectating && !c.isDead).length >= this.config.clientsRequiredForLevel2
-        ) {
-          if (!this.config.level2open) {
-            this.config.level2open = true;
-            this.emitAll.onBroadcast.mutate([`Wall going down...`, 0]);
+      if (
+        this.config.level2forced ||
+        (!this.config.level2open &&
+          this.config.level2allowed &&
+          this.clients.length >= this.config.clientsRequiredForLevel2)
+      ) {
+        this.config.level2open = true;
+        this.emitAll.onBroadcast.mutate([`Wall going down...`, 0]);
 
-            setTimeout(() => {
-              this.config.spritesStartCount = 200;
-              this.clearSprites();
-              this.spawnSprites(this.config.spritesStartCount);
-            }, 2000);
+        setTimeout(() => {
+          this.config.spritesStartCount = 200;
+          this.clearSprites();
+          this.spawnSprites(this.config.spritesStartCount);
+        }, 2000);
 
-            this.emitAll.onOpenLevel2.mutate();
+        this.emitAll.onOpenLevel2.mutate();
+      }
+
+      if (this.config.level2open && !this.config.level2forced) {
+        this.config.level2open = false;
+
+        this.emitAll.onBroadcast.mutate([`Wall going up...`, 0]);
+
+        this.config.spritesStartCount = 50;
+        this.clearSprites();
+        this.spawnSprites(this.config.spritesStartCount);
+
+        setTimeout(() => {
+          for (const client of this.clients) {
+            this.resetClient(client);
           }
-        }
+        }, 2000);
 
-        if (
-          !this.config.level2forced &&
-          this.clients.filter((c) => !c.isSpectating && !c.isDead).length < this.config.clientsRequiredForLevel2 - 7
-        ) {
-          if (this.config.level2open) {
-            this.config.level2open = false;
-
-            this.emitAll.onBroadcast.mutate([`Wall going up...`, 0]);
-
-            this.config.spritesStartCount = 50;
-            this.clearSprites();
-            this.spawnSprites(this.config.spritesStartCount);
-
-            setTimeout(() => {
-              for (const client of this.clients) {
-                this.resetClient(client);
-              }
-            }, 2000);
-
-            this.emitAll.onCloseLevel2.mutate();
-          }
-        }
+        this.emitAll.onCloseLevel2.mutate();
       }
 
       if (!this.config.isRoundPaused) {
