@@ -626,7 +626,7 @@ class Service implements Shard.Service {
         client.baseSpeed = 0.8;
         client.decayPower = 1;
         client.pickups = [];
-        client.xp = 50;
+        client.xp = 75;
         client.maxHp = 100;
         client.avatar = this.config.startAvatar;
         client.speed = this.getClientSpeed(client);
@@ -1993,6 +1993,8 @@ class Service implements Shard.Service {
       client.overrideSpeed = null;
       client.cameraSize = this.config.cameraSize;
       client.overrideCameraSize = null;
+      client.xp = 75;
+      client.maxHp = 100;
 
       client.isDisconnected = false;
       client.isJoining = true;
@@ -2414,7 +2416,8 @@ class Service implements Shard.Service {
     client.clientPosition = spawnPoint;
     client.clientTarget = spawnPoint;
     client.avatar = 0;
-    client.xp = 50;
+    client.xp = 75;
+    client.maxHp = 100;
   }
 
   public async claimReward(client: Shard.Client, reward: Reward): Promise<void> {
@@ -2877,7 +2880,7 @@ export async function init(app) {
         phasedPosition: undefined,
         socket, // TODO: might be a problem
         rotation: null,
-        xp: 50,
+        xp: 75,
         maxHp: 100,
         latency: 0,
         kills: 0,
