@@ -821,7 +821,7 @@ class Service implements Shard.Service {
     }
 
     if (tempReward.type !== 'token') {
-      this.emitAll.onBroadcast.mutate([`Powerful Energy Detected - ${tempReward.rewardItemName}`, 3]);
+      this.emitAll.onBroadcast.mutate([`${tempReward.rewardItemName}`, 3]); // Powerful Energy Detected -
     }
 
     await sleep(3 * 1000);
@@ -1900,7 +1900,9 @@ class Service implements Shard.Service {
       client.log.connects += 1;
     }
 
-    this.emitAll.onLogin.mutate([client.id, client.name, client.network, client.address, client.device]);
+    this.emit.onLogin.mutate([client.id, client.name, client.network, client.address, client.device], {
+      context: { client },
+    });
 
     if (this.config.log.connections) {
       log('Connected', { hash: client.hash, address: client.address, name: client.name });
@@ -2033,7 +2035,8 @@ class Service implements Shard.Service {
           [roundTimer, this.getRoundInfo().join(':'), this.getGameModeGuide().join(':')],
           { context: { client } }
         );
-        this.emit.onBroadcast.mutate([`Game Mode - ${this.config.gameMode} (Round ${this.round.id})`, 0], {
+        this.emit.onBroadcast.mutate([`Game Mode - ${this.config.gameMode}`, 0], {
+          //  (Round ${this.round.id})
           context: { client },
         });
       }
