@@ -2980,7 +2980,7 @@ export async function init(app) {
       if (Object.keys(service.clientLookup).length == 1) {
         client.isMasterClient = true;
       }
-      service.clients = service.clients.filter((c) => c.hash !== client.hash);
+      // service.clients = service.clients.filter((c) => c.hash !== client.hash);
       service.clients.push(client);
 
       socket.shardClient = client;
