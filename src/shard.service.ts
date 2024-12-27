@@ -579,6 +579,8 @@ class Service implements Shard.Service {
         this.config.level2open = true;
         this.emitAll.onBroadcast.mutate([`Wall going down...`, 0]);
 
+        this.config.spritesStartCount = 200;
+
         // setTimeout(() => {
         //   this.config.spritesStartCount = 200;
         //   this.clearSprites();
@@ -590,6 +592,8 @@ class Service implements Shard.Service {
         this.config.level2open = false;
 
         this.emitAll.onBroadcast.mutate([`Wall going up...`, 0]);
+
+        this.config.spritesStartCount = 50;
 
         // this.config.spritesStartCount = 50;
         // this.clearSprites();
