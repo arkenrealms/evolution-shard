@@ -118,7 +118,7 @@ class Service implements Shard.Service {
     this.announceReboot = false;
     this.rebootAfterRound = false;
     this.debugQueue = false;
-    this.killSameNetworkClients = true;
+    this.killSameNetworkClients = false;
     this.sockets = {};
     this.clientLookup = {};
     this.powerups = [];
