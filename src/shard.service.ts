@@ -2138,7 +2138,7 @@ class Service implements Shard.Service {
       }
 
       if (this.clients.filter((c) => !c.isSpectating).length > this.config.maxClients) {
-        if (!this.queuedClients.find((c) => c.client === client.id)) {
+        if (!this.queuedClients.find((c) => c.id === client.id)) {
           this.queuedClients.push(client);
         }
 
