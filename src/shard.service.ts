@@ -51,6 +51,7 @@ class Service implements Shard.Service {
   orbLookup: Record<string, Orb>;
   eventQueue: Event[];
   clients: Shard.Client[];
+  queuedClients: Shard.Client[];
   lastReward?: Reward;
   lastLeaderName?: string;
   config: Partial<Shard.Config>;
@@ -1425,6 +1426,7 @@ class Service implements Shard.Service {
       throw new Error('Could not init self with realm');
     }
 
+    this.config.maxClients = res.maxClients;
     this.round.id = res.roundId;
 
     for (const key of Object.keys(res)) {
@@ -1801,6 +1803,15 @@ class Service implements Shard.Service {
         },
         immediate ? 0 : 1000
       );
+
+      if (
+        this.queuedClients.length > 0 &&
+        this.clients.filter((c) => !c.isSpectating).length < this.config.maxClients
+      ) {
+        const newClient = this.queuedClients.shift();
+
+        this.forceJoin(null, { client: newClient });
+      }
     } catch (e) {
       log('Error:', e);
     }
@@ -1930,7 +1941,7 @@ class Service implements Shard.Service {
     if (!address) return false;
     try {
       // TODO: type check
-      const res = await this.realm.emit.normalizeAddress.mutate(address);
+      const res = await this.realm?.emit.normalizeAddress.mutate(address);
       log('normalizeAddressResponse', res);
       return res;
     } catch (e) {
@@ -1973,19 +1984,11 @@ class Service implements Shard.Service {
     return parseFloat(value.toFixed(precision));
   }
 
-  async join(input: Shard.RouterInput['join'], { client }: Shard.ServiceContext): Promise<Shard.RouterOutput['join']> {
-    log('join', client.id, client.hash);
-
+  async forceJoin(
+    input: Shard.RouterInput['forceJoin'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['forceJoin']> {
     try {
-      const now = getTime();
-      const recentClient = this.round.clients.find((r) => r.address === client.address);
-
-      if (recentClient && now - recentClient.lastUpdate < 3000) {
-        client.log.connectedTooSoon += 1;
-        this.disconnectClient(client, 'connected too soon');
-        throw new Error('Connected too soon');
-      }
-
       client.isSpectating = false;
       client.isInvincible = false;
       client.avatar = this.config.startAvatar;
@@ -2114,6 +2117,35 @@ class Service implements Shard.Service {
       }
 
       client.lastUpdate = getTime();
+    } catch (e) {
+      log('Error:', e);
+      this.disconnectClient(client, 'not sure: ' + e);
+      throw new Error('Not sure');
+    }
+  }
+
+  async join(input: Shard.RouterInput['join'], { client }: Shard.ServiceContext): Promise<Shard.RouterOutput['join']> {
+    log('join', client.id, client.hash);
+
+    try {
+      const now = getTime();
+      const recentClient = this.round.clients.find((r) => r.address === client.address);
+
+      if (recentClient && now - recentClient.lastUpdate < 3000) {
+        client.log.connectedTooSoon += 1;
+        this.disconnectClient(client, 'connected too soon');
+        throw new Error('Connected too soon');
+      }
+
+      if (this.clients.filter((c) => !c.isSpectating).length > this.config.maxClients) {
+        if (!this.queuedClients.find((c) => c.client === client.id)) {
+          this.queuedClients.push(client);
+        }
+
+        this.spectate(null, { client });
+      } else {
+        this.forceJoin(null, { client });
+      }
     } catch (e) {
       log('Error:', e);
       this.disconnectClient(client, 'not sure: ' + e);
