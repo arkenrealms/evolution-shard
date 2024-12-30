@@ -114,6 +114,7 @@ class Service implements Shard.Service {
       'Smaug',
     ];
     this.serverVersion = '1.9.0';
+    this.queuedClients = [];
     this.roundLoopTimeout;
     this.addressToProfile = {};
     this.announceReboot = false;
