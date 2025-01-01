@@ -2566,6 +2566,23 @@ class Service implements Shard.Service {
     client.clientTarget = { x: this.normalizeFloat(targetX, 4), y: this.normalizeFloat(targetY, 4) };
     client.lastReportedTime = client.name === 'Testman' ? parseFloat(input.time) - 300 : parseFloat(input.time);
     client.lastUpdate = now;
+
+    const shop = {
+      position: {
+        x: -23,
+        y: -3,
+      },
+    };
+
+    if (this.distanceBetweenPoints(client.position, shop.position) < 1) {
+      client.ui.push('shop');
+
+      this.emit.onShowUI.mutate('shop');
+    } else if (client.ui.includes('shop')) {
+      client.ui = client.ui.filter((ui) => ui !== 'shop');
+
+      this.emit.onHideUI.mutate('shop');
+    }
   }
 
   async restart(
@@ -2818,7 +2835,7 @@ class Service implements Shard.Service {
     { client }: Shard.ServiceContext
   ): Promise<Shard.RouterOutput['broadcast']> {
     if (!input) throw new Error('Input should not be void');
-    this.emitAll.onBroadcast.mutate([input.message.replace(/:/gi, ''), 0]);
+    this.emitAll.onBroadcast.mutate([input.replace(/:/gi, ''), 0]);
   }
 
   async kickClient(
@@ -2907,6 +2924,7 @@ export async function init(app) {
         address: null,
         device: null,
         position: spawnPoint,
+        ui: [],
         target: spawnPoint,
         clientPosition: spawnPoint,
         clientTarget: spawnPoint,
@@ -3070,6 +3088,20 @@ export async function init(app) {
         }
       });
 
+      socket.on('emit', function(args) => {
+        // this.app.io.emit('trpc', args);
+      });
+
+      socket.on('emitAll', function(args) => {
+        this.app.io.emit('trpc', args);
+      });
+
+      // socket.onAny(async (eventName, args) => {
+      //   if (eventName.includes('proxy_emitAll')) {
+      //     this.app.io.emit('trpc', args);
+      //   }
+      // });
+
       socket.on('disconnect', function () {
         log('Shard client disconnected');
         client.log.clientDisconnected += 1;
@@ -3078,9 +3110,6 @@ export async function init(app) {
           service.emitAll.onBroadcast.mutate([`Shard client: bridge disconnected`, 0]);
         }
       });
-      // } catch (e) {
-      //   log('Shard client error during connection', e);
-      // }
     });
   } catch (e) {
     log('init game world failed', e);
