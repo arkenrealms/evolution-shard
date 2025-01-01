@@ -47,8 +47,8 @@
     "@ethersproject/solidity": "^5"
   },
   "devDependencies": {
-    "@trpc/client": "next",
-    "@trpc/server": "next",
+    "@trpc/client": "11.0.0-rc.678",
+    "@trpc/server": "11.0.0-rc.678",
     "@types/common-tags": "^1",
     "@types/cors": "^2",
     "@types/ethereum-protocol": "^1",
