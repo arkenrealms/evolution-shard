@@ -3088,11 +3088,11 @@ export async function init(app) {
         }
       });
 
-      socket.on('emit', function(args) => {
+      socket.on('emit', (args) => {
         // this.app.io.emit('trpc', args);
       });
 
-      socket.on('emitAll', function(args) => {
+      socket.on('emitAll', (args) => {
         this.app.io.emit('trpc', args);
       });
 
