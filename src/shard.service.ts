@@ -3,6 +3,7 @@ import { observable } from '@trpc/server/observable';
 import axios from 'axios';
 import { generateShortId } from '@arken/node/util/db';
 import { serialize, deserialize } from '@arken/node/util/rpc';
+import { weightedRandom } from '@arken/node/util/array';
 import {
   log,
   getTime,
@@ -1441,16 +1442,11 @@ class Service implements Shard.Service {
     this.init();
   }
 
-  weightedRandom(items: { weight: number }[]): any {
-    let table = items.flatMap((item) => Array(item.weight).fill(item));
-    return table[Math.floor(Math.random() * table.length)];
-  }
-
   randomRoundPreset(): void {
     const gameMode = this.config.gameMode;
     while (this.config.gameMode === gameMode) {
       const filteredPresets = presets.filter((p) => !p.isOmit);
-      this.currentPreset = this.weightedRandom(filteredPresets);
+      this.currentPreset = weightedRandom(filteredPresets);
       this.roundConfig = { ...this.baseConfig, ...this.sharedConfig, ...this.currentPreset };
       log('randomRoundPreset', this.config.gameMode, gameMode, this.currentPreset);
       this.config = JSON.parse(JSON.stringify(this.roundConfig));
