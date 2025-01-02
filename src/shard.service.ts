@@ -339,18 +339,22 @@ class Service implements Shard.Service {
 
                   const compiled: string[] = [];
                   for (const e of events) {
-                    compiled.push(e.args ? `["${e.name}","${e.args.join(':')}"]` : `["${e.name}"]`);
+                    try {
+                      compiled.push(e.args ? `["${e.name}","${e.args.join(':')}"]` : `["${e.name}"]`);
 
-                    if (e.name === 'onUpdateClient' || e.name === 'onSpawnPowerup') {
-                      if (recordDetailed) {
+                      if (e.name === 'onUpdateClient' || e.name === 'onSpawnPowerup') {
+                        if (recordDetailed) {
+                          this.round.events.push({ type: 'emitAll', name: e.name, args: e.args });
+                        }
+                      } else {
                         this.round.events.push({ type: 'emitAll', name: e.name, args: e.args });
                       }
-                    } else {
-                      this.round.events.push({ type: 'emitAll', name: e.name, args: e.args });
-                    }
 
-                    if (this.loggableEvents.includes('onEvents')) log(`emitAllDirect: ${e.name}`, e.args);
-                    // log('Emitting onEvents directly to all subscribers', op.path, compiled);
+                      if (this.loggableEvents.includes('onEvents')) log(`emitAllDirect: ${e.name}`, e.args);
+                      // log('Emitting onEvents directly to all subscribers', op.path, compiled);
+                    } catch (e) {
+                      console.log('Problem with event', e);
+                    }
                   }
 
                   this.app.io.emit(
