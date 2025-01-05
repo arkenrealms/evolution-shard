@@ -352,8 +352,8 @@ class Service implements Shard.Service {
 
                       if (this.loggableEvents.includes('onEvents')) log(`emitAllDirect: ${e.name}`, e.args);
                       // log('Emitting onEvents directly to all subscribers', op.path, compiled);
-                    } catch (e) {
-                      console.log('Problem with event', e);
+                    } catch (err) {
+                      console.log('Problem with event', err, e);
                     }
                   }
 
