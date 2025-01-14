@@ -231,7 +231,8 @@ class Service implements Shard.Service {
                 if (this.loggableEvents.includes(op.path)) log('Emit Direct', op.path, input, client.id);
 
                 const compiled: any[] = [];
-                const eventQueue = [{ name: op.path, args: input as Array<any> }];
+                const eventQueue = [{ name: op.path, args: Array.isArray(input) ? input : [input] }];
+                // TODO: optimize
                 for (const e of eventQueue) {
                   compiled.push(`["${e.name}","${Object.values(e.args).join(':')}"]`);
                   this.round.events.push({ type: 'emitDirect', client: client.id, name: e.name, args: e.args });
@@ -249,7 +250,7 @@ class Service implements Shard.Service {
               } else {
                 if (this.loggableEvents.includes(op.path)) log('Fake Emit Direct', op.path, input);
 
-                this.eventQueue.push({ name: op.path, args: input as Array<any> });
+                this.eventQueue.push({ name: op.path, args: Array.isArray(input) ? input : [input] });
               }
 
               observer.next({
@@ -302,7 +303,7 @@ class Service implements Shard.Service {
               // if (this.loggableEvents.includes(op.path)) log('emitAll', op);
 
               // const { name, args } = input as Event;
-              this.eventQueue.push({ name: op.path, args: input as Array<any> });
+              this.eventQueue.push({ name: op.path, args: Array.isArray(input) ? input : [input] }); // input as Array<any>
 
               observer.next({
                 result: { data: { status: 1 } },
@@ -401,7 +402,7 @@ class Service implements Shard.Service {
     this.clearSprites();
     this.spawnSprites(this.config.spritesStartCount);
     // }
-    console.log('ccccc', this.config);
+    // console.log('ccccc', this.config);
     setTimeout(() => this.monitorRealm(), 30 * 1000);
     setTimeout(() => this.fastGameloop(), this.config.fastLoopSeconds * 1000);
     setTimeout(() => this.slowGameloop(), this.config.slowLoopSeconds * 1000);
@@ -1436,7 +1437,7 @@ class Service implements Shard.Service {
     this.round.id = res.roundId;
 
     for (const key of Object.keys(res)) {
-      console.log(key, res[key]);
+      // console.log(key, res[key]);
       this.baseConfig[key] = res[key];
       this.config[key] = res[key];
     }
