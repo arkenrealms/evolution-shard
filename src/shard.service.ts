@@ -2454,6 +2454,11 @@ class Service implements Shard.Service {
     client.maxHp = 100;
   }
 
+  async useAbility(
+    input: Shard.RouterInput['useAbility'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['useAbility']> {}
+
   public async claimReward(client: Shard.Client, reward: Reward): Promise<void> {
     if (!reward) return;
 
