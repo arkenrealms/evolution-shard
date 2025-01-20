@@ -1450,7 +1450,7 @@ class Service implements Shard.Service {
   randomRoundPreset(): void {
     const gameMode = this.config.gameMode;
     while (this.config.gameMode === gameMode) {
-      const filteredPresets = presets.filter((p) => !p.isOmit);
+      const filteredPresets = presets.filter((p) => !!p.isEnabled);
       this.currentPreset = weightedRandom(filteredPresets);
       this.roundConfig = { ...this.baseConfig, ...this.sharedConfig, ...this.currentPreset };
       log('randomRoundPreset', this.config.gameMode, gameMode, this.currentPreset);
@@ -2454,10 +2454,17 @@ class Service implements Shard.Service {
     client.maxHp = 100;
   }
 
-  async useAbility(
-    input: Shard.RouterInput['useAbility'],
+  async action(
+    input: Shard.RouterInput['action'],
     { client }: Shard.ServiceContext
-  ): Promise<Shard.RouterOutput['useAbility']> {}
+  ): Promise<Shard.RouterOutput['action']> {
+    if (!input) throw new Error('Input should not be void');
+
+    if (client.isDead && !client.isJoining) throw new Error('Invalid at this time');
+    if (client.isSpectating) throw new Error('Invalid at this time');
+
+    this.emitAll.onAction.mutate([client.id, input]);
+  }
 
   public async claimReward(client: Shard.Client, reward: Reward): Promise<void> {
     if (!reward) return;
@@ -2493,22 +2500,31 @@ class Service implements Shard.Service {
     this.currentReward = null;
   }
 
+  async emote(...[input, { client }]: Parameters<Shard.Service['emote']>): ReturnType<Shard.Service['emote']> {
+    if (!input) throw new Error('Input should not be void');
+
+    if (client.isDead && !client.isJoining) throw new Error('Invalid at this time');
+    if (client.isSpectating) throw new Error('Invalid at this time');
+
+    this.emitAll.onEmote.mutate([client.id, input]);
+  }
+
   async updateMyself(
     ...[input, { client }]: Parameters<Shard.Service['updateMyself']>
   ): ReturnType<Shard.Service['updateMyself']> {
     if (!input) throw new Error('Input should not be void');
 
-    if (client.isDead && !client.isJoining) return { status: 0 };
-    if (client.isSpectating) return { status: 0 };
+    if (client.isDead && !client.isJoining) throw new Error('Invalid at this time');
+    if (client.isSpectating) throw new Error('Invalid at this time');
     if (this.config.isMaintenance && !client.isMod) {
       this.emit.onMaintenance.mutate([true], { context: { client } });
       this.disconnectClient(client, 'maintenance');
-      return;
+      throw new Error('Invalid at this time');
     }
 
     const now = getTime();
-    if (now - client.lastUpdate < this.config.forcedLatency) return { status: 0 };
-    if (client.name === 'Testman' && now - client.lastUpdate < 200) return { status: 0 };
+    if (now - client.lastUpdate < this.config.forcedLatency) throw new Error('Invalid at this time');
+    if (client.name === 'Testman' && now - client.lastUpdate < 200) throw new Error('Invalid at this time');
 
     if (client.isJoining) {
       client.isDead = false;
@@ -2898,7 +2914,7 @@ class Service implements Shard.Service {
 
       socket.emit('trpcResponse', { id: generateShortId(), oid: id, result });
     } catch (e) {
-      log('Shard client trpc error', id, e);
+      log('Shard client trpc error', pack, e);
       socket.emit('trpcResponse', { id: generateShortId(), oid: id, error: e.stack + '' });
     }
   }
