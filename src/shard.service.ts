@@ -4,6 +4,7 @@ import axios from 'axios';
 import { generateShortId } from '@arken/node/util/db';
 import { serialize, deserialize } from '@arken/node/util/rpc';
 import { weightedRandom } from '@arken/node/util/array';
+import { chance } from '@arken/node/util/number';
 import {
   log,
   getTime,
@@ -34,7 +35,9 @@ import type * as Bridge from '@arken/evolution-protocol/bridge/bridge.types';
 class Service implements Shard.Service {
   io: any;
   state: any;
+  zones: any;
   realm: any; //ReturnType<typeof createClient>;
+  master: any;
   guestNames: string[];
   serverVersion: string;
   roundLoopTimeout?: NodeJS.Timeout;
@@ -80,11 +83,85 @@ class Service implements Shard.Service {
   emitAll: ReturnType<typeof createTRPCProxyClient<ShardClientRouter>>;
   emitAllDirect: ReturnType<typeof createTRPCProxyClient<ShardClientRouter>>;
   app: any;
+  currentZone: any;
+  games: any;
+  currentGame: any;
 
   constructor(app: any) {
     log('Process running on PID: ' + process.pid);
 
     this.app = app;
+
+    // temporary, we need to move this into unity
+    // when player touches an NPC, it fires the proper event
+    this.games = {
+      MemeIsles: {
+        zones: [
+          {
+            name: 'Meme Isles',
+            modifiers: {},
+            objects: {
+              Harold: {
+                x: -23,
+                y: -3,
+              },
+              ElonTusk: {
+                x: -37.5,
+                y: -13.5,
+              },
+              MageIslesPortal: {
+                x: 18.3,
+                y: -4.3,
+              },
+            },
+          },
+          {
+            name: 'X',
+            modifiers: {},
+          },
+        ],
+      },
+      MageIsles: {
+        zones: [
+          {
+            name: 'Mage Isles',
+            modifiers: {},
+            objects: {
+              Devil: {
+                x: -37.5,
+                y: -13.5,
+              },
+              MemeIslesPortal: {
+                x: 18.3,
+                y: -4.3,
+              },
+            },
+          },
+          {
+            name: 'Hell',
+            modifiers: {},
+          },
+        ],
+      },
+    };
+
+    this.currentGame = this.games.MemeIsles;
+    this.currentZone = this.currentGame.zones[0];
+
+    const bossEvents = [
+      {
+        name: 'Freak Off Survival', // Freak Offer, should you choose to accept it
+        characterId: '111', // Pimp Daddy
+        interval: '1d',
+        lastEventDate: null,
+      },
+      {
+        name: 'Elon Tusk',
+        characterId: '111', // Elon Tusk
+        interval: '1d',
+        lastEventDate: null,
+      },
+    ];
 
     this.guestNames = [
       'Robin Banks',
@@ -417,7 +494,7 @@ class Service implements Shard.Service {
   }
 
   public async calcRoundRewards(input: any, ctx: any) {
-    const calcRewardsRes = await this.realm.emit.configure.mutate({
+    const configureRes = await this.realm.emit.configure.mutate({
       clients: this.clients.map((c: any) => ({
         id: c.id,
         name: c.name,
@@ -443,13 +520,16 @@ class Service implements Shard.Service {
       })),
     });
 
-    if (calcRewardsRes) {
-      this.sharedConfig.rewardWinnerAmount = calcRewardsRes.rewardWinnerAmount;
-      this.config.rewardWinnerAmount = calcRewardsRes.rewardWinnerAmount;
-      this.sharedConfig.rewardItemAmount = calcRewardsRes.rewardItemAmount;
-      this.config.rewardItemAmount = calcRewardsRes.rewardItemAmount;
+    if (configureRes) {
+      console.log('configureRes', configureRes);
+      for (const key of Object.keys(configureRes)) {
+        // console.log(key, res[key]);
+        this.baseConfig[key] = configureRes[key];
+        this.config[key] = configureRes[key];
+        this.sharedConfig[key] = configureRes[key];
+      }
 
-      if (this.config.rewardWinnerAmount === 0 && calcRewardsRes.rewardWinnerAmount !== 0) {
+      if (this.config.rewardWinnerAmount === 0 && configureRes.rewardWinnerAmount !== 0) {
         const roundTimer = this.round.startedDate + this.config.roundLoopSeconds - Math.round(this.getTime() / 1000);
         this.emit.onSetRoundInfo.mutate(
           [roundTimer, this.getRoundInfo().join(':'), this.getGameModeGuide().join(':')],
@@ -471,6 +551,8 @@ class Service implements Shard.Service {
     log('resetLeaderboard', preset);
 
     try {
+      clearTimeout(this.roundLoopTimeout);
+
       if (this.config.gameMode === 'Pandamonium') {
         clearTimeout(this.roundLoopTimeout);
         this.roundLoopTimeout = setTimeout(
@@ -748,7 +830,6 @@ class Service implements Shard.Service {
         this.rebootAfterRound = true;
       }
 
-      clearTimeout(this.roundLoopTimeout);
       this.roundLoopTimeout = setTimeout(
         () => this.resetLeaderboard(preset, context),
         this.config.roundLoopSeconds * 1000
@@ -756,16 +837,41 @@ class Service implements Shard.Service {
     } catch (e) {
       console.log('Exception during resetLeaderboard', e);
 
+      setTimeout(() => {
+        this.emit.onBroadcast.mutate([`Error Occurred. Please report.`, 3]);
+      }, 30 * 1000);
+
       this.sharedConfig.rewardWinnerAmount = 0;
       this.config.rewardWinnerAmount = 0;
       this.sharedConfig.rewardItemAmount = 0;
       this.config.rewardItemAmount = 0;
 
-      setTimeout(() => {
-        this.emit.onBroadcast.mutate([`Error Occurred. Please report.`, 3], { context: context });
-      }, 30 * 1000);
+      log('Shard -> Realm: recalling init');
+      // Initialize the realm server with status 1
+      const res = await this.realm.emit.init.mutate();
+      log('init', res);
 
-      clearTimeout(this.roundLoopTimeout);
+      // Check if initialization was successful
+      if (!res) {
+        throw new Error('Could not init self with realm');
+      }
+
+      // this.config.maxClients = res.maxClients;
+      this.round.id = res.roundId;
+
+      for (const key of Object.keys(res)) {
+        // console.log(key, res[key]);
+        this.baseConfig[key] = res[key];
+        this.config[key] = res[key];
+        this.sharedConfig[key] = res[key];
+      }
+
+      console.log('Setting config', this.config);
+
+      if (this.config.calcRoundRewards) {
+        await this.calcRoundRewards(null, context);
+      }
+
       this.roundLoopTimeout = setTimeout(() => this.resetLeaderboard(preset, context), 5 * 1000);
     }
   }
@@ -890,12 +996,20 @@ class Service implements Shard.Service {
     setTimeout(() => this.monitorRealm(), 5 * 1000);
   }
 
-  fastGameloop(): void {
+  async fastGameloop() {
     // console.log('fastGameloop');
     try {
       const now = this.getTime();
 
       this.detectCollisions();
+
+      if (!this.master) {
+        log('Master not set');
+        setTimeout(() => this.fastGameloop(), 10 * 1000);
+        return;
+      }
+      // get player positions
+      const playerUpdates = await this.master.emit.onGetPlayerUpdates.mutate();
 
       for (let i = 0; i < this.clients.length; i++) {
         const client = this.clients[i];
@@ -1095,6 +1209,7 @@ class Service implements Shard.Service {
                 this.registerKill(this.clientLookup[client.lastTouchClientId], client);
               } else {
                 // this.disconnectClient(client, 'starved');
+                this.handleUpgrades(client);
                 this.spectate(null, { client });
               }
             }
@@ -1130,6 +1245,44 @@ class Service implements Shard.Service {
         }
       }
     }
+  }
+
+  handleUpgrades(client: Shard.Client): void {
+    if (client.upgradesPending === 0) return;
+
+    this.emit.onUpgrade.mutate([client.upgradesPending, client.upgradeRerolls, ['200', '201', '202']], {
+      context: { client },
+    });
+  }
+
+  async chooseUpgrade(
+    input: Shard.RouterInput['chooseUpgrade'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['chooseUpgrade']> {
+    log('chooseUpgrade', input, client.address, client.upgradesPending);
+
+    if (client.upgradesPending === 0) return;
+
+    client.upgradesPending -= 1;
+
+    if (input == '200') {
+      client.speed += 2;
+
+      // this.emit.onBroadcast.mutate([`Error Occurred. Please report.`, 3]);
+      this.emitAll.onBroadcast.mutate([`${client.name} joined BLM`, 0]);
+    }
+    if (input == '201') {
+      client.speed += 2;
+
+      this.emitAll.onBroadcast.mutate([`${client.name} got speedy`, 0]);
+    }
+    if (input == '202') {
+      client.speed += 2;
+
+      this.emitAll.onBroadcast.mutate([`${client.name} got a bump`, 0]);
+    }
+
+    this.handleUpgrades(client);
   }
 
   registerKill(winner: Shard.Client, loser: Shard.Client): void {
@@ -1235,8 +1388,23 @@ class Service implements Shard.Service {
     loser.isDead = true;
     loser.log.deaths.push(winner.hash);
 
+    // Chance for upgrade for dying
+    loser.upgradesPending += chance(10) ? 1 : 0;
+
+    // Chance for upgrade for 500 points, but less chance if they have equal amount of upgrades already
+    // 500 points + 0 upgrades = (500 / 500) - 0 = 100%
+    // 1000 points + 0 upgrades = (1000 / 500) - 0 = 200%
+    // 1000 points + 2 upgrades = (1000 / 500) - 2 = 0%
+    // So basically 500 points guarantees an upgrade on death instead of 10% random, if you have no upgrades
+    // And you need to acquire 1000 points to get the next upgrade, or you don't get more on death
+    // Meanwhile, somebody with less than 500 points always has a 10% chance on death
+    // So the RNG gods could theoretically grant them more upgrades than the players with more points
+    loser.upgradesPending += chance((Math.floor(loser.points / 500) - loser.upgrades.length) * 100) ? 1 : 0;
+
     if (winner.points < 0) winner.points = 0;
     if (loser.points < 0) loser.points = 0;
+
+    winner.upgradeRerolls += 1;
 
     if (winner.log.deaths.length && winner.log.deaths[winner.log.deaths.length - 1] === loser.hash) {
       winner.log.revenge += 1;
@@ -1265,6 +1433,7 @@ class Service implements Shard.Service {
     if (winner.xp > winner.maxHp) winner.xp = winner.maxHp;
 
     this.emitAll.onGameOver.mutate([loser.id, winner.id]);
+    this.handleUpgrades(loser);
 
     // this.disconnectClient(loser, 'got killed');
     this.spectate(null, { client: loser });
@@ -1321,11 +1490,109 @@ class Service implements Shard.Service {
     return Date.now();
   }
 
-  async connected(
-    input: Shard.RouterInput['connected'],
+  async initMaster(
+    input: Shard.RouterInput['initMaster'],
     { client }: Shard.ServiceContext
-  ): Promise<Shard.RouterOutput['connected']> {
-    log('connected', input);
+  ): Promise<Shard.RouterOutput['initMaster']> {
+    log('initMaster', input);
+
+    if (client.address !== '0x954246b18fee13712C48E5a7Da5b78D88e8891d5') {
+      throw new Error('Not authorized');
+    }
+
+    if (this.master?.client) {
+      this.master.client.isMaster = false;
+
+      this.disconnectClient(this.master.client, 'Master already connected');
+
+      // throw new Error('Master already connected');
+    }
+
+    client.isMaster = true;
+    client.roles.push('master');
+
+    client.ioCallbacks = {};
+
+    this.master = {
+      client,
+      emit: createTRPCProxyClient<Bridge.Router>({
+        links: [
+          () =>
+            ({ op, next }) => {
+              const id = generateShortId();
+              return observable((observer) => {
+                const { input } = op;
+
+                op.context.client = client;
+                // @ts-ignore
+                op.context.client.roles = ['user', 'guest'];
+
+                if (!client) {
+                  log('Shard -> Bridge: mit Direct failed, no client', op);
+                  observer.complete();
+                  return;
+                }
+
+                if (!client.socket || !client.socket.emit) {
+                  log('Shard -> Master: Emit Direct failed, bad socket', op);
+                  observer.complete();
+                  return;
+                }
+                log('Shard -> Master: Emit Direct', op);
+
+                const request = { id, method: op.path, type: op.type, params: serialize(input) };
+                client.socket.emit('trpc', request);
+
+                // save the ID and callback when finished
+                const timeout = setTimeout(() => {
+                  log('Shard -> Master: Request timed out', op);
+                  delete client.ioCallbacks[id];
+                  observer.error(new TRPCClientError('Shard -> Master: Request timeout'));
+                }, 15000); // 15 seconds timeout
+
+                client.ioCallbacks[id] = {
+                  request,
+                  timeout,
+                  resolve: (response) => {
+                    log('Shard -> Master: ioCallbacks.resolve', id, response);
+                    clearTimeout(timeout);
+                    if (response.error) {
+                      observer.error(response.error);
+                    } else {
+                      observer.next(response);
+                      observer.complete();
+                    }
+                    delete client.ioCallbacks[id]; // Cleanup after completion
+                  },
+                  reject: (error) => {
+                    log('Shard -> Master: ioCallbacks.reject', error);
+                    clearTimeout(timeout);
+                    observer.error(error);
+                    delete client.ioCallbacks[id]; // Cleanup on error
+                  },
+                };
+              });
+            },
+        ],
+      }),
+    };
+
+    log('Shard -> Master: calling init');
+    // Initialize the master server with status 1
+    const res = await this.master.emit.init.mutate();
+    log('init', res);
+
+    // Check if initialization was successful
+    if (!res) {
+      throw new Error('Could not init self with master');
+    }
+  }
+
+  async initRealm(
+    input: Shard.RouterInput['initRealm'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['initRealm']> {
+    log('initRealm', input);
     // async connected(input: Shard.ConnectedInput, { client }: Shard.ServiceContext): Shard.ConnectedOutput {
     if (this.realm?.client?.socket?.connected) {
       this.disconnectClient(this.realm.client, 'Realm already connected');
@@ -1433,13 +1700,14 @@ class Service implements Shard.Service {
       throw new Error('Could not init self with realm');
     }
 
-    this.config.maxClients = res.maxClients;
+    // this.config.maxClients = res.maxClients;
     this.round.id = res.roundId;
 
     for (const key of Object.keys(res)) {
       // console.log(key, res[key]);
       this.baseConfig[key] = res[key];
       this.config[key] = res[key];
+      this.sharedConfig[key] = res[key];
     }
 
     console.log('Setting config', this.config);
@@ -2027,7 +2295,7 @@ class Service implements Shard.Service {
           client.id,
           client.name,
           client.avatar,
-          client.isMasterClient ? 'true' : 'false',
+          client.isMaster ? 'true' : 'false',
           roundTimer,
           client.position.x,
           client.position.y,
@@ -2589,21 +2857,30 @@ class Service implements Shard.Service {
     client.lastReportedTime = client.name === 'Testman' ? parseFloat(input.time) - 300 : parseFloat(input.time);
     client.lastUpdate = now;
 
-    const shop = {
-      position: {
-        x: -23,
-        y: -3,
-      },
-    };
-
-    if (this.distanceBetweenPoints(client.position, shop.position) < 1) {
+    if (this.distanceBetweenPoints(client.position, this.currentZone.objects.Harold) < 1) {
       client.ui.push('shop');
 
-      this.emit.onShowUI.mutate('shop');
+      this.emit.onShowUI.mutate('shop', {
+        context: { client },
+      });
     } else if (client.ui.includes('shop')) {
       client.ui = client.ui.filter((ui) => ui !== 'shop');
 
-      this.emit.onHideUI.mutate('shop');
+      this.emit.onHideUI.mutate('shop', {
+        context: { client },
+      });
+    }
+
+    const modifiers = {
+      Luck: {
+        id: '111',
+      },
+    };
+
+    // Touch the tusk for good luck
+    if (this.distanceBetweenPoints(client.position, this.currentZone.objects.ElonTusk) < 1) {
+      if (!this.currentZone.modifiers[modifiers.Luck.id] || this.currentZone.modifiers[modifiers.Luck.id] < 10)
+        this.currentZone.modifiers[modifiers.Luck.id] += 10;
     }
   }
 
@@ -2946,6 +3223,7 @@ export async function init(app) {
         address: null,
         device: null,
         position: spawnPoint,
+        upgrades: [],
         ui: [],
         target: spawnPoint,
         clientPosition: spawnPoint,
@@ -2964,12 +3242,13 @@ export async function init(app) {
         powerups: 0,
         rewards: 0,
         orbs: 0,
+        upgradesPending: 2,
+        upgradeRerolls: 3,
         pickups: [],
         isSeer: false,
         isAdmin: false,
         isMod: false,
         isBanned: false,
-        isMasterClient: false,
         isDisconnected: false,
         isDead: true,
         isJoining: false,
@@ -2977,6 +3256,7 @@ export async function init(app) {
         isStuck: false,
         isGod: false,
         isRealm: false,
+        isMaster: false,
         isGuest: false,
         isInvincible: service.config.isGodParty ? true : false,
         isPhased: false,
@@ -3057,9 +3337,9 @@ export async function init(app) {
       }
       service.sockets[client.id] = socket;
       service.clientLookup[client.id] = client;
-      if (Object.keys(service.clientLookup).length == 1) {
-        client.isMasterClient = true;
-      }
+      // if (Object.keys(service.clientLookup).length == 1) {
+      //   await this.initMaster(null, { client });
+      // }
       // service.clients = service.clients.filter((c) => c.hash !== client.hash);
       service.clients.push(client);
 
