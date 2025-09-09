@@ -32,6 +32,10 @@ import type * as Bridge from '@arken/evolution-protocol/bridge/bridge.types';
 // import { createRouter as createBridgeRouter } from '@arken/evolution-protocol/bridge/router';
 // import { dummyTransformer } from '@arken/node/util/rpc';
 
+const FF = {
+  MASTER_MODE: false,
+};
+
 class Service implements Shard.Service {
   io: any;
   state: any;
@@ -1003,13 +1007,15 @@ class Service implements Shard.Service {
 
       this.detectCollisions();
 
-      if (!this.master) {
-        log('Master not set');
-        setTimeout(() => this.fastGameloop(), 10 * 1000);
-        return;
+      if (FF.MASTER_MODE) {
+        if (!this.master) {
+          log('Master not set');
+          setTimeout(() => this.fastGameloop(), 10 * 1000);
+          return;
+        }
+        // get player positions
+        const playerUpdates = await this.master.emit.onGetPlayerUpdates.mutate();
       }
-      // get player positions
-      const playerUpdates = await this.master.emit.onGetPlayerUpdates.mutate();
 
       for (let i = 0; i < this.clients.length; i++) {
         const client = this.clients[i];
