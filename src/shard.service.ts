@@ -100,6 +100,8 @@ class Service implements Shard.Service {
     // when player touches an NPC, it fires the proper event
     this.games = {
       MemeIsles: {
+        key: 'meme-isles',
+        name: 'Meme Isles',
         zones: [
           {
             name: 'Meme Isles',
@@ -126,6 +128,8 @@ class Service implements Shard.Service {
         ],
       },
       MageIsles: {
+        key: 'mage-isles',
+        name: 'Mage Isles',
         zones: [
           {
             name: 'Mage Isles',
@@ -2887,6 +2891,16 @@ class Service implements Shard.Service {
     if (this.distanceBetweenPoints(client.position, this.currentZone.objects.ElonTusk) < 1) {
       if (!this.currentZone.modifiers[modifiers.Luck.id] || this.currentZone.modifiers[modifiers.Luck.id] < 10)
         this.currentZone.modifiers[modifiers.Luck.id] += 10;
+    }
+
+    // Touch the portal to move between games
+    if (this.distanceBetweenPoints(client.position, this.games.MageIsles.zones[0].objects.MemeIslesPortal) < 1) {
+      this.currentGame = this.currentGame.key === 'meme-isles' ? this.games.MageIsles : this.games.MemeIsles;
+      this.currentZone = this.currentGame.zones[0];
+
+      this.emit.onChangeGame.mutate('MemeIsles', {
+        context: { client },
+      });
     }
   }
 
