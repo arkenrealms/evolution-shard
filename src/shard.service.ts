@@ -259,6 +259,7 @@ class Service implements Shard.Service {
       'onHideMinimap',
       'onShowMinimap',
       'onSetRoundInfo',
+      'onChangeGame',
       'onLoaded',
       'onOpenLevel2',
       'onCloseLevel2',
@@ -2867,7 +2868,10 @@ class Service implements Shard.Service {
     client.lastReportedTime = client.name === 'Testman' ? parseFloat(input.time) - 300 : parseFloat(input.time);
     client.lastUpdate = now;
 
-    if (this.distanceBetweenPoints(client.position, this.currentZone.objects.Harold) < 1) {
+    if (
+      this.currentZone.objects.Harold &&
+      this.distanceBetweenPoints(client.position, this.currentZone.objects.Harold) < 1
+    ) {
       client.ui.push('shop');
 
       this.emit.onShowUI.mutate('shop', {
