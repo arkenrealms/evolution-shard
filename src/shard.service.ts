@@ -1628,7 +1628,7 @@ class Service implements Shard.Service {
 
                 op.context.client = client;
                 // @ts-ignore
-                op.context.client.roles = ['admin', 'user', 'guest'];
+                op.context.client.roles = ['admin', 'mod', 'user', 'guest'];
 
                 if (!client) {
                   log('Shard -> Bridge: mit Direct failed, no client', op);
@@ -2241,8 +2241,11 @@ class Service implements Shard.Service {
 
     const res = await this.realm.emit.auth.mutate({ data: input.data, signature: input.signature });
 
+    console.log('Realm auth response', res.roles, client.roles);
+
     if (!res) throw new Error('Auth problem');
 
+    client.roles = res.roles;
     client.isSeer = res.roles.includes('seer');
     client.isAdmin = res.roles.includes('admin');
     client.isMod = res.roles.includes('mod');
@@ -3216,7 +3219,7 @@ class Service implements Shard.Service {
       socket.emit('trpcResponse', { id: generateShortId(), oid: id, result });
     } catch (e) {
       log('Shard client trpc error', pack, e);
-      socket.emit('trpcResponse', { id: generateShortId(), oid: id, error: e.stack + '' });
+      socket.emit('trpcResponse', { id: generateShortId(), oid: id, result: {}, error: e.stack + '' });
     }
   }
 }
