@@ -37,7 +37,8 @@
     "socket.io": "^4",
     "typescript": "^5",
     "utf8": "^3",
-    "web3": "^1"
+    "web3": "^1",
+    "dotenv": "~17.2.3"
   },
   "peerDependencies": {
     "@ethersproject/address": "^5",
