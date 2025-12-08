@@ -1,3 +1,5 @@
+// evolution/packages/shard/src/shard.service.ts
+//
 import { httpBatchLink, createTRPCProxyClient, loggerLink, TRPCClientError } from '@trpc/client';
 import { generateShortId } from '@arken/node/util/db';
 import * as util from '@arken/node/util';
@@ -106,6 +108,13 @@ export class Service implements Shard.Service {
     this.services.system.init();
     this.services.client.init();
     this.services.mod.init();
+  }
+
+  async onPlayerUpdates(
+    input: Shard.RouterInput['onPlayerUpdates'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['onPlayerUpdates']> {
+    log('onPlayerUpdates', input);
   }
 
   async initRealm(
@@ -345,11 +354,11 @@ export class Service implements Shard.Service {
     return this.services.core.info(input, ctx);
   }
 
-  async initMaster(
-    input: Shard.RouterInput['initMaster'],
+  async claimMaster(
+    input: Shard.RouterInput['claimMaster'],
     ctx: Shard.ServiceContext
-  ): Promise<Shard.RouterOutput['initMaster']> {
-    return this.services.core.initMaster(input, ctx);
+  ): Promise<Shard.RouterOutput['claimMaster']> {
+    return this.services.core.claimMaster(input, ctx);
   }
 
   async auth(input: Shard.RouterInput['auth'], ctx: Shard.ServiceContext): Promise<Shard.RouterOutput['auth']> {

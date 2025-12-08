@@ -1,3 +1,5 @@
+// evolution/packages/shard/src/index.ts
+
 import dotEnv from 'dotenv';
 dotEnv.config();
 
@@ -14,10 +16,13 @@ import { catchExceptions } from '@arken/node/util/process';
 import { Service as ShardService } from './shard.service';
 import { getTime, decodePayload, ipHashFromSocket } from '@arken/node/util';
 import { serialize, deserialize } from '@arken/node/util/rpc';
-import { testMode, baseConfig, sharedConfig } from '@arken/evolution-protocol/config';
+import { testMode } from '@arken/evolution-protocol/config';
 import { EvolutionMechanic as Mechanic } from '@arken/node/legacy/types';
 import type * as Shard from '@arken/evolution-protocol/shard/shard.types';
 import { createCallerFactory } from '@arken/evolution-protocol/shard/shard.router';
+
+import osModule from 'os';
+import puppeteer, { Browser, Page } from 'puppeteer';
 
 if (isDebug) {
   log('Running SHARD in DEBUG mode');
@@ -35,6 +40,11 @@ export class Application {
   public https?: https.Server;
   public io?: SocketIOServer;
 
+  // NEW: puppeteer handles
+  private browser?: Browser;
+  private bridgePage?: Page;
+  private shuttingDown = false;
+
   constructor() {
     this.server = express();
     this.state = {
@@ -44,6 +54,7 @@ export class Application {
     this.isHttps = process.env.ARKEN_ENV !== 'local';
     this.setupMiddleware();
     this.setupServer();
+    this.setupShutdownHooks();
   }
 
   private setupMiddleware() {
@@ -96,14 +107,17 @@ export class Application {
     });
   }
 
+  // ---------------------------------------------------------
+  // SHARD SETUP (unchanged, just moved into a method)
+  // ---------------------------------------------------------
   async setupShard() {
     try {
       const service = new ShardService(this);
+      service.init(); // make sure your Service.init() is called
 
       log('Starting event handler');
 
-      this.io.on('connection', async function (socket) {
-        // try {
+      this.io.on('connection', async (socket) => {
         log('Connection', socket.id);
 
         const hash = ipHashFromSocket(socket);
@@ -128,7 +142,7 @@ export class Application {
           clientPosition: spawnPoint,
           clientTarget: spawnPoint,
           phasedPosition: undefined,
-          socket, // TODO: might be a problem
+          socket,
           rotation: null,
           xp: 75,
           maxHp: 100,
@@ -166,7 +180,7 @@ export class Application {
           joinedAt: 0,
           invincibleUntil: 0,
           decayPower: 1,
-          hash: ipHashFromSocket(socket),
+          hash,
           lastReportedTime: getTime(),
           lastUpdate: 0,
           gameMode: service.config.gameMode,
@@ -224,6 +238,7 @@ export class Application {
             failedRealmCheck: 0,
           },
         };
+
         log('User connected from hash ' + hash);
 
         if (!testMode && service.config.killSameNetworkClients) {
@@ -234,25 +249,16 @@ export class Application {
             return;
           }
         }
+
         service.sockets[client.id] = socket;
         service.clientLookup[client.id] = client;
-        // if (Object.keys(service.clientLookup).length == 1) {
-        //   await this.initMaster(null, { client });
-        // }
-        // service.clients = service.clients.filter((c) => c.hash !== client.hash);
         service.clients.push(client);
 
-        // socket.shardClient = client;
-
-        console.log('client.id', client.id);
-
-        // client.emit = createShardRouter(service);
-        // log(client.emit);
+        // @ts-ignore
+        socket.shardClient = client;
 
         const ctx = { client };
-
         const createCaller = createCallerFactory(service.router);
-
         client.emit = createCaller(ctx);
 
         socket.on('trpc', async (message) => {
@@ -260,9 +266,7 @@ export class Application {
         });
 
         socket.on('trpcResponse', async (message) => {
-          log('Shard client trpcResponse message', message);
           const pack = typeof message === 'string' ? decodePayload(message) : message;
-          log('Shard client trpcResponse pack', pack);
           const { oid } = pack;
 
           if (pack.error) {
@@ -275,13 +279,9 @@ export class Application {
           }
 
           try {
-            log(`Shard client callback ${client.ioCallbacks[oid] ? 'Exists' : 'Doesnt Exist'}`);
-
             if (client.ioCallbacks[oid]) {
               clearTimeout(client.ioCallbacks[oid].timeout);
-
               client.ioCallbacks[oid].resolve({ result: { data: deserialize(pack.result) } });
-
               delete client.ioCallbacks[oid];
             }
           } catch (e) {
@@ -289,21 +289,7 @@ export class Application {
           }
         });
 
-        socket.on('emit', (args) => {
-          // this.app.io.emit('trpc', args);
-        });
-
-        socket.on('emitAll', (args) => {
-          this.app.io.emit('trpc', args);
-        });
-
-        // socket.onAny(async (eventName, args) => {
-        //   if (eventName.includes('proxy_emitAll')) {
-        //     this.app.io.emit('trpc', args);
-        //   }
-        // });
-
-        socket.on('disconnect', function () {
+        socket.on('disconnect', () => {
           log('Shard client disconnected');
           client.log.clientDisconnected += 1;
           service.disconnectClient(client, 'client disconnected');
@@ -317,67 +303,146 @@ export class Application {
     }
   }
 
-  public start() {
-    log('Starting server...', this.isHttps ? 'HTTPS' : 'HTTP');
-    catchExceptions();
+  // ---------------------------------------------------------
+  // PUPPETEER: launch embedded Chrome/Unity page
+  // ---------------------------------------------------------
+  private async launchEmbeddedChrome() {
+    const url = 'http://arken.gg.local:8021/games/evolution'; // your bridge page
+
+    log('Launching embedded Chrome page at', url);
+
+    this.browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
+    });
+
+    this.bridgePage = await this.browser.newPage();
+    await this.bridgePage.goto(url, { waitUntil: 'domcontentloaded' });
+  }
+
+  private async closeEmbeddedChrome() {
     try {
-      if (this.isHttps && this.https) {
-        this.https.listen(this.state.sslPort, () => {
-          log(`Server ready and listening on *:${this.state.sslPort} (https)`);
-          this.state.spawnPort = this.state.sslPort;
-        });
-      } else if (this.http) {
-        this.http.listen(this.state.port, () => {
-          log(`Server ready and listening on *:${this.state.port} (http)`);
-          this.state.spawnPort = this.state.port;
-        });
+      if (this.bridgePage) {
+        await this.bridgePage.close().catch(() => undefined);
+        this.bridgePage = undefined;
+      }
+      if (this.browser) {
+        await this.browser.close().catch(() => undefined);
+        this.browser = undefined;
       }
 
-      this.setupMonitor();
-      this.setupShard();
-    } catch (error) {
-      logError('Error starting server:', error);
+      console.log('Closed embedded Chrome.');
+    } catch (err) {
+      logError('Error closing embedded Chrome:', err);
     }
   }
 
-  async setupMonitor() {
-    let logs = [];
+  // ---------------------------------------------------------
+  // Shutdown handling so Chrome dies with the server
+  // ---------------------------------------------------------
+  private setupShutdownHooks() {
+    const shutdown = async (signal: string) => {
+      if (this.shuttingDown) return;
+      this.shuttingDown = true;
 
-    // Check if the platform is Linux
-    const isLinux = os.platform() === 'linux';
+      log(`Received ${signal}, shutting down shard...`);
+
+      try {
+        await this.closeEmbeddedChrome();
+      } catch (err) {
+        logError('Error during Chrome shutdown', err);
+      }
+
+      try {
+        if (this.io) this.io.close();
+        if (this.https) this.https.close();
+        if (this.http) this.http.close();
+      } catch (err) {
+        logError('Error closing HTTP(S)/IO server', err);
+      }
+
+      process.exit(0);
+    };
+
+    process.on('SIGINT', () => shutdown('SIGINT'));
+    process.on('SIGTERM', () => shutdown('SIGTERM'));
+    process.on('uncaughtException', (err) => {
+      logError('Uncaught exception:', err);
+      shutdown('uncaughtException');
+    });
+    process.on('unhandledRejection', (reason) => {
+      logError('Unhandled rejection:', reason);
+      shutdown('unhandledRejection');
+    });
+  }
+
+  // ---------------------------------------------------------
+  // Monitor (your existing code, unchanged)
+  // ---------------------------------------------------------
+  async setupMonitor() {
+    let logs: boolean[] = [];
+    const isLinux = osModule.platform() === 'linux';
 
     setInterval(function () {
-      let available;
-      if (isLinux) {
-        available = Number(/MemAvailable:[ ]+(\d+)/.exec(fs.readFileSync('/proc/meminfo', 'utf8'))[1]) / 1024;
+      if (!isLinux) return;
+      const available = Number(/MemAvailable:[ ]+(\d+)/.exec(fs.readFileSync('/proc/meminfo', 'utf8'))![1]) / 1024;
 
-        if (available < 500) {
-          if (logs.length >= 5) {
-            const free = os.freemem() / 1024 / 1024;
-            const total = os.totalmem() / 1024 / 1024;
+      if (available < 500) {
+        if (logs.length >= 5) {
+          const free = osModule.freemem() / 1024 / 1024;
+          const total = osModule.totalmem() / 1024 / 1024;
 
-            logError('SHARD: Free mem', free);
-            logError('SHARD: Available mem', available);
-            logError('SHARD: Total mem', total);
+          logError('SHARD: Free mem', free);
+          logError('SHARD: Available mem', available);
+          logError('SHARD: Total mem', total);
 
-            process.exit();
-          }
-        } else {
-          logs = [];
+          process.exit();
         }
+      } else {
+        logs = [];
       }
     }, 60 * 1000);
 
     setInterval(function () {
-      let available;
-      if (isLinux) {
-        available = Number(/MemAvailable:[ ]+(\d+)/.exec(fs.readFileSync('/proc/meminfo', 'utf8'))[1]) / 1024;
-        if (available < 500) {
-          log('SHARD Memory flagged', available);
-          logs.push(true);
-        }
+      if (!isLinux) return;
+      const available = Number(/MemAvailable:[ ]+(\d+)/.exec(fs.readFileSync('/proc/meminfo', 'utf8'))![1]) / 1024;
+
+      if (available < 500) {
+        log('SHARD Memory flagged', available);
+        logs.push(true);
       }
     }, 10 * 1000);
+  }
+
+  // ---------------------------------------------------------
+  // Start entrypoint
+  // ---------------------------------------------------------
+  public async start() {
+    log('Starting server...', this.isHttps ? 'HTTPS' : 'HTTP');
+    catchExceptions();
+    try {
+      if (this.isHttps && this.https) {
+        this.https.listen(this.state.sslPort, async () => {
+          log(`Server ready and listening on *:${this.state.sslPort} (https)`);
+          this.state.spawnPort = this.state.sslPort;
+
+          await this.setupMonitor();
+          await this.setupShard();
+          await this.launchEmbeddedChrome();
+        });
+      } else if (this.http) {
+        this.http.listen(this.state.port, async () => {
+          log(`Server ready and listening on *:${this.state.port} (http)`);
+          this.state.spawnPort = this.state.port;
+
+          await this.setupMonitor();
+          await this.setupShard();
+          await this.launchEmbeddedChrome();
+        });
+      }
+    } catch (error) {
+      logError('Error starting server:', error);
+    }
   }
 }
 

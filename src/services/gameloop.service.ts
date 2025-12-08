@@ -1,3 +1,5 @@
+// evolution/packages/shard/src/services/gameloop.service.ts
+//
 import { generateShortId } from '@arken/node/util/db';
 import { chance } from '@arken/node/util/number';
 import * as util from '@arken/node/util';
@@ -12,7 +14,7 @@ import { normalizeFloat, formatNumber } from '../util';
 const { log, getTime, shuffleArray, randomPosition, sha256, decodePayload, isNumeric, ipHashFromSocket } = util;
 
 const FF = {
-  MASTER_MODE: false,
+  MASTER_MODE: true,
 };
 
 export class GameloopService {
@@ -644,7 +646,11 @@ export class GameloopService {
           return;
         }
         // get player positions
-        const playerUpdates = await this.ctx.master.emit.onGetPlayerUpdates.mutate();
+        // await this.ctx.master.emit.onGetPlayerUpdates.mutate();
+
+        this.ctx.emit.onGetPlayerUpdates.mutate({
+          context: { client: this.ctx.master.client },
+        });
       }
 
       for (let i = 0; i < this.ctx.clients.length; i++) {

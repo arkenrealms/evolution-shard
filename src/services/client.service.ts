@@ -1,3 +1,5 @@
+// evolution/packages/shard/src/services/client.service.ts
+//
 import { log, getTime } from '@arken/node/util';
 import type * as Shard from '@arken/evolution-protocol/shard/shard.types';
 import type { Service } from '../shard.service';

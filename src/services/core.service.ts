@@ -1,3 +1,5 @@
+// evolution/packages/shard/src/services/core.service.ts
+//
 import { httpBatchLink, createTRPCProxyClient, loggerLink, TRPCClientError } from '@trpc/client';
 import { observable } from '@trpc/server/observable';
 import { generateShortId } from '@arken/node/util/db';
@@ -409,20 +411,21 @@ export class CoreService {
     }, this.ctx.config.roundLoopSeconds * 1000);
   }
 
-  async initMaster(
-    input: Shard.RouterInput['initMaster'],
+  async claimMaster(
+    input: Shard.RouterInput['claimMaster'],
     { client }: Shard.ServiceContext
-  ): Promise<Shard.RouterOutput['initMaster']> {
-    log('initMaster', input);
+  ): Promise<Shard.RouterOutput['claimMaster']> {
+    log('claimMaster', input);
 
-    if (client.address !== '0x954246b18fee13712C48E5a7Da5b78D88e8891d5') {
+    if (!client.isAdmin) {
+      // if (client.address !== '0x954246b18fee13712C48E5a7Da5b78D88e8891d5') {
       throw new Error('Not authorized');
     }
 
     if (this.ctx.master?.client) {
       this.ctx.master.client.isMaster = false;
 
-      this.ctx.disconnectClient(this.ctx.master.client, 'Master already connected');
+      this.ctx.disconnectClient(this.ctx.master.client, 'New master connected');
 
       // throw new Error('Master already connected');
     }
@@ -563,7 +566,7 @@ export class CoreService {
   }
 
   monitorRealm(): void {
-    if (!this.ctx.realm.client?.socket?.connected) {
+    if (!this.ctx.realm?.client?.socket?.connected) {
       this.ctx.emitAll.onBroadcast.mutate([`Realm not connected. Contact support.`, 0]);
       this.ctx.disconnectAllClients();
     }
