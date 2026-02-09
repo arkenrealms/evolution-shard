@@ -1,6 +1,7 @@
 // evolution/packages/shard/src/services/auth.service.ts
 //
-import { log, getTime } from '@arken/node/util';
+import { getTime } from '@arken/node/util';
+import { log, logError } from '@arken/node/log';
 import type * as Shard from '@arken/evolution-protocol/shard/shard.types';
 import type { Service } from '../shard.service';
 
@@ -34,11 +35,10 @@ export class AuthService {
     client.isMod = res.roles.includes('mod');
   }
 
-  async login(
-    input: Shard.RouterInput['login'],
-    { client }: Shard.ServiceContext
-  ): Promise<Shard.RouterOutput['login']> {
+  async login(input: Shard.RouterInput['login'], ctx: Shard.ServiceContext): Promise<Shard.RouterOutput['login']> {
     if (!input) throw new Error('Input should not be void');
+
+    const { client } = ctx;
 
     log('Login', input);
 
@@ -53,7 +53,7 @@ export class AuthService {
     //   this.ctx.realm = { client, emit: null };
     // }
 
-    const address = await this.ctx.normalizeAddress(input.address);
+    const address = await this.ctx.normalizeAddress(input.address, ctx);
     log('Login normalizeAddress', input.address, address);
     if (!address) {
       client.log.addressProblem += 1;
@@ -140,6 +140,8 @@ export class AuthService {
     if (this.ctx.config.log.connections) {
       log('Connected', { hash: client.hash, address: client.address, name: client.name });
     }
+
+    return { status: 1 };
   }
 
   async seerConnected(

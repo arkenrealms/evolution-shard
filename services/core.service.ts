@@ -2,9 +2,9 @@
 //
 import { httpBatchLink, createTRPCProxyClient, loggerLink, TRPCClientError } from '@trpc/client';
 import { observable } from '@trpc/server/observable';
-import { generateShortId } from '@arken/node/util/db';
-import { serialize, deserialize } from '@arken/node/util/rpc';
-import { weightedRandom } from '@arken/node/util/array';
+import { generateShortId } from '@arken/node/db';
+import { serialize, deserialize } from '@arken/node/rpc';
+import { weightedRandom } from '@arken/node/array';
 import * as util from '@arken/node/util';
 import { testMode, baseConfig, sharedConfig } from '@arken/evolution-protocol/config';
 import { presets } from '@arken/evolution-protocol/presets';
@@ -13,7 +13,9 @@ import type { Orb, Boundary, Reward, PowerUp, Round, Preset, Event } from '@arke
 import type * as Shard from '@arken/evolution-protocol/shard/shard.types';
 import type * as Bridge from '@arken/evolution-protocol/bridge/bridge.types';
 import type { Service } from '../shard.service';
-const { log, getTime, shuffleArray, randomPosition, sha256, decodePayload, isNumeric, ipHashFromSocket } = util;
+import { log } from '@arken/node/log';
+
+const { getTime, shuffleArray, randomPosition, sha256, decodePayload, isNumeric, ipHashFromSocket } = util;
 
 export class CoreService {
   constructor(private ctx: Service) {}
@@ -637,6 +639,8 @@ export class CoreService {
           id: c.id,
           name: c.name,
           address: c.address,
+          characterId: c.character?.id,
+          characterVersion: c.character?.version,
           joinedRoundAt: c.joinedRoundAt,
           points: c.points,
           kills: c.kills,
@@ -655,6 +659,7 @@ export class CoreService {
           speed: c.speed,
           cameraSize: c.cameraSize,
           log: c.log,
+          ops: c.ops || [],
         })),
         states: [],
       });
@@ -751,6 +756,7 @@ export class CoreService {
         client.log = {
           kills: [],
           deaths: [],
+          errors: 0,
           revenge: 0,
           resetPosition: 0,
           phases: 0,
@@ -795,6 +801,8 @@ export class CoreService {
         if (client.isDead || client.isSpectating) continue;
 
         client.startedRoundAt = Math.round(Date.now() / 1000);
+
+        client.ops = [];
 
         this.ctx.round.clients.push(client);
       }

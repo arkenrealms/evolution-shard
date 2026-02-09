@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./build",
+    "noEmit": false,
+    "checkJs": false,
+    "allowJs": false,
+    "emitDeclarationOnly": false,
+    "removeComments": true,
+    "sourceMap": true,
+    "declaration": true,
+    "composite": true
+  },
+  "references": [{ "path": "../node" }, { "path": "../evolution/protocol" }],
+  "exclude": ["node_modules", "build", "**/*.test.ts", "**/*.spec.ts"]
+}

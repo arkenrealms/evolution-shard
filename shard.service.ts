@@ -1,23 +1,24 @@
 // evolution/packages/shard/src/shard.service.ts
 //
 import { httpBatchLink, createTRPCProxyClient, loggerLink, TRPCClientError } from '@trpc/client';
-import { generateShortId } from '@arken/node/util/db';
+import { generateShortId } from '@arken/node/db';
 import * as util from '@arken/node/util';
-import * as Arken from '@arken/node';
+import * as SeerProtocol from '@arken/seer-protocol';
 import { createCallerFactory, createRouter as createShardRouter } from '@arken/evolution-protocol/shard/shard.router';
 import type { ShardClientRouter, Realm } from '@arken/evolution-protocol/types';
 import type { Orb, Boundary, Reward, PowerUp, Round, Preset, Event } from '@arken/evolution-protocol/shard/shard.types';
-import { Position } from '@arken/node/types';
+import { Position } from '@arken/evolution-protocol/shard/shard.types';
+import { log } from '@arken/node/log';
 import type * as Shard from '@arken/evolution-protocol/shard/shard.types';
-import { normalizeFloat, formatNumber } from './util';
 import { CoreService } from './services/core.service';
 import { AuthService } from './services/auth.service';
 import { ClientService } from './services/client.service';
 import { SystemService } from './services/system.service';
 import { ModService } from './services/mod.service';
 import { GameloopService } from './services/gameloop.service';
+import { InteractionsService } from './services/interactions.service';
 
-const { log, getTime, shuffleArray, randomPosition, sha256, decodePayload, isNumeric, ipHashFromSocket } = util;
+const { getTime, shuffleArray, randomPosition, sha256, decodePayload, isNumeric, ipHashFromSocket } = util;
 
 type ServiceHelpers = {
   core: CoreService;
@@ -26,6 +27,7 @@ type ServiceHelpers = {
   client: ClientService;
   mod: ModService;
   gameloop: GameloopService;
+  interactions: InteractionsService;
 };
 
 export class Service implements Shard.Service {
@@ -39,7 +41,7 @@ export class Service implements Shard.Service {
   guestNames: string[];
   serverVersion: string;
   roundLoopTimeout?: NodeJS.Timeout;
-  addressToProfile: Record<string, Arken.Profile.Types.Profile>;
+  addressToProfile: Record<string, SeerProtocol.Profile.Types.Profile>;
   announceReboot: boolean;
   rebootAfterRound: boolean;
   debugQueue: boolean;
@@ -97,6 +99,7 @@ export class Service implements Shard.Service {
       client: new ClientService(this),
       gameloop: new GameloopService(this),
       mod: new ModService(this),
+      interactions: new InteractionsService(this),
     };
   }
 
@@ -107,7 +110,9 @@ export class Service implements Shard.Service {
     this.services.auth.init();
     this.services.system.init();
     this.services.client.init();
+    this.services.gameloop.init();
     this.services.mod.init();
+    this.services.interactions.init();
   }
 
   async onPlayerUpdates(
@@ -369,7 +374,7 @@ export class Service implements Shard.Service {
     return this.services.auth.login(input, ctx);
   }
 
-  async isMechanicEnabled(
+  isMechanicEnabled(
     input: Shard.RouterInput['isMechanicEnabled'],
     ctx: Shard.ServiceContext
   ): Promise<Shard.RouterOutput['isMechanicEnabled']> {
@@ -385,17 +390,17 @@ export class Service implements Shard.Service {
 
   // Method to calculate the speed of a client based on their config and base speed
   getClientSpeed(client: Shard.Client): number {
-    return normalizeFloat(
+    return util.number.normalizeFloat(
       this.config.baseSpeed * this.config['avatarSpeedMultiplier' + client.avatar!] * client.baseSpeed
     );
   }
 
   // Method to normalize an address through an external service
-  async normalizeAddress(address: string): Promise<string | false> {
+  async normalizeAddress(address: string, ctx: Shard.ServiceContext): Promise<string | false> {
     if (!address) return false;
     try {
       // TODO: type check
-      const res = await this.realm?.emit.normalizeAddress.mutate(address);
+      const res = await this.realm.emit.normalizeAddress.mutate(address);
       log('normalizeAddressResponse', res);
       return res;
     } catch (e) {
@@ -509,10 +514,17 @@ export class Service implements Shard.Service {
       // log(client.emit[method]);
       // const result = await client.emit[method](params);
 
-      socket.emit('trpcResponse', { id: generateShortId(), oid: id, result });
+      socket.emit('trpcResponse', { id: id, result });
     } catch (e) {
       log('Shard client trpc error', pack, e);
-      socket.emit('trpcResponse', { id: generateShortId(), oid: id, result: {}, error: e.stack + '' });
+
+      socket.shardClient.log.errors += 1;
+
+      if (socket.shardClient.log.errors > 50) {
+        this.disconnectClient(socket.shardClient, 'too many errors');
+      } else {
+        socket.emit('trpcResponse', { id: id, result: {}, error: e.stack + '' });
+      }
     }
   }
 }

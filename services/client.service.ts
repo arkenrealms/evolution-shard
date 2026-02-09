@@ -1,10 +1,12 @@
 // evolution/packages/shard/src/services/client.service.ts
 //
-import { log, getTime } from '@arken/node/util';
 import type * as Shard from '@arken/evolution-protocol/shard/shard.types';
 import type { Service } from '../shard.service';
 import * as util from '@arken/node/util';
-import { normalizeFloat } from '../util';
+import { log } from '@arken/node/log';
+import type { PatchOp, EntityPatch } from '@arken/seer-protocol/types';
+
+const { getTime } = util;
 
 export class ClientService {
   constructor(private ctx: Service) {}
@@ -181,42 +183,87 @@ export class ClientService {
   }
 
   async emote(...[input, { client }]: Parameters<Shard.Service['emote']>): ReturnType<Shard.Service['emote']> {
-    if (!input) throw new Error('Input should not be void');
+    if (!input) return this.throwError(client, 'Input should not be void');
 
-    if (client.isDead && !client.isJoining) throw new Error('Invalid at this time');
-    if (client.isSpectating) throw new Error('Invalid at this time');
+    if (client.isDead && !client.isJoining) return;
+    if (client.isSpectating) return;
 
     this.ctx.emitAll.onEmote.mutate([client.id, input]);
+  }
+
+  private canWrite(client: any, permission: string) {
+    return !!client?.permissions?.[permission];
+  }
+
+  private pushCharacterOps(client: any, ops: PatchOp[]) {
+    if (!ops?.length) return;
+    if (!this.canWrite(client, 'character.data.write')) return;
+
+    client.ops ??= [];
+
+    const patch: EntityPatch = {
+      entityType: 'character',
+      entityId: client.character?.id,
+      baseVersion: client.character?.version,
+      ops,
+    };
+
+    client.ops.push(patch);
+
+    // optimistic local cache update (since meta is your fast state)
+    client.character ??= {};
+    client.character.meta ??= {};
+    for (const op of ops) {
+      if (op.op === 'set') client.character.meta[op.key] = op.value;
+      if (op.op === 'unset') delete client.character.meta[op.key];
+      if (op.op === 'inc') client.character.meta[op.key] = (Number(client.character.meta[op.key] ?? 0) || 0) + op.value;
+      // (push/merge optional for meta cache; you can ignore unless needed)
+    }
   }
 
   async action(
     input: Shard.RouterInput['action'],
     { client }: Shard.ServiceContext
   ): Promise<Shard.RouterOutput['action']> {
-    if (!input) throw new Error('Input should not be void');
+    if (!input) return this.throwError(client, 'Input should not be void');
 
-    if (client.isDead && !client.isJoining) throw new Error('Invalid at this time');
-    if (client.isSpectating) throw new Error('Invalid at this time');
+    if (client.isDead && !client.isJoining) return;
+    if (client.isSpectating) return;
 
     this.ctx.emitAll.onAction.mutate([client.id, input]);
+  }
+
+  throwError(client: any, text: string) {
+    client.log.errors += 1;
+
+    throw new Error(text);
   }
 
   async updateMyself(
     ...[input, { client }]: Parameters<Shard.Service['updateMyself']>
   ): ReturnType<Shard.Service['updateMyself']> {
-    if (!input) throw new Error('Input should not be void');
+    if (!input) return this.throwError(client, 'Input should not be void');
 
-    if (client.isDead && !client.isJoining) throw new Error('Invalid at this time');
-    if (client.isSpectating) throw new Error('Invalid at this time');
+    if (client.isSpectating) {
+      return;
+      // client.log.errors += 1;
+      // throw new Error('Invalid at this time');
+    }
+    if (client.isDead && !client.isJoining) {
+      return;
+      // client.log.errors += 1;
+      // throw new Error('Invalid at this time');
+    }
     if (this.ctx.config.isMaintenance && !client.isMod) {
       this.ctx.emit.onMaintenance.mutate([true], { context: { client } });
       this.ctx.disconnectClient(client, 'maintenance');
-      throw new Error('Invalid at this time');
+      // throw new Error('Invalid at this time');
+      return;
     }
 
     const now = getTime();
-    if (now - client.lastUpdate < this.ctx.config.forcedLatency) throw new Error('Invalid at this time');
-    if (client.name === 'Testman' && now - client.lastUpdate < 200) throw new Error('Invalid at this time');
+    if (now - client.lastUpdate < this.ctx.config.forcedLatency) return;
+    if (client.name === 'Testman' && now - client.lastUpdate < 200) return;
 
     if (client.isJoining) {
       client.isDead = false;
@@ -276,27 +323,13 @@ export class ClientService {
       return;
     }
 
-    client.clientPosition = { x: normalizeFloat(positionX, 4), y: normalizeFloat(positionY, 4) };
-    client.clientTarget = { x: normalizeFloat(targetX, 4), y: normalizeFloat(targetY, 4) };
+    client.clientPosition = {
+      x: util.number.normalizeFloat(positionX, 4),
+      y: util.number.normalizeFloat(positionY, 4),
+    };
+    client.clientTarget = { x: util.number.normalizeFloat(targetX, 4), y: util.number.normalizeFloat(targetY, 4) };
     client.lastReportedTime = client.name === 'Testman' ? parseFloat(input.time) - 300 : parseFloat(input.time);
     client.lastUpdate = now;
-
-    if (
-      this.ctx.currentZone.objects.Harold &&
-      util.physics.distanceBetweenPoints(client.position, this.ctx.currentZone.objects.Harold) < 1
-    ) {
-      client.ui.push('shop');
-
-      this.ctx.emit.onShowUI.mutate('shop', {
-        context: { client },
-      });
-    } else if (client.ui.includes('shop')) {
-      client.ui = client.ui.filter((ui) => ui !== 'shop');
-
-      this.ctx.emit.onHideUI.mutate('shop', {
-        context: { client },
-      });
-    }
 
     const modifiers = {
       Luck: {
@@ -386,5 +419,50 @@ export class ClientService {
       this.ctx.services.gameloop.syncSprites();
       this.ctx.emitAll.onSpectate.mutate([client.id, client.speed, client.cameraSize]);
     }
+  }
+
+  async completeQuest(input: { questId: string }, { client }: Shard.ServiceContext): Promise<{ status: 1 }> {
+    const quest = this.ctx.services.interactions.getQuests().find((q) => q.id === input.questId);
+    if (!quest) throw new Error('Quest not found');
+
+    // shard validates requirements (generic)
+    for (const req of quest.requirements) {
+      if (req.kind === 'exists') {
+        if (!client.character?.meta?.[req.key]) throw new Error('Requirements not met');
+      }
+
+      if (req.kind === 'touchedObject') {
+        const touchedAt = client.character?.meta?.[req.writeKey];
+        if (!touchedAt) throw new Error('Requirements not met');
+
+        if (req.afterKey) {
+          const a = Date.parse(client.character?.meta?.[req.afterKey]);
+          const b = Date.parse(touchedAt);
+          if (Number.isFinite(a) && Number.isFinite(b) && b < a) throw new Error('Requirements not met');
+        }
+      }
+    }
+
+    // prevent double-complete (shard-side rule; seer can also enforce idempotency)
+    const completedAtKey = `character.quest.${quest.id}.completedAt`;
+    if (client.character?.meta?.[completedAtKey]) throw new Error('Already completed');
+
+    // enqueue semantic op + allow seer to apply effects
+    client.ops ??= [];
+    client.ops.push({
+      kind: 'quest.complete',
+      id: util.rpc.opId('quest.complete', client, this.ctx.round.id),
+      ts: Date.now(),
+      questId: quest.id,
+      metaverseId: quest.metaverseId,
+      evidence: {
+        completedAt: new Date().toISOString(),
+      },
+    });
+
+    // optimistic local completion marker (optional)
+    client.character.meta[completedAtKey] = new Date().toISOString();
+
+    return { status: 1 };
   }
 }

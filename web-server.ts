@@ -2,7 +2,7 @@ import express from 'express';
 import RateLimit from 'express-rate-limit';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
-import { logError } from '@arken/node/util';
+import { logError } from '@arken/node/log';
 
 const path = require('path');
 

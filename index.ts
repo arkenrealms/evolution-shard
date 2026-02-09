@@ -11,11 +11,11 @@ import http from 'http';
 import https from 'https';
 import express, { Express } from 'express';
 import { Server as SocketIOServer } from 'socket.io';
-import { log, logError, isDebug } from '@arken/node/util';
-import { catchExceptions } from '@arken/node/util/process';
+import { log, logError, isDebug } from '@arken/node/log';
+import { catchExceptions } from '@arken/node/process';
 import { Service as ShardService } from './shard.service';
 import { getTime, decodePayload, ipHashFromSocket } from '@arken/node/util';
-import { serialize, deserialize } from '@arken/node/util/rpc';
+import { serialize, deserialize } from '@arken/node/rpc';
 import { testMode } from '@arken/evolution-protocol/config';
 import { EvolutionMechanic as Mechanic } from '@arken/node/legacy/types';
 import type * as Shard from '@arken/evolution-protocol/shard/shard.types';
@@ -26,6 +26,35 @@ import puppeteer, { Browser, Page } from 'puppeteer';
 
 if (isDebug) {
   log('Running SHARD in DEBUG mode');
+}
+
+function closeServer(server?: http.Server | https.Server) {
+  return new Promise<void>((resolve) => {
+    if (!server) return resolve();
+    server.close(() => resolve());
+  });
+}
+
+function trackAndDestroySockets(server?: http.Server | https.Server) {
+  const sockets = new Set<any>();
+  if (!server) return { destroyAll: () => {}, sockets };
+
+  server.on('connection', (socket) => {
+    sockets.add(socket);
+    socket.on('close', () => sockets.delete(socket));
+  });
+
+  return {
+    sockets,
+    destroyAll: () => {
+      for (const s of sockets) {
+        try {
+          s.destroy();
+        } catch {}
+      }
+      sockets.clear();
+    },
+  };
 }
 
 export class Application {
@@ -44,6 +73,7 @@ export class Application {
   private browser?: Browser;
   private bridgePage?: Page;
   private shuttingDown = false;
+  private socketTracker?: any;
 
   constructor() {
     this.server = express();
@@ -93,7 +123,10 @@ export class Application {
       this.http = http.createServer(this.server);
     }
 
-    this.io = new SocketIOServer(this.isHttps ? this.https : this.http, {
+    const baseServer = this.isHttps ? this.https : this.http;
+    this.socketTracker = trackAndDestroySockets(baseServer);
+
+    this.io = new SocketIOServer(baseServer, {
       pingInterval: 30 * 1000,
       pingTimeout: 90 * 1000,
       upgradeTimeout: 20 * 1000,
@@ -126,7 +159,9 @@ export class Application {
           name: 'Unknown' + Math.floor(Math.random() * 999),
           roles: [],
           emit: undefined,
+          ops: [],
           ioCallbacks: {},
+          questDirty: false,
           startedRoundAt: null,
           lastTouchClientId: null,
           lastTouchTime: null,
@@ -222,6 +257,7 @@ export class Application {
             connectedTooSoon: 0,
             clientDisconnected: 0,
             positionJump: 0,
+            errors: 0,
             pauses: 0,
             connects: 0,
             path: '',
@@ -267,25 +303,25 @@ export class Application {
 
         socket.on('trpcResponse', async (message) => {
           const pack = typeof message === 'string' ? decodePayload(message) : message;
-          const { oid } = pack;
+          const { id } = pack;
 
           if (pack.error) {
             log(
               'Shard client callback - error occurred',
               pack,
-              client.ioCallbacks[oid] ? client.ioCallbacks[oid].request : ''
+              client.ioCallbacks[id] ? client.ioCallbacks[id].request : ''
             );
             return;
           }
 
           try {
-            if (client.ioCallbacks[oid]) {
-              clearTimeout(client.ioCallbacks[oid].timeout);
-              client.ioCallbacks[oid].resolve({ result: { data: deserialize(pack.result) } });
-              delete client.ioCallbacks[oid];
+            if (client.ioCallbacks[id]) {
+              clearTimeout(client.ioCallbacks[id].timeout);
+              client.ioCallbacks[id].resolve({ result: { data: deserialize(pack.result) } });
+              delete client.ioCallbacks[id];
             }
           } catch (e) {
-            log('Shard client trpcResponse error', oid, e);
+            log('Shard client trpcResponse error', id, e);
           }
         });
 
@@ -347,6 +383,31 @@ export class Application {
 
       log(`Received ${signal}, shutting down shard...`);
 
+      // Hard stop if shutdown hangs
+      const forceTimer = setTimeout(() => {
+        logError('Forced shutdown after timeout');
+        // destroy any open sockets to break keep-alives
+        try {
+          this.socketTracker?.destroyAll();
+        } catch {}
+        process.exit(1);
+      }, 10_000);
+
+      // If the only thing keeping node alive is the timer, let it exit naturally
+      // (still fine because we call process.exit at end)
+      // @ts-ignore
+      forceTimer.unref?.();
+
+      try {
+        // Stop taking new socket.io connections + disconnect clients
+        if (this.io) {
+          // Prevent new connections ASAP
+          this.io.close();
+        }
+      } catch (err) {
+        logError('Error closing socket.io', err);
+      }
+
       try {
         await this.closeEmbeddedChrome();
       } catch (err) {
@@ -354,25 +415,34 @@ export class Application {
       }
 
       try {
-        if (this.io) this.io.close();
-        if (this.https) this.https.close();
-        if (this.http) this.http.close();
+        // Close the HTTP(S) server and wait for it to actually close
+        if (this.isHttps) {
+          await closeServer(this.https);
+        } else {
+          await closeServer(this.http);
+        }
       } catch (err) {
-        logError('Error closing HTTP(S)/IO server', err);
+        logError('Error closing HTTP(S) server', err);
       }
 
+      clearTimeout(forceTimer);
       process.exit(0);
     };
 
-    process.on('SIGINT', () => shutdown('SIGINT'));
-    process.on('SIGTERM', () => shutdown('SIGTERM'));
+    process.on('SIGINT', () => void shutdown('SIGINT'));
+    process.on('SIGTERM', () => void shutdown('SIGTERM'));
+
+    // Optional: handle nodemon/ts-node-dev restarts
+    process.on('SIGUSR2', () => void shutdown('SIGUSR2'));
+
     process.on('uncaughtException', (err) => {
       logError('Uncaught exception:', err);
-      shutdown('uncaughtException');
+      void shutdown('uncaughtException');
     });
+
     process.on('unhandledRejection', (reason) => {
       logError('Unhandled rejection:', reason);
-      shutdown('unhandledRejection');
+      void shutdown('unhandledRejection');
     });
   }
 
@@ -426,18 +496,18 @@ export class Application {
           log(`Server ready and listening on *:${this.state.sslPort} (https)`);
           this.state.spawnPort = this.state.sslPort;
 
-          await this.setupMonitor();
+          this.setupMonitor();
           await this.setupShard();
-          await this.launchEmbeddedChrome();
+          // await this.launchEmbeddedChrome();
         });
       } else if (this.http) {
         this.http.listen(this.state.port, async () => {
           log(`Server ready and listening on *:${this.state.port} (http)`);
           this.state.spawnPort = this.state.port;
 
-          await this.setupMonitor();
+          this.setupMonitor();
           await this.setupShard();
-          await this.launchEmbeddedChrome();
+          // await this.launchEmbeddedChrome();
         });
       }
     } catch (error) {
