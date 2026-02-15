@@ -338,20 +338,46 @@ export class ClientService {
     };
 
     // Touch the tusk for good luck
-    if (util.physics.distanceBetweenPoints(client.position, this.ctx.currentZone.objects.ElonTusk) < 1) {
+    if (
+      this.ctx.currentZone.objects.ElonTusk &&
+      util.physics.distanceBetweenPoints(client.position, this.ctx.currentZone.objects.ElonTusk) < 1
+    ) {
       if (!this.ctx.currentZone.modifiers[modifiers.Luck.id] || this.ctx.currentZone.modifiers[modifiers.Luck.id] < 10)
         this.ctx.currentZone.modifiers[modifiers.Luck.id] += 10;
     }
 
     // Touch the portal to move between games
     if (
+      this.ctx.games.MageIsles.zones[0].objects.MemeIslesPortal &&
       util.physics.distanceBetweenPoints(client.position, this.ctx.games.MageIsles.zones[0].objects.MemeIslesPortal) < 1
     ) {
       this.ctx.currentGame =
         this.ctx.currentGame.key === 'meme-isles' ? this.ctx.games.MageIsles : this.ctx.games.MemeIsles;
       this.ctx.currentZone = this.ctx.currentGame.zones[0];
 
-      this.ctx.emit.onChangeGame.mutate('MemeIsles', {
+      this.ctx.emit.onChangeGame.mutate('meme-isles', {
+        context: { client },
+      });
+    }
+
+    if (
+      this.ctx.games.MemeIsles.zones[0].objects.MageIslesPortal &&
+      util.physics.distanceBetweenPoints(client.position, this.ctx.games.MemeIsles.zones[0].objects.MageIslesPortal) < 1
+    ) {
+      this.ctx.currentGame =
+        this.ctx.currentGame.key === 'evolution-isles' ? this.ctx.games.MemeIsles : this.ctx.games.MageIsles;
+      this.ctx.currentZone = this.ctx.currentGame.zones[0];
+
+      this.ctx.emit.onChangeGame.mutate('evolution-isles', {
+        context: { client },
+      });
+    }
+
+    if (
+      this.ctx.games.MageIsles.zones[0].objects.OasisPortal &&
+      util.physics.distanceBetweenPoints(client.position, this.ctx.games.MageIsles.zones[0].objects.OasisPortal) < 1
+    ) {
+      this.ctx.emit.onChangeGame.mutate('return-to-the-oasis', {
         context: { client },
       });
     }

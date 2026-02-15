@@ -75,6 +75,10 @@ export class Application {
   private shuttingDown = false;
   private socketTracker?: any;
 
+  status: string;
+  realmStatus: string;
+  coreStatus: string;
+
   constructor() {
     this.server = express();
     this.state = {
@@ -140,10 +144,19 @@ export class Application {
     });
   }
 
+  updateStatus(type: string, status: string) {
+    if (type === 'realm') this.realmStatus = status;
+    if (type === 'core') this.coreStatus = status;
+
+    if (this.realmStatus === 'initialized' && this.coreStatus === 'initialized') this.status = 'initialized';
+  }
+
   // ---------------------------------------------------------
   // SHARD SETUP (unchanged, just moved into a method)
   // ---------------------------------------------------------
   async setupShard() {
+    console.log('Evolution.Shard.Application.setupShard');
+
     try {
       const service = new ShardService(this);
       service.init(); // make sure your Service.init() is called
@@ -275,7 +288,12 @@ export class Application {
           },
         };
 
-        log('User connected from hash ' + hash);
+        log('Client connected from hash ' + hash);
+
+        if (hash && this.status !== 'initialized') {
+          service.disconnectClient(client, 'app not initialized');
+          return;
+        }
 
         if (!testMode && service.config.killSameNetworkClients) {
           const sameNetworkClient = service.clients.find((r) => r.hash === client.hash && r.id !== client.id);
@@ -302,6 +320,8 @@ export class Application {
         });
 
         socket.on('trpcResponse', async (message) => {
+          console.log('[SHARD] trpcResponse message', message);
+
           const pack = typeof message === 'string' ? decodePayload(message) : message;
           const { id } = pack;
 
@@ -335,7 +355,7 @@ export class Application {
         });
       });
     } catch (e) {
-      log('init game world failed', e);
+      log('init shard failed', e);
     }
   }
 

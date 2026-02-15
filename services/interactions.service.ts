@@ -210,7 +210,7 @@ export class InteractionsService {
           this.ctx.currentGame =
             this.ctx.currentGame.key === 'meme-isles' ? this.ctx.games.MageIsles : this.ctx.games.MemeIsles;
           this.ctx.currentZone = this.ctx.currentGame.zones[0];
-          this.ctx.emit.onChangeGame.mutate('MemeIsles', { context: { client } });
+          this.ctx.emit.onChangeGame.mutate('meme-isles', { context: { client } });
         }
 
         if (obj.meta?.effect?.kind === 'zone.modifier' && touching) {

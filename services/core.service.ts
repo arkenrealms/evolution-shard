@@ -21,6 +21,8 @@ export class CoreService {
   constructor(private ctx: Service) {}
 
   init() {
+    console.log('Evolution.Shard.CoreService.init');
+
     // temporary, we need to move this into unity
     // when player touches an NPC, it fires the proper event
     this.ctx.games = {
@@ -67,6 +69,18 @@ export class CoreService {
               MemeIslesPortal: {
                 x: 18.3,
                 y: -4.3,
+              },
+              OasisPortal: {
+                x: 21.21,
+                y: -5.62,
+              },
+              SurvivalPortal2: {
+                x: 21.83,
+                y: -2.46,
+              },
+              SurvivalPortal3: {
+                x: 25.04,
+                y: -4.01,
               },
             },
           },
@@ -184,7 +198,7 @@ export class CoreService {
       'onHideMinimap',
       'onShowMinimap',
       'onSetRoundInfo',
-      'onChangeGame',
+      'play',
       'onLoaded',
       'onOpenLevel2',
       'onCloseLevel2',
@@ -411,6 +425,8 @@ export class CoreService {
     this.ctx.roundLoopTimeout = setTimeout(() => {
       this.resetLeaderboard();
     }, this.ctx.config.roundLoopSeconds * 1000);
+
+    this.ctx.app.updateStatus('core', 'initialized');
   }
 
   async claimMaster(
@@ -578,6 +594,15 @@ export class CoreService {
 
   public async resetLeaderboard(preset: any = null, context: any = null) {
     log('resetLeaderboard', preset);
+
+    if (this.ctx.app.status !== 'initialized') {
+      clearTimeout(this.ctx.roundLoopTimeout);
+      this.ctx.roundLoopTimeout = setTimeout(
+        () => this.resetLeaderboard(preset, context),
+        this.ctx.config.roundLoopSeconds * 1000
+      );
+      return;
+    }
 
     try {
       clearTimeout(this.ctx.roundLoopTimeout);
@@ -977,6 +1002,8 @@ export class CoreService {
       throw new Error('Realm already connected');
     }
 
+    this.ctx.app.updateStatus('realm', 'initializing');
+
     client.isRealm = true;
     client.roles.push('realm');
 
@@ -997,7 +1024,7 @@ export class CoreService {
                 op.context.client.roles = ['admin', 'mod', 'user', 'guest'];
 
                 if (!client) {
-                  log('Shard -> Bridge: mit Direct failed, no client', op);
+                  log('Shard -> Bridge: Emit Direct failed, no client', op);
                   observer.complete();
                   return;
                 }
@@ -1016,8 +1043,8 @@ export class CoreService {
                 const timeout = setTimeout(() => {
                   log('Shard -> Realm: Request timed out', op);
                   delete client.ioCallbacks[id];
-                  observer.error(new TRPCClientError('Shard -> Realm: Request timeout'));
-                }, 15000); // 15 seconds timeout
+                  observer.error(new TRPCClientError('Shard -> Realm: Request timeout')); // TODO: causing exit
+                }, 30000); // 15 seconds timeout
 
                 client.ioCallbacks[id] = {
                   request,
@@ -1088,5 +1115,7 @@ export class CoreService {
     }
 
     console.log('Setting config', this.ctx.config);
+
+    this.ctx.app.updateStatus('realm', 'initialized');
   }
 }

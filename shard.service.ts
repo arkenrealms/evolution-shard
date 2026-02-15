@@ -104,6 +104,7 @@ export class Service implements Shard.Service {
   }
 
   init() {
+    console.log('Evolution.Shard.Service.init');
     this.router = createShardRouter(this as Shard.Service);
 
     this.services.core.init();
