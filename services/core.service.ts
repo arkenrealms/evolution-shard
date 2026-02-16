@@ -970,6 +970,13 @@ export class CoreService {
     client.maxHp = 100;
   }
 
+  async heartbeat(
+    input: Shard.RouterInput['heartbeat'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['heartbeat']> {
+    return 'OK';
+  }
+
   async info(input: Shard.RouterInput['info'], { client }: Shard.ServiceContext): Promise<Shard.RouterOutput['info']> {
     return {
       id: this.ctx.config.id || 'Unknown',

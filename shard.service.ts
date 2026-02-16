@@ -123,6 +123,13 @@ export class Service implements Shard.Service {
     log('onPlayerUpdates', input);
   }
 
+  async heartbeat(
+    input: Shard.RouterInput['heartbeat'],
+    ctx: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['heartbeat']> {
+    return this.services.core.heartbeat(input, ctx);
+  }
+
   async initRealm(
     input: Shard.RouterInput['initRealm'],
     ctx: Shard.ServiceContext
