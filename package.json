@@ -4,6 +4,7 @@
   "description": "",
   "main": "build/index.js",
   "scripts": {
+    "test": "jest --runInBand",
     "build": "NODE_ENV=production tsc",
     "config": "sudo /opt/bitnami/ctlscript.sh stop apache",
     "dev": "node --require ./ts-hook.js ./src/index.ts",

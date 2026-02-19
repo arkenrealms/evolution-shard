@@ -1,16 +1,25 @@
 # arken/packages/evolution/packages/shard/ANALYSIS.md
 
 ## Deepest-first snapshot
-- `services/` contains runtime service modules (`auth`, `client`, `core`, `gameloop`, `interactions`, `mod`, `system`).
-- Root runtime entrypoints: `index.ts`, `web-server.ts`, `shard.service.ts`.
-- Existing test file: `shard.service.test.ts` (TypeScript), but no wired package test command.
+- Leaf runtime target: `shard.service.ts` (`onPlayerUpdates`, `handleClientMessage`).
+- Leaf tests: `test/shard.service.handleClientMessage.unit.test.ts`.
 
 ## Reliability posture this run
-- Verified path exists and is mapped via `packages/evolution/.gitmodules`.
-- Per branch hygiene, merged `origin/main` before any edits.
-- Enforced source-change test gate: blocked source edits because runnable test command is absent.
+- Synced repo with `origin/main` before edits.
+- Added runnable repo-defined `test` script and Jest config (`jest.config.cjs`).
+- Kept fix scope practical (payload/method guards + stable return contract), no extra abstraction layers.
 
-## Immediate unblock plan
-1. Add package scripts (prefer `test` + optional `test:watch`) using Jest + ts-jest.
-2. Confirm command works in this checkout (`npm test` and/or `rushx test`).
-3. Resume targeted bugfix/reliability work with matching unit tests.
+## Fix summary
+- `onPlayerUpdates` now returns `{ status: 1 }`.
+- `handleClientMessage` now:
+  - validates method presence/type before dispatch,
+  - guards missing/non-callable `socket.shardClient.emit[method]`,
+  - avoids crash when `socket.shardClient` is absent in error path,
+  - normalizes non-numeric/missing `log.errors` before incrementing,
+  - emits stable `trpcResponse` errors in all failure paths.
+
+## Test coverage added
+- missing method -> `Invalid trpc method` response.
+- unknown method target -> `Invalid trpc payload` response + error counter increment.
+- missing `shardClient` -> still emits error response, no disconnect attempt.
+- `onPlayerUpdates` -> returns `{ status: 1 }` contract.
