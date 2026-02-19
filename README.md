@@ -11,6 +11,7 @@ Shard server package for Arken Evolution Isles.
 - Added package-level Jest test script (`test`) so `rushx test` now resolves in this repo.
 - Added local `jest.config.js` with `ts-jest` + Node environment for `.test.ts` files.
 
-## This run's reliability fix
-- `Service.onPlayerUpdates` now returns an explicit `{ status: 1 }` envelope instead of implicitly returning `undefined`.
-- Added regression test coverage to lock this response contract.
+## This run's reliability fixes
+- `Service.onPlayerUpdates` returns an explicit `{ status: 1 }` envelope instead of implicitly returning `undefined`.
+- `Service.handleClientMessage` now gracefully handles malformed payloads and missing method names by returning structured error envelopes instead of throwing pre-handler exceptions.
+- Added regression tests to lock both behavior contracts.

@@ -12,4 +12,5 @@
 
 ## Fix summary
 - Corrected `Service.onPlayerUpdates` to return a stable success envelope (`{ status: 1 }`) instead of implicit `undefined`.
-- Added targeted regression test (`shard.service.onPlayerUpdates.test.ts`) to assert the contract.
+- Hardened `Service.handleClientMessage` pre-dispatch validation so malformed payloads and missing method names emit structured tRPC error responses (`Invalid trpc payload` / `Invalid trpc method`) rather than throwing before handler try/catch flow.
+- Expanded targeted regression tests (`shard.service.onPlayerUpdates.test.ts`) to assert both success-envelope and malformed-message behavior contracts.

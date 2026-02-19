@@ -505,8 +505,18 @@ export class Service implements Shard.Service {
   async handleClientMessage(socket: any, message: any) {
     // log('Shard client trpc message', message);
     const pack = typeof message === 'string' ? decodePayload(message) : message;
-    // log('Shard client trpc pack', pack, socket.shardClient.id, socket.shardClient.id);
+
+    if (!pack || typeof pack !== 'object') {
+      socket.emit('trpcResponse', { id: undefined, result: {}, error: 'Invalid trpc payload' });
+      return;
+    }
+
     const { id, method, type, params } = pack;
+
+    if (typeof method !== 'string' || method.length === 0) {
+      socket.emit('trpcResponse', { id, result: {}, error: 'Invalid trpc method' });
+      return;
+    }
 
     if (method === 'onEvents') return;
 
