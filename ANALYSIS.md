@@ -7,10 +7,9 @@
 
 ## Reliability posture this run
 - Verified path exists and is mapped via `packages/evolution/.gitmodules`.
-- Per branch hygiene, merged `origin/main` before any edits.
-- Enforced source-change test gate: blocked source edits because runnable test command is absent.
+- Per branch hygiene, merged `origin/main` before edits (`Already up to date`).
+- Unblocked test gate by wiring a repo-defined Jest script and config, then validated with `rushx test`.
 
-## Immediate unblock plan
-1. Add package scripts (prefer `test` + optional `test:watch`) using Jest + ts-jest.
-2. Confirm command works in this checkout (`npm test` and/or `rushx test`).
-3. Resume targeted bugfix/reliability work with matching unit tests.
+## Fix summary
+- Corrected `Service.onPlayerUpdates` to return a stable success envelope (`{ status: 1 }`) instead of implicit `undefined`.
+- Added targeted regression test (`shard.service.onPlayerUpdates.test.ts`) to assert the contract.

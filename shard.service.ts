@@ -121,6 +121,8 @@ export class Service implements Shard.Service {
     { client }: Shard.ServiceContext
   ): Promise<Shard.RouterOutput['onPlayerUpdates']> {
     log('onPlayerUpdates', input);
+
+    return { status: 1 } as Shard.RouterOutput['onPlayerUpdates'];
   }
 
   async heartbeat(
