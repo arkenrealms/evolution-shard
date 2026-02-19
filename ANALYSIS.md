@@ -14,3 +14,11 @@
 - Corrected `Service.onPlayerUpdates` to return a stable success envelope (`{ status: 1 }`) instead of implicit `undefined`.
 - Hardened `Service.handleClientMessage` pre-dispatch validation so malformed payloads and missing method names emit structured tRPC error responses (`Invalid trpc payload` / `Invalid trpc method`) rather than throwing before handler try/catch flow.
 - Expanded targeted regression tests (`shard.service.onPlayerUpdates.test.ts`) to assert both success-envelope and malformed-message behavior contracts.
+
+## Latest maintenance chunk (2026-02-19)
+- Deepest leaf review focused on `shard.service.ts` + `shard.service.onPlayerUpdates.test.ts`.
+- Hardened catch-path in `Service.handleClientMessage`:
+  - guards missing `socket.shardClient` during runtime errors,
+  - initializes non-numeric/missing `shardClient.log.errors` before incrementing,
+  - preserves existing disconnect-on-50-errors behavior when tracking exists.
+- Added regression coverage for both guard paths, ensuring the handler still emits structured tRPC error envelopes and does not crash in the catch path.

@@ -37,4 +37,48 @@ describe('evolution shard Service message handlers', () => {
       error: 'Invalid trpc method',
     });
   });
+
+  test('handleClientMessage returns trpc error when shardClient is missing on runtime exception', async () => {
+    const emit = jest.fn();
+    const service = Object.create(Service.prototype) as Service;
+    service.loggableEvents = [];
+
+    await service.handleClientMessage({ emit } as any, { id: 'e1', method: 'join', params: {} });
+
+    expect(emit).toHaveBeenCalledTimes(1);
+    expect(emit).toHaveBeenCalledWith(
+      'trpcResponse',
+      expect.objectContaining({
+        id: 'e1',
+        result: {},
+      })
+    );
+  });
+
+  test('handleClientMessage initializes missing error counter before incrementing', async () => {
+    const emit = jest.fn();
+    const service = Object.create(Service.prototype) as Service;
+    service.loggableEvents = [];
+
+    const socket = {
+      emit,
+      shardClient: {
+        emit: {
+          join: jest.fn().mockRejectedValue(new Error('boom')),
+        },
+        log: {},
+      },
+    };
+
+    await service.handleClientMessage(socket as any, { id: 'e2', method: 'join', params: {} });
+
+    expect(socket.shardClient.log.errors).toBe(1);
+    expect(emit).toHaveBeenCalledWith(
+      'trpcResponse',
+      expect.objectContaining({
+        id: 'e2',
+        result: {},
+      })
+    );
+  });
 });

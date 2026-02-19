@@ -538,10 +538,22 @@ export class Service implements Shard.Service {
     } catch (e) {
       log('Shard client trpc error', pack, e);
 
-      socket.shardClient.log.errors += 1;
+      const shardClient = socket?.shardClient;
+      const hasLog = !!(shardClient && shardClient.log && typeof shardClient.log === 'object');
 
-      if (socket.shardClient.log.errors > 50) {
-        this.disconnectClient(socket.shardClient, 'too many errors');
+      if (hasLog && typeof shardClient.log.errors !== 'number') {
+        shardClient.log.errors = 0;
+      }
+
+      if (!hasLog) {
+        socket.emit('trpcResponse', { id: id, result: {}, error: e.stack + '' });
+        return;
+      }
+
+      shardClient.log.errors += 1;
+
+      if (shardClient.log.errors > 50) {
+        this.disconnectClient(shardClient, 'too many errors');
       } else {
         socket.emit('trpcResponse', { id: id, result: {}, error: e.stack + '' });
       }
