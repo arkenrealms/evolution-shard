@@ -1,5 +1,15 @@
-# Shard Server for Arken: Evolution Isles
+# arken/packages/evolution/packages/shard
 
-A battle for supremecy takes place amongst the dragons of the Mage Isles.
+Shard server package for Arken Evolution Isles.
 
-## Setup
+## Current maintenance status
+- Rotation slot: **9** (`evolution-shard`)
+- Branch hygiene: synced with `origin/main` before analysis.
+- Source-change gate: **active** (no source edits without runnable tests in-run).
+
+## Test harness status
+This package currently has no repo-defined `test` script, so standard commands fail:
+- `npm test` → missing script
+- `rushx test` → command not defined
+
+Next step is to add a minimal Jest + TypeScript test script/harness, then make code changes only after tests run successfully.
