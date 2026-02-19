@@ -8,6 +8,7 @@
     "config": "sudo /opt/bitnami/ctlscript.sh stop apache",
     "dev": "node --require ./ts-hook.js ./src/index.ts",
     "dev:inspect": "node --inspect=0.0.0.0:9231 --require ./ts-hook.js ./src/index.ts",
+    "test": "jest --runInBand",
     "forever": "NODE_ENV=production rushx build && sudo nohup forever start forever-config.json &",
     "inspect": "NODE_ENV=development rushx build && PORT=3001 NODE_ENV=production node --inspect build/index.js",
     "kill": "sudo pkill -f node",

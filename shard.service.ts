@@ -121,6 +121,7 @@ export class Service implements Shard.Service {
     { client }: Shard.ServiceContext
   ): Promise<Shard.RouterOutput['onPlayerUpdates']> {
     log('onPlayerUpdates', input);
+    return { status: 1 } as Shard.RouterOutput['onPlayerUpdates'];
   }
 
   async heartbeat(
@@ -503,10 +504,20 @@ export class Service implements Shard.Service {
   async handleClientMessage(socket: any, message: any) {
     // log('Shard client trpc message', message);
     const pack = typeof message === 'string' ? decodePayload(message) : message;
-    // log('Shard client trpc pack', pack, socket.shardClient.id, socket.shardClient.id);
+
+    if (!pack || typeof pack !== 'object') {
+      socket.emit('trpcResponse', { id: null, result: {}, error: 'Invalid trpc payload' });
+      return;
+    }
+
     const { id, method, type, params } = pack;
 
     if (method === 'onEvents') return;
+
+    if (typeof method !== 'string' || !method.length) {
+      socket.emit('trpcResponse', { id: id ?? null, result: {}, error: 'Invalid trpc method' });
+      return;
+    }
 
     try {
       // const createCaller = createCallerFactory(client.emit);
@@ -526,12 +537,26 @@ export class Service implements Shard.Service {
     } catch (e) {
       log('Shard client trpc error', pack, e);
 
-      socket.shardClient.log.errors += 1;
+      const shardClient = socket?.shardClient;
+      if (!shardClient || typeof shardClient !== 'object') {
+        socket.emit('trpcResponse', { id: id ?? null, result: {}, error: e?.stack + '' });
+        return;
+      }
 
-      if (socket.shardClient.log.errors > 50) {
-        this.disconnectClient(socket.shardClient, 'too many errors');
+      if (!shardClient.log || typeof shardClient.log !== 'object') {
+        shardClient.log = { errors: 0 };
+      }
+
+      if (!isNumeric(shardClient.log.errors)) {
+        shardClient.log.errors = 0;
+      }
+
+      shardClient.log.errors += 1;
+
+      if (shardClient.log.errors > 50) {
+        this.disconnectClient(shardClient, 'too many errors');
       } else {
-        socket.emit('trpcResponse', { id: id, result: {}, error: e.stack + '' });
+        socket.emit('trpcResponse', { id: id ?? null, result: {}, error: e?.stack + '' });
       }
     }
   }
