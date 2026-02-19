@@ -14,6 +14,7 @@
 - `handleClientMessage` now:
   - validates method presence/type before dispatch,
   - guards missing/non-callable `socket.shardClient.emit[method]`,
+  - preserves explicit falsy `params` values (for example `false`) instead of treating them as missing,
   - avoids crash when `socket.shardClient` is absent in error path,
   - normalizes non-numeric/missing `log.errors` before incrementing,
   - emits stable `trpcResponse` errors in all failure paths.

@@ -15,4 +15,5 @@ Shard server package for Arken Evolution Isles.
 - `Service.onPlayerUpdates` now returns an explicit success envelope (`{ status: 1 }`) instead of `undefined`.
 - `Service.handleClientMessage` now guards malformed payloads and missing method names, returning structured tRPC errors.
 - Error catch path now safely handles missing/non-object `socket.shardClient` and non-numeric `log.errors` without cascading failures.
-- Added regression tests for invalid payloads, invalid methods, missing `shardClient` error-path behavior, and `onPlayerUpdates` return contract.
+- `handleClientMessage` now preserves explicitly provided falsy params (for example `false`) instead of dropping them as no-arg calls.
+- Added regression tests for invalid payloads, invalid methods, missing `shardClient` error-path behavior, explicit falsy params forwarding, and `onPlayerUpdates` return contract.

@@ -65,6 +65,33 @@ describe('Service.handleClientMessage', () => {
     );
     expect(serviceLike.disconnectClient).not.toHaveBeenCalled();
   });
+
+  it('forwards explicit falsy params to target methods', async () => {
+    const emit = jest.fn();
+    const mutate = jest.fn().mockResolvedValue({ ok: true });
+    const socket = {
+      emit,
+      shardClient: {
+        emit: {
+          setFlag: mutate,
+        },
+      },
+    };
+
+    const serviceLike = {
+      loggableEvents: [],
+      disconnectClient: jest.fn(),
+    };
+
+    await Service.prototype.handleClientMessage.call(serviceLike as any, socket, {
+      id: 13,
+      method: 'setFlag',
+      params: false,
+    });
+
+    expect(mutate).toHaveBeenCalledWith(false);
+    expect(emit).toHaveBeenCalledWith('trpcResponse', { id: 13, result: { ok: true } });
+  });
 });
 
 describe('Service.onPlayerUpdates', () => {

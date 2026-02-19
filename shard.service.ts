@@ -525,7 +525,8 @@ export class Service implements Shard.Service {
         log(`Shard client trpc method: client.emit.${method}(${JSON.stringify(params)})`, id, method, type, params);
       }
 
-      const result = params ? await clientMethod.call(clientEmit, params) : await clientMethod.call(clientEmit);
+      const hasParams = Object.prototype.hasOwnProperty.call(safePack, 'params');
+      const result = hasParams ? await clientMethod.call(clientEmit, params) : await clientMethod.call(clientEmit);
 
       if (this.loggableEvents.includes(method)) log('Shard client trpc method call result', result);
 
