@@ -18,7 +18,7 @@ import { ModService } from './services/mod.service';
 import { GameloopService } from './services/gameloop.service';
 import { InteractionsService } from './services/interactions.service';
 
-const { getTime, shuffleArray, randomPosition, sha256, decodePayload, isNumeric, ipHashFromSocket } = util;
+const { getTime, shuffleArray, randomPosition, sha256, isNumeric, ipHashFromSocket } = util;
 
 type ServiceHelpers = {
   core: CoreService;
@@ -529,7 +529,7 @@ export class Service implements Shard.Service {
         }
       }
 
-      pack = typeof message === 'string' ? decodePayload(message) : message;
+      pack = typeof message === 'string' ? JSON.parse(message.trim()) : message;
       if (!pack || typeof pack !== 'object') {
         throw new Error('Invalid trpc payload');
       }

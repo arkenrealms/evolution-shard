@@ -15,7 +15,8 @@
 - `handleClientMessage` now:
   - rejects blank/whitespace-only string payloads before decode to avoid avoidable parser noise while preserving normalized error handling,
   - rejects clearly non-JSON string payloads before decode so random socket chatter does not generate avoidable parser-error log noise,
-  - decodes payload strings inside the `try` block so malformed payload parse errors are normalized through the same error path,
+  - parses JSON string payloads directly (`JSON.parse(message.trim())`) instead of routing through the binary decoder, because clients already send JSON envelopes and the binary path can garble text payloads/log noisy parse failures,
+  - parses payload strings inside the `try` block so malformed payload parse errors are normalized through the same error path,
   - validates payload object shape before destructuring,
   - validates method presence and callability,
   - trims method-name whitespace before dispatch,
@@ -34,6 +35,7 @@
 - missing `socket.emit` no longer throws while handling malformed payloads.
 - blank/whitespace-only string payloads are rejected as invalid before decode and return normalized tRPC errors.
 - clearly non-JSON string payloads (for example plain text) are rejected before decode to reduce avoidable parser noise.
+- valid JSON string payloads dispatch correctly to shard emit handlers and return expected `trpcResponse` envelopes.
 - malformed JSON string payloads now increment error counters and emit normalized tRPC errors instead of throwing.
 - method-result logging now still fires when the inbound method name is whitespace-padded but normalizes to a configured loggable event.
 - throwing `socket.emit` is contained on both success and error response paths so handler execution remains stable.
