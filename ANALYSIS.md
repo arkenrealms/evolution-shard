@@ -1,16 +1,32 @@
 # arken/packages/evolution/packages/shard/ANALYSIS.md
 
 ## Deepest-first snapshot
-- `services/` contains runtime service modules (`auth`, `client`, `core`, `gameloop`, `interactions`, `mod`, `system`).
-- Root runtime entrypoints: `index.ts`, `web-server.ts`, `shard.service.ts`.
-- Existing test file: `shard.service.test.ts` (TypeScript), but no wired package test command.
+- Leaf runtime target: `shard.service.ts` (`onPlayerUpdates`, `handleClientMessage`).
+- Leaf tests: `test/shard.service.handleClientMessage.test.ts`.
 
 ## Reliability posture this run
-- Verified path exists and is mapped via `packages/evolution/.gitmodules`.
-- Per branch hygiene, merged `origin/main` before any edits.
-- Enforced source-change test gate: blocked source edits because runnable test command is absent.
+- Synced repo with `origin/main` before edits.
+- Added runnable `rushx test` via package `test` script + `jest.config.cjs`.
+- Kept fix scope practical: payload guards, safe dispatch, and stable return contract.
 
-## Immediate unblock plan
-1. Add package scripts (prefer `test` + optional `test:watch`) using Jest + ts-jest.
-2. Confirm command works in this checkout (`npm test` and/or `rushx test`).
-3. Resume targeted bugfix/reliability work with matching unit tests.
+## Fix summary
+- `onPlayerUpdates` now returns `{ status: 1 }` instead of `undefined`.
+- `handleClientMessage` now:
+  - decodes payload strings inside the `try` block so malformed payload parse errors are normalized through the same error path,
+  - validates payload object shape before destructuring,
+  - validates method presence and callability,
+  - trims method-name whitespace before dispatch,
+  - only dispatches own emit-client methods (prototype-chain methods are rejected),
+  - preserves explicit falsy params values,
+  - uses a socket-safe response emitter that no-ops when `socket.emit` is unavailable,
+  - handles missing `socket.shardClient` on error path,
+  - normalizes `log.errors` increments.
+
+## Test coverage added
+- malformed payload (`undefined`) emits tRPC error response instead of throwing.
+- explicit falsy params (`false`) are forwarded to emit method.
+- method names with accidental leading/trailing whitespace are normalized before dispatch.
+- prototype-only methods are rejected (no inherited dispatch).
+- missing `socket.emit` no longer throws while handling malformed payloads.
+- malformed JSON string payloads now increment error counters and emit normalized tRPC errors instead of throwing.
+- `onPlayerUpdates` returns explicit success envelope.
