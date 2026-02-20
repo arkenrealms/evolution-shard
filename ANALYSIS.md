@@ -12,6 +12,7 @@
 ## Fix summary
 - `onPlayerUpdates` now returns `{ status: 1 }` instead of `undefined`.
 - `handleClientMessage` now:
+  - decodes payload strings inside the `try` block so malformed payload parse errors are normalized through the same error path,
   - validates payload object shape before destructuring,
   - validates method presence and callability,
   - trims method-name whitespace before dispatch,
@@ -27,4 +28,5 @@
 - method names with accidental leading/trailing whitespace are normalized before dispatch.
 - prototype-only methods are rejected (no inherited dispatch).
 - missing `socket.emit` no longer throws while handling malformed payloads.
+- malformed JSON string payloads now increment error counters and emit normalized tRPC errors instead of throwing.
 - `onPlayerUpdates` returns explicit success envelope.

@@ -120,4 +120,24 @@ describe('arken/evolution/shard handleClientMessage', () => {
     await expect(Service.prototype.handleClientMessage.call(serviceLike, socket, undefined)).resolves.toBeUndefined();
     expect(socket.shardClient.log.errors).toBe(1);
   });
+
+  test('handles decodePayload parse errors from malformed string payloads', async () => {
+    const socket = {
+      emit: jest.fn(),
+      shardClient: { log: { errors: 0 }, emit: {} },
+    };
+
+    const serviceLike = {
+      loggableEvents: [],
+      disconnectClient: jest.fn(),
+    };
+
+    await expect(Service.prototype.handleClientMessage.call(serviceLike, socket, '{bad json')).resolves.toBeUndefined();
+
+    expect(socket.shardClient.log.errors).toBe(1);
+    expect(socket.emit).toHaveBeenCalledWith(
+      'trpcResponse',
+      expect.objectContaining({ error: expect.any(String) })
+    );
+  });
 });
