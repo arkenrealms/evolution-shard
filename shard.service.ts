@@ -557,7 +557,7 @@ export class Service implements Shard.Service {
           ? await emitMethod.call(emitClient)
           : await emitMethod.call(emitClient, params);
 
-      if (this.loggableEvents.includes(method)) log('Shard client trpc method call result', result);
+      if (this.loggableEvents.includes(normalizedMethod)) log('Shard client trpc method call result', result);
 
       emitResponse({ id: id, result });
     } catch (e: any) {
