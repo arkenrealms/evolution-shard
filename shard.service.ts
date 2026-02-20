@@ -505,8 +505,14 @@ export class Service implements Shard.Service {
     // log('Shard client trpc message', message);
     let pack: any;
     const emitResponse = (payload: any) => {
-      if (typeof socket?.emit === 'function') {
+      if (typeof socket?.emit !== 'function') {
+        return;
+      }
+
+      try {
         socket.emit('trpcResponse', payload);
+      } catch (emitError) {
+        log('Shard client trpc response emit error', emitError);
       }
     };
 
