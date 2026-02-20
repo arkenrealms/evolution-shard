@@ -121,6 +121,7 @@ export class Service implements Shard.Service {
     { client }: Shard.ServiceContext
   ): Promise<Shard.RouterOutput['onPlayerUpdates']> {
     log('onPlayerUpdates', input);
+    return { status: 1 } as Shard.RouterOutput['onPlayerUpdates'];
   }
 
   async heartbeat(
@@ -503,35 +504,57 @@ export class Service implements Shard.Service {
   async handleClientMessage(socket: any, message: any) {
     // log('Shard client trpc message', message);
     const pack = typeof message === 'string' ? decodePayload(message) : message;
-    // log('Shard client trpc pack', pack, socket.shardClient.id, socket.shardClient.id);
-    const { id, method, type, params } = pack;
-
-    if (method === 'onEvents') return;
 
     try {
-      // const createCaller = createCallerFactory(client.emit);
-      // const caller = createCaller(ctx);
+      if (!pack || typeof pack !== 'object') {
+        throw new Error('Invalid trpc payload');
+      }
+
+      // log('Shard client trpc pack', pack, socket.shardClient.id, socket.shardClient.id);
+      const { id, method, type, params } = pack;
+
+      if (method === 'onEvents') return;
+
+      if (!method || typeof method !== 'string') {
+        throw new Error('Invalid trpc method');
+      }
+
+      const emitClient = socket?.shardClient?.emit;
+      const emitMethod = emitClient?.[method];
+
+      if (typeof emitMethod !== 'function') {
+        throw new Error('Invalid trpc payload');
+      }
 
       if (this.loggableEvents.includes(method))
         log(`Shard client trpc method: client.emit.${method}(${JSON.stringify(params)})`, id, method, type, params);
 
-      // @ts-ignore
-      const result = params ? await socket.shardClient.emit[method](params) : await socket.shardClient.emit[method]();
+      const result =
+        typeof params === 'undefined'
+          ? await emitMethod.call(emitClient)
+          : await emitMethod.call(emitClient, params);
 
       if (this.loggableEvents.includes(method)) log('Shard client trpc method call result', result);
-      // log(client.emit[method]);
-      // const result = await client.emit[method](params);
 
       socket.emit('trpcResponse', { id: id, result });
-    } catch (e) {
+    } catch (e: any) {
       log('Shard client trpc error', pack, e);
 
-      socket.shardClient.log.errors += 1;
+      const shardClient = socket?.shardClient;
+      const previousErrors = Number(shardClient?.log?.errors);
 
-      if (socket.shardClient.log.errors > 50) {
-        this.disconnectClient(socket.shardClient, 'too many errors');
+      if (shardClient?.log) {
+        shardClient.log.errors = Number.isFinite(previousErrors) ? previousErrors + 1 : 1;
+      }
+
+      if (shardClient?.log?.errors > 50) {
+        this.disconnectClient(shardClient, 'too many errors');
       } else {
-        socket.emit('trpcResponse', { id: id, result: {}, error: e.stack + '' });
+        socket.emit('trpcResponse', {
+          id: (pack as any)?.id,
+          result: {},
+          error: e?.stack ? e.stack + '' : String(e),
+        });
       }
     }
   }

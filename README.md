@@ -4,12 +4,15 @@ Shard server package for Arken Evolution Isles.
 
 ## Current maintenance status
 - Rotation slot: **9** (`evolution-shard`)
-- Branch hygiene: synced with `origin/main` before analysis.
-- Source-change gate: **active** (no source edits without runnable tests in-run).
+- Branch hygiene: synced with `origin/main` before edits.
+- Source-change gate: **active** (source edits validated by runnable tests in-run).
+
+## Latest reliability fixes (2026-02-19)
+- `Service.handleClientMessage` now validates decoded payload shape before destructuring, avoiding pre-`try` crashes.
+- Client emit dispatch now checks method callability and preserves explicit falsy `params` (for example `false`).
+- Error handling tolerates missing/non-object `socket.shardClient` and normalizes bad `log.errors` counters.
+- `Service.onPlayerUpdates` now returns an explicit success envelope (`{ status: 1 }`).
 
 ## Test harness status
-This package currently has no repo-defined `test` script, so standard commands fail:
-- `npm test` → missing script
-- `rushx test` → command not defined
-
-Next step is to add a minimal Jest + TypeScript test script/harness, then make code changes only after tests run successfully.
+- Added package-level `test` script so `rushx test` is available.
+- Added local Jest config (`jest.config.cjs`) for TypeScript unit tests in `test/*.test.ts`.

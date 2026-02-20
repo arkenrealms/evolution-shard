@@ -13,7 +13,8 @@
     "kill": "sudo pkill -f node",
     "nohup": "sudo nohup node --max_semi_space_size=30000 --max-old-space-size=30000 --initial-old-space-size=8000 --optimize-for-size --experimental-modules --experimental-json-modules build/index.js &",
     "prod": "NODE_ENV=production rushx run nodemon --config nodemon.production.json",
-    "start": "NODE_ENV=production node build/index.js"
+    "start": "NODE_ENV=production node build/index.js",
+    "test": "jest --runInBand --passWithNoTests"
   },
   "dependencies": {
     "@arken/evolution-protocol": "workspace:*",
