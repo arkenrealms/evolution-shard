@@ -12,6 +12,7 @@ Shard server package for Arken Evolution Isles.
 - Client emit dispatch now checks method callability and preserves explicit falsy `params` (for example `false`).
 - tRPC response emission is now socket-safe: when `socket.emit` is unavailable, success/error paths no-op instead of throwing inside error handling.
 - Error handling tolerates missing/non-object `socket.shardClient` and normalizes bad `log.errors` counters.
+- `Service.handleClientMessage` now rejects prototype-only emit methods (own-property check), preventing accidental inherited dispatch.
 - `Service.onPlayerUpdates` now returns an explicit success envelope (`{ status: 1 }`).
 
 ## Test harness status

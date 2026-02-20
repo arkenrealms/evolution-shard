@@ -525,7 +525,12 @@ export class Service implements Shard.Service {
       }
 
       const emitClient = socket?.shardClient?.emit;
-      const emitMethod = emitClient?.[method];
+      const hasOwnMethod =
+        !!emitClient &&
+        (Object.hasOwn
+          ? Object.hasOwn(emitClient as Record<string, unknown>, method)
+          : Object.prototype.hasOwnProperty.call(emitClient, method));
+      const emitMethod = hasOwnMethod ? emitClient[method] : undefined;
 
       if (typeof emitMethod !== 'function') {
         throw new Error('Invalid trpc payload');
