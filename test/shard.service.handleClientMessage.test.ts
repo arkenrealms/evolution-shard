@@ -51,4 +51,18 @@ describe('arken/evolution/shard handleClientMessage', () => {
     const response = await Service.prototype.onPlayerUpdates.call({}, {}, { client: {} });
     expect(response).toEqual({ status: 1 });
   });
+
+  test('does not throw when socket.emit is unavailable on error path', async () => {
+    const socket = {
+      shardClient: { log: { errors: 0 }, emit: {} },
+    };
+
+    const serviceLike = {
+      loggableEvents: [],
+      disconnectClient: jest.fn(),
+    };
+
+    await expect(Service.prototype.handleClientMessage.call(serviceLike, socket, undefined)).resolves.toBeUndefined();
+    expect(socket.shardClient.log.errors).toBe(1);
+  });
 });

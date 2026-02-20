@@ -15,10 +15,12 @@
   - validates payload object shape before destructuring,
   - validates method presence and callability,
   - preserves explicit falsy params values,
+  - uses a socket-safe response emitter that no-ops when `socket.emit` is unavailable,
   - handles missing `socket.shardClient` on error path,
   - normalizes `log.errors` increments.
 
 ## Test coverage added
 - malformed payload (`undefined`) emits tRPC error response instead of throwing.
 - explicit falsy params (`false`) are forwarded to emit method.
+- missing `socket.emit` no longer throws while handling malformed payloads.
 - `onPlayerUpdates` returns explicit success envelope.

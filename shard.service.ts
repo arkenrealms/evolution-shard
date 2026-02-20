@@ -504,6 +504,11 @@ export class Service implements Shard.Service {
   async handleClientMessage(socket: any, message: any) {
     // log('Shard client trpc message', message);
     const pack = typeof message === 'string' ? decodePayload(message) : message;
+    const emitResponse = (payload: any) => {
+      if (typeof socket?.emit === 'function') {
+        socket.emit('trpcResponse', payload);
+      }
+    };
 
     try {
       if (!pack || typeof pack !== 'object') {
@@ -536,7 +541,7 @@ export class Service implements Shard.Service {
 
       if (this.loggableEvents.includes(method)) log('Shard client trpc method call result', result);
 
-      socket.emit('trpcResponse', { id: id, result });
+      emitResponse({ id: id, result });
     } catch (e: any) {
       log('Shard client trpc error', pack, e);
 
@@ -550,7 +555,7 @@ export class Service implements Shard.Service {
       if (shardClient?.log?.errors > 50) {
         this.disconnectClient(shardClient, 'too many errors');
       } else {
-        socket.emit('trpcResponse', {
+        emitResponse({
           id: (pack as any)?.id,
           result: {},
           error: e?.stack ? e.stack + '' : String(e),
