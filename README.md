@@ -9,6 +9,7 @@ Shard server package for Arken Evolution Isles.
 
 ## Latest reliability fixes (2026-02-19)
 - `Service.handleClientMessage` now validates decoded payload shape before destructuring, avoiding pre-`try` crashes.
+- Result logging now uses normalized method names, so loggable-event telemetry still records method results when client method names include accidental surrounding whitespace.
 - Client emit dispatch now checks method callability, trims accidental method-name whitespace, and preserves explicit falsy `params` (for example `false`).
 - tRPC response emission is now socket-safe: when `socket.emit` is unavailable, success/error paths no-op instead of throwing inside error handling.
 - Malformed string payloads (`decodePayload` parse failures) are now caught inside handler error flow instead of escaping before response/error accounting.

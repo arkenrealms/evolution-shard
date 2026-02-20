@@ -20,7 +20,8 @@
   - preserves explicit falsy params values,
   - uses a socket-safe response emitter that no-ops when `socket.emit` is unavailable,
   - handles missing `socket.shardClient` on error path,
-  - normalizes `log.errors` increments.
+  - normalizes `log.errors` increments,
+  - logs method-call results using the normalized method name to keep telemetry consistent for whitespace-padded client method strings.
 
 ## Test coverage added
 - malformed payload (`undefined`) emits tRPC error response instead of throwing.
@@ -29,4 +30,5 @@
 - prototype-only methods are rejected (no inherited dispatch).
 - missing `socket.emit` no longer throws while handling malformed payloads.
 - malformed JSON string payloads now increment error counters and emit normalized tRPC errors instead of throwing.
+- method-result logging now still fires when the inbound method name is whitespace-padded but normalizes to a configured loggable event.
 - `onPlayerUpdates` returns explicit success envelope.

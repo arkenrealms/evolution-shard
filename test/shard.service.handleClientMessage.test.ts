@@ -1,5 +1,6 @@
 jest.mock('@arken/node/log', () => ({ log: jest.fn() }), { virtual: true });
 
+import { log } from '@arken/node/log';
 import { Service } from '../shard.service';
 
 describe('arken/evolution/shard handleClientMessage', () => {
@@ -73,6 +74,31 @@ describe('arken/evolution/shard handleClientMessage', () => {
 
     expect(mutate).toHaveBeenCalledWith({ x: 1 });
     expect(socket.emit).toHaveBeenCalledWith('trpcResponse', { id: 'trim-1', result: { status: 1 } });
+  });
+
+  test('logs method call result for normalized loggable event names', async () => {
+    const mutate = jest.fn().mockResolvedValue({ status: 1 });
+    const socket = {
+      emit: jest.fn(),
+      shardClient: {
+        log: { errors: 0 },
+        emit: { onPlayerUpdates: mutate },
+      },
+    };
+
+    const serviceLike = {
+      loggableEvents: ['onPlayerUpdates'],
+      disconnectClient: jest.fn(),
+    };
+
+    await Service.prototype.handleClientMessage.call(serviceLike, socket, {
+      id: 'trim-log-1',
+      method: '  onPlayerUpdates  ',
+      type: 'mutation',
+      params: { x: 2 },
+    });
+
+    expect(log).toHaveBeenCalledWith('Shard client trpc method call result', { status: 1 });
   });
 
   test('rejects prototype-only methods on emit client', async () => {
