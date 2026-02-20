@@ -517,8 +517,16 @@ export class Service implements Shard.Service {
     };
 
     try {
-      if (typeof message === 'string') {
-        const trimmedMessage = message.trim();
+      let normalizedMessage = message;
+
+      if (Buffer.isBuffer(normalizedMessage)) {
+        normalizedMessage = normalizedMessage.toString('utf8');
+      } else if (normalizedMessage instanceof Uint8Array) {
+        normalizedMessage = Buffer.from(normalizedMessage).toString('utf8');
+      }
+
+      if (typeof normalizedMessage === 'string') {
+        const trimmedMessage = normalizedMessage.trim();
 
         if (!trimmedMessage) {
           throw new Error('Invalid trpc payload');
@@ -529,7 +537,7 @@ export class Service implements Shard.Service {
         }
       }
 
-      pack = typeof message === 'string' ? JSON.parse(message.trim()) : message;
+      pack = typeof normalizedMessage === 'string' ? JSON.parse(normalizedMessage.trim()) : normalizedMessage;
       if (!pack || typeof pack !== 'object') {
         throw new Error('Invalid trpc payload');
       }

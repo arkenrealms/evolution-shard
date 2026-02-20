@@ -215,6 +215,37 @@ describe('arken/evolution/shard handleClientMessage', () => {
     expect(socket.emit).toHaveBeenCalledWith('trpcResponse', { id: 'json-1', result: { status: 1 } });
   });
 
+  test('accepts valid json Buffer payloads and dispatches method', async () => {
+    const mutate = jest.fn().mockResolvedValue({ status: 1 });
+    const socket = {
+      emit: jest.fn(),
+      shardClient: {
+        log: { errors: 0 },
+        emit: { onPlayerUpdates: mutate },
+      },
+    };
+
+    const serviceLike = {
+      loggableEvents: [],
+      disconnectClient: jest.fn(),
+    };
+
+    const message = Buffer.from(
+      JSON.stringify({
+        id: 'json-buffer-1',
+        method: 'onPlayerUpdates',
+        type: 'mutation',
+        params: { hp: 3 },
+      }),
+      'utf8'
+    );
+
+    await expect(Service.prototype.handleClientMessage.call(serviceLike, socket, message)).resolves.toBeUndefined();
+
+    expect(mutate).toHaveBeenCalledWith({ hp: 3 });
+    expect(socket.emit).toHaveBeenCalledWith('trpcResponse', { id: 'json-buffer-1', result: { status: 1 } });
+  });
+
   test('handles malformed json string payloads', async () => {
     const socket = {
       emit: jest.fn(),
