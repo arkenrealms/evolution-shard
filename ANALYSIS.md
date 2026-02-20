@@ -8,6 +8,7 @@
 - Synced repo with `origin/main` before edits.
 - Added runnable `rushx test` via package `test` script + `jest.config.cjs`.
 - Kept fix scope practical: payload guards, safe dispatch, and stable return contract.
+- Added response-emitter throw containment because client socket emitters can fail transiently and should not recursively destabilize the same handler path.
 
 ## Fix summary
 - `onPlayerUpdates` now returns `{ status: 1 }` instead of `undefined`.
@@ -31,4 +32,5 @@
 - missing `socket.emit` no longer throws while handling malformed payloads.
 - malformed JSON string payloads now increment error counters and emit normalized tRPC errors instead of throwing.
 - method-result logging now still fires when the inbound method name is whitespace-padded but normalizes to a configured loggable event.
+- throwing `socket.emit` is contained on both success and error response paths so handler execution remains stable.
 - `onPlayerUpdates` returns explicit success envelope.

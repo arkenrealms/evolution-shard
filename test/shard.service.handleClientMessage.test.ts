@@ -166,4 +166,52 @@ describe('arken/evolution/shard handleClientMessage', () => {
       expect.objectContaining({ error: expect.any(String) })
     );
   });
+
+  test('does not throw when socket.emit throws on success response path', async () => {
+    const mutate = jest.fn().mockResolvedValue({ status: 1 });
+    const socket = {
+      emit: jest.fn(() => {
+        throw new Error('emit failed');
+      }),
+      shardClient: {
+        log: { errors: 0 },
+        emit: { onPlayerUpdates: mutate },
+      },
+    };
+
+    const serviceLike = {
+      loggableEvents: [],
+      disconnectClient: jest.fn(),
+    };
+
+    await expect(
+      Service.prototype.handleClientMessage.call(serviceLike, socket, {
+        id: 'emit-fail-success',
+        method: 'onPlayerUpdates',
+        type: 'mutation',
+        params: { hp: 1 },
+      })
+    ).resolves.toBeUndefined();
+
+    expect(mutate).toHaveBeenCalledWith({ hp: 1 });
+    expect(socket.shardClient.log.errors).toBe(0);
+  });
+
+  test('does not throw when socket.emit throws on error response path', async () => {
+    const socket = {
+      emit: jest.fn(() => {
+        throw new Error('emit failed');
+      }),
+      shardClient: { log: { errors: 0 }, emit: {} },
+    };
+
+    const serviceLike = {
+      loggableEvents: [],
+      disconnectClient: jest.fn(),
+    };
+
+    await expect(Service.prototype.handleClientMessage.call(serviceLike, socket, undefined)).resolves.toBeUndefined();
+
+    expect(socket.shardClient.log.errors).toBe(1);
+  });
 });
