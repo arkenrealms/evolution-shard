@@ -49,6 +49,32 @@ describe('arken/evolution/shard handleClientMessage', () => {
     expect(socket.emit).toHaveBeenCalledWith('trpcResponse', { id: 'abc', result: { status: 1 } });
   });
 
+  test('trims method names before dispatching to emit method', async () => {
+    const mutate = jest.fn().mockResolvedValue({ status: 1 });
+    const socket = {
+      emit: jest.fn(),
+      shardClient: {
+        log: { errors: 0 },
+        emit: { onPlayerUpdates: mutate },
+      },
+    };
+
+    const serviceLike = {
+      loggableEvents: ['onPlayerUpdates'],
+      disconnectClient: jest.fn(),
+    };
+
+    await Service.prototype.handleClientMessage.call(serviceLike, socket, {
+      id: 'trim-1',
+      method: '  onPlayerUpdates  ',
+      type: 'mutation',
+      params: { x: 1 },
+    });
+
+    expect(mutate).toHaveBeenCalledWith({ x: 1 });
+    expect(socket.emit).toHaveBeenCalledWith('trpcResponse', { id: 'trim-1', result: { status: 1 } });
+  });
+
   test('rejects prototype-only methods on emit client', async () => {
     const inherited = { inheritedMethod: jest.fn() };
     const emit = Object.create(inherited);

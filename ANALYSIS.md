@@ -14,6 +14,7 @@
 - `handleClientMessage` now:
   - validates payload object shape before destructuring,
   - validates method presence and callability,
+  - trims method-name whitespace before dispatch,
   - only dispatches own emit-client methods (prototype-chain methods are rejected),
   - preserves explicit falsy params values,
   - uses a socket-safe response emitter that no-ops when `socket.emit` is unavailable,
@@ -23,6 +24,7 @@
 ## Test coverage added
 - malformed payload (`undefined`) emits tRPC error response instead of throwing.
 - explicit falsy params (`false`) are forwarded to emit method.
+- method names with accidental leading/trailing whitespace are normalized before dispatch.
 - prototype-only methods are rejected (no inherited dispatch).
 - missing `socket.emit` no longer throws while handling malformed payloads.
 - `onPlayerUpdates` returns explicit success envelope.

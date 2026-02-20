@@ -518,26 +518,38 @@ export class Service implements Shard.Service {
       // log('Shard client trpc pack', pack, socket.shardClient.id, socket.shardClient.id);
       const { id, method, type, params } = pack;
 
-      if (method === 'onEvents') return;
-
       if (!method || typeof method !== 'string') {
         throw new Error('Invalid trpc method');
       }
+
+      const normalizedMethod = method.trim();
+
+      if (!normalizedMethod) {
+        throw new Error('Invalid trpc method');
+      }
+
+      if (normalizedMethod === 'onEvents') return;
 
       const emitClient = socket?.shardClient?.emit;
       const hasOwnMethod =
         !!emitClient &&
         (Object.hasOwn
-          ? Object.hasOwn(emitClient as Record<string, unknown>, method)
-          : Object.prototype.hasOwnProperty.call(emitClient, method));
-      const emitMethod = hasOwnMethod ? emitClient[method] : undefined;
+          ? Object.hasOwn(emitClient as Record<string, unknown>, normalizedMethod)
+          : Object.prototype.hasOwnProperty.call(emitClient, normalizedMethod));
+      const emitMethod = hasOwnMethod ? emitClient[normalizedMethod] : undefined;
 
       if (typeof emitMethod !== 'function') {
         throw new Error('Invalid trpc payload');
       }
 
-      if (this.loggableEvents.includes(method))
-        log(`Shard client trpc method: client.emit.${method}(${JSON.stringify(params)})`, id, method, type, params);
+      if (this.loggableEvents.includes(normalizedMethod))
+        log(
+          `Shard client trpc method: client.emit.${normalizedMethod}(${JSON.stringify(params)})`,
+          id,
+          normalizedMethod,
+          type,
+          params
+        );
 
       const result =
         typeof params === 'undefined'
