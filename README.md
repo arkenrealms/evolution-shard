@@ -13,6 +13,7 @@ Shard server package for Arken Evolution Isles.
 - Client emit dispatch now checks method callability, trims accidental method-name whitespace, and preserves explicit falsy `params` (for example `false`).
 - tRPC response emission is socket-safe for both missing and throwing emitters: if `socket.emit` is unavailable it no-ops, and if `socket.emit` throws it is contained/logged instead of cascading into new handler errors.
 - Blank/whitespace-only string payloads are rejected before decode, preventing noisy JSON parse attempts while still returning normalized tRPC errors.
+- Non-JSON string payloads (for example plain text) are now rejected before decode so invalid chatter cannot trigger avoidable parse attempts/log spam.
 - Malformed string payloads (`decodePayload` parse failures) are now caught inside handler error flow instead of escaping before response/error accounting.
 - Error handling tolerates missing/non-object `socket.shardClient` and normalizes bad `log.errors` counters.
 - `Service.handleClientMessage` now rejects prototype-only emit methods (own-property check), preventing accidental inherited dispatch.

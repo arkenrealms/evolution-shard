@@ -14,6 +14,7 @@
 - `onPlayerUpdates` now returns `{ status: 1 }` instead of `undefined`.
 - `handleClientMessage` now:
   - rejects blank/whitespace-only string payloads before decode to avoid avoidable parser noise while preserving normalized error handling,
+  - rejects clearly non-JSON string payloads before decode so random socket chatter does not generate avoidable parser-error log noise,
   - decodes payload strings inside the `try` block so malformed payload parse errors are normalized through the same error path,
   - validates payload object shape before destructuring,
   - validates method presence and callability,
@@ -32,6 +33,7 @@
 - prototype-only methods are rejected (no inherited dispatch).
 - missing `socket.emit` no longer throws while handling malformed payloads.
 - blank/whitespace-only string payloads are rejected as invalid before decode and return normalized tRPC errors.
+- clearly non-JSON string payloads (for example plain text) are rejected before decode to reduce avoidable parser noise.
 - malformed JSON string payloads now increment error counters and emit normalized tRPC errors instead of throwing.
 - method-result logging now still fires when the inbound method name is whitespace-padded but normalizes to a configured loggable event.
 - throwing `socket.emit` is contained on both success and error response paths so handler execution remains stable.

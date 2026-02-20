@@ -517,8 +517,16 @@ export class Service implements Shard.Service {
     };
 
     try {
-      if (typeof message === 'string' && !message.trim()) {
-        throw new Error('Invalid trpc payload');
+      if (typeof message === 'string') {
+        const trimmedMessage = message.trim();
+
+        if (!trimmedMessage) {
+          throw new Error('Invalid trpc payload');
+        }
+
+        if (!trimmedMessage.startsWith('{') && !trimmedMessage.startsWith('[')) {
+          throw new Error('Invalid trpc payload');
+        }
       }
 
       pack = typeof message === 'string' ? decodePayload(message) : message;
