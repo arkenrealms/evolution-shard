@@ -9,6 +9,7 @@
 - Added runnable `rushx test` via package `test` script + `jest.config.cjs`.
 - Kept fix scope practical: payload guards, safe dispatch, and stable return contract.
 - Added response-emitter throw containment because client socket emitters can fail transiently and should not recursively destabilize the same handler path.
+- Added optional-log-config hardening because some shard service contexts omit `loggableEvents`; dispatch should still succeed even when telemetry toggles are unset.
 
 ## Fix summary
 - `onPlayerUpdates` now returns `{ status: 1 }` instead of `undefined`.
@@ -41,4 +42,5 @@
 - malformed JSON string payloads now increment error counters and emit normalized tRPC errors instead of throwing.
 - method-result logging now still fires when the inbound method name is whitespace-padded but normalizes to a configured loggable event.
 - throwing `socket.emit` is contained on both success and error response paths so handler execution remains stable.
+- missing `loggableEvents` configuration no longer breaks method dispatch; optional telemetry now degrades safely.
 - `onPlayerUpdates` returns explicit success envelope.

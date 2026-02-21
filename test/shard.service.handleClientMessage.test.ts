@@ -101,6 +101,37 @@ describe('arken/evolution/shard handleClientMessage', () => {
     expect(log).toHaveBeenCalledWith('Shard client trpc method call result', { status: 1 });
   });
 
+  test('dispatches successfully when loggableEvents is missing', async () => {
+    const mutate = jest.fn().mockResolvedValue({ status: 1 });
+    const socket = {
+      emit: jest.fn(),
+      shardClient: {
+        log: { errors: 0 },
+        emit: { onPlayerUpdates: mutate },
+      },
+    };
+
+    const serviceLike = {
+      disconnectClient: jest.fn(),
+    };
+
+    await expect(
+      Service.prototype.handleClientMessage.call(serviceLike, socket, {
+        id: 'missing-loggable-events',
+        method: 'onPlayerUpdates',
+        type: 'mutation',
+        params: { hp: 8 },
+      })
+    ).resolves.toBeUndefined();
+
+    expect(mutate).toHaveBeenCalledWith({ hp: 8 });
+    expect(socket.emit).toHaveBeenCalledWith('trpcResponse', {
+      id: 'missing-loggable-events',
+      result: { status: 1 },
+    });
+    expect(socket.shardClient.log.errors).toBe(0);
+  });
+
   test('rejects prototype-only methods on emit client', async () => {
     const inherited = { inheritedMethod: jest.fn() };
     const emit = Object.create(inherited);

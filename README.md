@@ -12,6 +12,7 @@ Shard server package for Arken Evolution Isles.
 - Result logging now uses normalized method names, so loggable-event telemetry still records method results when client method names include accidental surrounding whitespace.
 - Client emit dispatch now checks method callability, trims accidental method-name whitespace, and preserves explicit falsy `params` (for example `false`).
 - tRPC response emission is socket-safe for both missing and throwing emitters: if `socket.emit` is unavailable it no-ops, and if `socket.emit` throws it is contained/logged instead of cascading into new handler errors.
+- Method dispatch no longer depends on `loggableEvents` always being initialized; missing/non-array logger config now safely skips optional method-result logging instead of breaking dispatch.
 - Blank/whitespace-only string payloads are rejected before decode, preventing noisy JSON parse attempts while still returning normalized tRPC errors.
 - Non-JSON string payloads (for example plain text) are now rejected before decode so invalid chatter cannot trigger avoidable parse attempts/log spam.
 - Valid JSON string payloads are parsed directly and dispatched correctly (without binary-decoder side effects), preserving normal tRPC response semantics for string transport clients.

@@ -569,7 +569,9 @@ export class Service implements Shard.Service {
         throw new Error('Invalid trpc payload');
       }
 
-      if (this.loggableEvents.includes(normalizedMethod))
+      const isLoggableEvent = Array.isArray(this.loggableEvents) && this.loggableEvents.includes(normalizedMethod);
+
+      if (isLoggableEvent)
         log(
           `Shard client trpc method: client.emit.${normalizedMethod}(${JSON.stringify(params)})`,
           id,
@@ -583,7 +585,7 @@ export class Service implements Shard.Service {
           ? await emitMethod.call(emitClient)
           : await emitMethod.call(emitClient, params);
 
-      if (this.loggableEvents.includes(normalizedMethod)) log('Shard client trpc method call result', result);
+      if (isLoggableEvent) log('Shard client trpc method call result', result);
 
       emitResponse({ id: id, result });
     } catch (e: any) {
