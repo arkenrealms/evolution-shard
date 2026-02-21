@@ -547,17 +547,21 @@ export class Service implements Shard.Service {
 
       if (typeof normalizedMessage === 'string') {
         const trimmedMessage = normalizedMessage.trim();
+        const sanitizedMessage =
+          trimmedMessage.charCodeAt(0) === 0xfeff ? trimmedMessage.slice(1).trimStart() : trimmedMessage;
 
-        if (!trimmedMessage) {
+        if (!sanitizedMessage) {
           throw new Error('Invalid trpc payload');
         }
 
-        if (!trimmedMessage.startsWith('{') && !trimmedMessage.startsWith('[')) {
+        if (!sanitizedMessage.startsWith('{') && !sanitizedMessage.startsWith('[')) {
           throw new Error('Invalid trpc payload');
         }
+
+        normalizedMessage = sanitizedMessage;
       }
 
-      pack = typeof normalizedMessage === 'string' ? JSON.parse(normalizedMessage.trim()) : normalizedMessage;
+      pack = typeof normalizedMessage === 'string' ? JSON.parse(normalizedMessage) : normalizedMessage;
       if (!pack || typeof pack !== 'object' || Array.isArray(pack)) {
         throw new Error('Invalid trpc payload');
       }

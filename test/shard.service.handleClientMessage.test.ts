@@ -381,6 +381,34 @@ describe('arken/evolution/shard handleClientMessage', () => {
     expect(socket.emit).toHaveBeenCalledWith('trpcResponse', { id: 'json-dataview-1', result: { status: 1 } });
   });
 
+  test('accepts utf-8 bom-prefixed json string payloads and dispatches method', async () => {
+    const mutate = jest.fn().mockResolvedValue({ status: 1 });
+    const socket = {
+      emit: jest.fn(),
+      shardClient: {
+        log: { errors: 0 },
+        emit: { onPlayerUpdates: mutate },
+      },
+    };
+
+    const serviceLike = {
+      loggableEvents: [],
+      disconnectClient: jest.fn(),
+    };
+
+    const message = `\uFEFF${JSON.stringify({
+      id: 'json-bom-1',
+      method: 'onPlayerUpdates',
+      type: 'mutation',
+      params: { hp: 6 },
+    })}`;
+
+    await expect(Service.prototype.handleClientMessage.call(serviceLike, socket, message)).resolves.toBeUndefined();
+
+    expect(mutate).toHaveBeenCalledWith({ hp: 6 });
+    expect(socket.emit).toHaveBeenCalledWith('trpcResponse', { id: 'json-bom-1', result: { status: 1 } });
+  });
+
   test('handles malformed json string payloads', async () => {
     const socket = {
       emit: jest.fn(),

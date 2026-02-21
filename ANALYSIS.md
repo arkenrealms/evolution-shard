@@ -21,6 +21,7 @@
   - rejects blank/whitespace-only string payloads before decode to avoid avoidable parser noise while preserving normalized error handling,
   - rejects clearly non-JSON string payloads before decode so random socket chatter does not generate avoidable parser-error log noise,
   - parses JSON string payloads directly (`JSON.parse(message.trim())`) instead of routing through the binary decoder, because clients already send JSON envelopes and the binary path can garble text payloads/log noisy parse failures,
+  - strips UTF-8 BOM prefix from string payloads before shape checks/parse because some clients prepend BOM and previously triggered avoidable invalid-payload errors,
   - parses payload strings inside the `try` block so malformed payload parse errors are normalized through the same error path,
   - validates payload object shape before destructuring (including rejecting JSON array envelopes so malformed list payloads are normalized as invalid payloads rather than surfacing as method-name failures),
   - validates method presence and callability,

@@ -19,6 +19,7 @@ Shard server package for Arken Evolution Isles.
 - Valid JSON string payloads are parsed directly and dispatched correctly (without binary-decoder side effects), preserving normal tRPC response semantics for string transport clients.
 - Buffer/Uint8Array JSON payloads are normalized to UTF-8 before parse, so binary-frame client transports are handled consistently.
 - ArrayBuffer/DataView JSON payloads are also normalized to UTF-8 before parse, preventing false "Invalid trpc method" errors when socket transports surface binary views.
+- UTF-8 BOM-prefixed JSON string payloads are sanitized before parse/shape validation, so upstream clients that prepend BOM bytes still dispatch valid tRPC methods.
 - Malformed JSON string payloads are now caught inside handler error flow instead of escaping before response/error accounting.
 - JSON array envelopes are now rejected as invalid payloads so list-shaped messages cannot fall through into misleading "Invalid trpc method" errors.
 - Error handling tolerates missing/non-object `socket.shardClient` and normalizes bad `log.errors` counters.
