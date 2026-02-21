@@ -159,6 +159,42 @@ describe('arken/evolution/shard handleClientMessage', () => {
     );
   });
 
+  test('survives throwing request field getters and emits normalized error id', async () => {
+    const socket = {
+      emit: jest.fn(),
+      shardClient: { log: { errors: 0 }, emit: {} },
+    };
+
+    const serviceLike = {
+      loggableEvents: [],
+      disconnectClient: jest.fn(),
+    };
+
+    const message = {} as Record<string, unknown>;
+
+    Object.defineProperty(message, 'method', {
+      enumerable: true,
+      get: () => {
+        throw new Error('method getter boom');
+      },
+    });
+
+    Object.defineProperty(message, 'id', {
+      enumerable: true,
+      get: () => {
+        throw new Error('id getter boom');
+      },
+    });
+
+    await expect(Service.prototype.handleClientMessage.call(serviceLike, socket, message)).resolves.toBeUndefined();
+
+    expect(socket.shardClient.log.errors).toBe(1);
+    expect(socket.emit).toHaveBeenCalledWith(
+      'trpcResponse',
+      expect.objectContaining({ id: null, error: expect.stringContaining('Invalid trpc method') })
+    );
+  });
+
   test('onPlayerUpdates returns explicit success envelope', async () => {
     const response = await Service.prototype.onPlayerUpdates.call({}, {}, { client: {} });
     expect(response).toEqual({ status: 1 });

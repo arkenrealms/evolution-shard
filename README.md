@@ -15,6 +15,7 @@ Shard server package for Arken Evolution Isles.
 - Method dispatch no longer depends on `loggableEvents` always being initialized; missing/non-array logger config now safely skips optional method-result logging instead of breaking dispatch.
 - Loggable-event tracing now safely handles circular/unserializable `params` payloads, so diagnostics cannot crash valid client dispatch paths.
 - tRPC response ids are normalized to protocol-safe primitives (`string | finite number | null`) so malformed/non-primitive or non-finite incoming ids (`NaN`/`±Infinity`) cannot destabilize serializer paths.
+- Message field access is now getter-safe (`id`/`method`/`type`/`params`), preventing hostile/throwing property getters from escaping error normalization paths.
 - Blank/whitespace-only string payloads are rejected before decode, preventing noisy JSON parse attempts while still returning normalized tRPC errors.
 - Non-JSON string payloads (for example plain text) are now rejected before decode so invalid chatter cannot trigger avoidable parse attempts/log spam.
 - Valid JSON string payloads are parsed directly and dispatched correctly (without binary-decoder side effects), preserving normal tRPC response semantics for string transport clients.

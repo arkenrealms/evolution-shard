@@ -32,6 +32,14 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null;
 };
 
+const safeGet = (record: Record<string, unknown>, key: string): unknown => {
+  try {
+    return record[key];
+  } catch {
+    return undefined;
+  }
+};
+
 const normalizeTrpcId = (id: unknown): string | number | null => {
   if (typeof id === 'string') {
     return id;
@@ -579,7 +587,10 @@ export class Service implements Shard.Service {
       }
 
       // log('Shard client trpc pack', pack, socket.shardClient.id, socket.shardClient.id);
-      const { id, method, type, params } = pack;
+      const id = safeGet(pack, 'id');
+      const method = safeGet(pack, 'method');
+      const type = safeGet(pack, 'type');
+      const params = safeGet(pack, 'params');
       const responseId = normalizeTrpcId(id);
 
       if (!method || typeof method !== 'string') {
@@ -639,8 +650,10 @@ export class Service implements Shard.Service {
       if (typeof shardClientLog?.errors === 'number' && shardClientLog.errors > 50) {
         this.disconnectClient(shardClient, 'too many errors');
       } else {
+        const errorResponseId = isRecord(pack) ? normalizeTrpcId(safeGet(pack, 'id')) : null;
+
         emitResponse({
-          id: normalizeTrpcId((pack as any)?.id),
+          id: errorResponseId,
           result: {},
           error: e?.stack ? e.stack + '' : String(e),
         });

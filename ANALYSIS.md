@@ -13,6 +13,7 @@
 - Added safe log-serialization for method params because diagnostics were still using raw `JSON.stringify`, which can throw on circular payloads and incorrectly flip successful requests into error flow.
 - Added non-object `shardClient.log` guard because error-accounting writes (`log.errors += 1`) can themselves throw if integrations accidentally mutate `log` to a primitive.
 - Added tRPC id normalization because malformed object-shaped ids can trip transport/serializer layers; shard now responds with protocol-safe ids (`string | finite number | null`) on both success and error paths. This run tightened numeric handling so `NaN`/`±Infinity` are also downgraded to `null` before emit, avoiding non-JSON-safe id echoes.
+- Added safe request field access (`safeGet`) because architected real-time sockets can receive objects with throwing getters; this avoids second-order crashes while building error responses and keeps malformed envelopes on the normalized tRPC error path.
 
 ## Fix summary
 - `onPlayerUpdates` now returns `{ status: 1 }` instead of `undefined`.
