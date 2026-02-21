@@ -14,7 +14,7 @@ Shard server package for Arken Evolution Isles.
 - tRPC response emission is socket-safe for both missing and throwing emitters: if `socket.emit` is unavailable it no-ops, and if `socket.emit` throws it is contained/logged instead of cascading into new handler errors.
 - Method dispatch no longer depends on `loggableEvents` always being initialized; missing/non-array logger config now safely skips optional method-result logging instead of breaking dispatch.
 - Loggable-event tracing now safely handles circular/unserializable `params` payloads, so diagnostics cannot crash valid client dispatch paths.
-- tRPC response ids are normalized to protocol-safe primitives (`string | number | null`) so malformed/non-primitive incoming ids cannot destabilize serializer paths.
+- tRPC response ids are normalized to protocol-safe primitives (`string | finite number | null`) so malformed/non-primitive or non-finite incoming ids (`NaN`/`±Infinity`) cannot destabilize serializer paths.
 - Blank/whitespace-only string payloads are rejected before decode, preventing noisy JSON parse attempts while still returning normalized tRPC errors.
 - Non-JSON string payloads (for example plain text) are now rejected before decode so invalid chatter cannot trigger avoidable parse attempts/log spam.
 - Valid JSON string payloads are parsed directly and dispatched correctly (without binary-decoder side effects), preserving normal tRPC response semantics for string transport clients.

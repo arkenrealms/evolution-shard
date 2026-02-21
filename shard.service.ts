@@ -33,7 +33,11 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
 };
 
 const normalizeTrpcId = (id: unknown): string | number | null => {
-  if (typeof id === 'string' || typeof id === 'number') {
+  if (typeof id === 'string') {
+    return id;
+  }
+
+  if (typeof id === 'number' && Number.isFinite(id)) {
     return id;
   }
 

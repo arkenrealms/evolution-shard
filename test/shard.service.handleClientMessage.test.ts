@@ -314,6 +314,34 @@ describe('arken/evolution/shard handleClientMessage', () => {
     expect(socket.emit).toHaveBeenCalledWith('trpcResponse', { id: null, result: { status: 1 } });
   });
 
+  test('normalizes non-finite numeric ids to null on success responses', async () => {
+    const mutate = jest.fn().mockResolvedValue({ status: 1 });
+    const socket = {
+      emit: jest.fn(),
+      shardClient: {
+        log: { errors: 0 },
+        emit: { onPlayerUpdates: mutate },
+      },
+    };
+
+    const serviceLike = {
+      loggableEvents: [],
+      disconnectClient: jest.fn(),
+    };
+
+    await expect(
+      Service.prototype.handleClientMessage.call(serviceLike, socket, {
+        id: Number.NaN,
+        method: 'onPlayerUpdates',
+        type: 'mutation',
+        params: { hp: 9 },
+      })
+    ).resolves.toBeUndefined();
+
+    expect(mutate).toHaveBeenCalledWith({ hp: 9 });
+    expect(socket.emit).toHaveBeenCalledWith('trpcResponse', { id: null, result: { status: 1 } });
+  });
+
   test('accepts valid json Buffer payloads and dispatches method', async () => {
     const mutate = jest.fn().mockResolvedValue({ status: 1 });
     const socket = {
@@ -471,6 +499,32 @@ describe('arken/evolution/shard handleClientMessage', () => {
     await expect(
       Service.prototype.handleClientMessage.call(serviceLike, socket, {
         id: { broken: true },
+        method: 'unknownMethod',
+        type: 'mutation',
+        params: { hp: 8 },
+      })
+    ).resolves.toBeUndefined();
+
+    expect(socket.emit).toHaveBeenCalledWith(
+      'trpcResponse',
+      expect.objectContaining({ id: null, error: expect.stringContaining('Invalid trpc payload') })
+    );
+  });
+
+  test('normalizes non-finite numeric ids to null on error responses', async () => {
+    const socket = {
+      emit: jest.fn(),
+      shardClient: { log: { errors: 0 }, emit: {} },
+    };
+
+    const serviceLike = {
+      loggableEvents: [],
+      disconnectClient: jest.fn(),
+    };
+
+    await expect(
+      Service.prototype.handleClientMessage.call(serviceLike, socket, {
+        id: Number.POSITIVE_INFINITY,
         method: 'unknownMethod',
         type: 'mutation',
         params: { hp: 8 },

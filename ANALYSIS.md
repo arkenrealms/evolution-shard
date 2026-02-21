@@ -12,7 +12,7 @@
 - Added optional-log-config hardening because some shard service contexts omit `loggableEvents`; dispatch should still succeed even when telemetry toggles are unset.
 - Added safe log-serialization for method params because diagnostics were still using raw `JSON.stringify`, which can throw on circular payloads and incorrectly flip successful requests into error flow.
 - Added non-object `shardClient.log` guard because error-accounting writes (`log.errors += 1`) can themselves throw if integrations accidentally mutate `log` to a primitive.
-- Added tRPC id normalization because malformed object-shaped ids can trip transport/serializer layers; shard now responds with protocol-safe ids (`string | number | null`) on both success and error paths.
+- Added tRPC id normalization because malformed object-shaped ids can trip transport/serializer layers; shard now responds with protocol-safe ids (`string | finite number | null`) on both success and error paths. This run tightened numeric handling so `NaN`/`±Infinity` are also downgraded to `null` before emit, avoiding non-JSON-safe id echoes.
 
 ## Fix summary
 - `onPlayerUpdates` now returns `{ status: 1 }` instead of `undefined`.
@@ -48,7 +48,9 @@
 - valid JSON Buffer payloads also dispatch correctly after binary-to-text normalization.
 - malformed JSON string payloads now increment error counters and emit normalized tRPC errors instead of throwing.
 - non-primitive request ids are normalized to `null` on success responses, keeping outbound envelopes protocol-safe.
+- non-finite numeric request ids (`NaN`/`±Infinity`) are normalized to `null` on success responses, preventing non-JSON-safe id echoes.
 - non-primitive request ids are normalized to `null` on error responses, avoiding malformed id echoes from invalid request envelopes.
+- non-finite numeric request ids are normalized to `null` on error responses as well, keeping failure envelopes serializer-safe.
 - method-result logging now still fires when the inbound method name is whitespace-padded but normalizes to a configured loggable event.
 - throwing `socket.emit` is contained on both success and error response paths so handler execution remains stable.
 - missing `loggableEvents` configuration no longer breaks method dispatch; optional telemetry now degrades safely.
