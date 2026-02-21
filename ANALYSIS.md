@@ -11,6 +11,7 @@
 - Added response-emitter throw containment because client socket emitters can fail transiently and should not recursively destabilize the same handler path.
 - Added optional-log-config hardening because some shard service contexts omit `loggableEvents`; dispatch should still succeed even when telemetry toggles are unset.
 - Added safe log-serialization for method params because diagnostics were still using raw `JSON.stringify`, which can throw on circular payloads and incorrectly flip successful requests into error flow.
+- Added non-object `shardClient.log` guard because error-accounting writes (`log.errors += 1`) can themselves throw if integrations accidentally mutate `log` to a primitive.
 
 ## Fix summary
 - `onPlayerUpdates` now returns `{ status: 1 }` instead of `undefined`.

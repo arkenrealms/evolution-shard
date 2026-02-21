@@ -28,6 +28,10 @@ const safeLogValue = (value: unknown): string => {
   }
 };
 
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === 'object' && value !== null;
+};
+
 type ServiceHelpers = {
   core: CoreService;
   auth: AuthService;
@@ -608,13 +612,14 @@ export class Service implements Shard.Service {
       log('Shard client trpc error', pack, e);
 
       const shardClient = socket?.shardClient;
-      const previousErrors = Number(shardClient?.log?.errors);
+      const shardClientLog = isRecord(shardClient?.log) ? shardClient.log : undefined;
+      const previousErrors = Number(shardClientLog?.errors);
 
-      if (shardClient?.log) {
-        shardClient.log.errors = Number.isFinite(previousErrors) ? previousErrors + 1 : 1;
+      if (shardClientLog) {
+        shardClientLog.errors = Number.isFinite(previousErrors) ? previousErrors + 1 : 1;
       }
 
-      if (shardClient?.log?.errors > 50) {
+      if (typeof shardClientLog?.errors === 'number' && shardClientLog.errors > 50) {
         this.disconnectClient(shardClient, 'too many errors');
       } else {
         emitResponse({

@@ -178,6 +178,26 @@ describe('arken/evolution/shard handleClientMessage', () => {
     expect(socket.shardClient.log.errors).toBe(1);
   });
 
+  test('does not throw when shardClient.log is non-object', async () => {
+    const socket = {
+      emit: jest.fn(),
+      shardClient: { log: 'broken-log-shape', emit: {} },
+    };
+
+    const serviceLike = {
+      loggableEvents: [],
+      disconnectClient: jest.fn(),
+    };
+
+    await expect(Service.prototype.handleClientMessage.call(serviceLike, socket, undefined)).resolves.toBeUndefined();
+
+    expect(socket.emit).toHaveBeenCalledWith(
+      'trpcResponse',
+      expect.objectContaining({ error: expect.stringContaining('Invalid trpc payload') })
+    );
+    expect(serviceLike.disconnectClient).not.toHaveBeenCalled();
+  });
+
   test('returns invalid payload error for blank string payloads', async () => {
     const socket = {
       emit: jest.fn(),

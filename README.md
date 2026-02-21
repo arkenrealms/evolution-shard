@@ -22,6 +22,7 @@ Shard server package for Arken Evolution Isles.
 - Malformed JSON string payloads are now caught inside handler error flow instead of escaping before response/error accounting.
 - JSON array envelopes are now rejected as invalid payloads so list-shaped messages cannot fall through into misleading "Invalid trpc method" errors.
 - Error handling tolerates missing/non-object `socket.shardClient` and normalizes bad `log.errors` counters.
+- Error-path accounting now safely tolerates non-object `socket.shardClient.log` values (for example string corruption), preserving normalized error responses instead of throwing while incrementing counters.
 - `Service.handleClientMessage` now rejects prototype-only emit methods (own-property check), preventing accidental inherited dispatch.
 - `Service.onPlayerUpdates` now returns an explicit success envelope (`{ status: 1 }`).
 
