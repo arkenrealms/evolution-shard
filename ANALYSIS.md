@@ -20,7 +20,7 @@
   - rejects clearly non-JSON string payloads before decode so random socket chatter does not generate avoidable parser-error log noise,
   - parses JSON string payloads directly (`JSON.parse(message.trim())`) instead of routing through the binary decoder, because clients already send JSON envelopes and the binary path can garble text payloads/log noisy parse failures,
   - parses payload strings inside the `try` block so malformed payload parse errors are normalized through the same error path,
-  - validates payload object shape before destructuring,
+  - validates payload object shape before destructuring (including rejecting JSON array envelopes so malformed list payloads are normalized as invalid payloads rather than surfacing as method-name failures),
   - validates method presence and callability,
   - trims method-name whitespace before dispatch,
   - only dispatches own emit-client methods (prototype-chain methods are rejected),
@@ -38,6 +38,7 @@
 - missing `socket.emit` no longer throws while handling malformed payloads.
 - blank/whitespace-only string payloads are rejected as invalid before decode and return normalized tRPC errors.
 - clearly non-JSON string payloads (for example plain text) are rejected before decode to reduce avoidable parser noise.
+- JSON array payloads are rejected as invalid envelopes (they must be object-shaped tRPC packets).
 - valid JSON string payloads dispatch correctly to shard emit handlers and return expected `trpcResponse` envelopes.
 - valid JSON Buffer payloads also dispatch correctly after binary-to-text normalization.
 - malformed JSON string payloads now increment error counters and emit normalized tRPC errors instead of throwing.

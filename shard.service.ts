@@ -546,7 +546,7 @@ export class Service implements Shard.Service {
       }
 
       pack = typeof normalizedMessage === 'string' ? JSON.parse(normalizedMessage.trim()) : normalizedMessage;
-      if (!pack || typeof pack !== 'object') {
+      if (!pack || typeof pack !== 'object' || Array.isArray(pack)) {
         throw new Error('Invalid trpc payload');
       }
 

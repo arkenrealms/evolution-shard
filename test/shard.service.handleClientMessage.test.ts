@@ -218,6 +218,26 @@ describe('arken/evolution/shard handleClientMessage', () => {
     );
   });
 
+  test('returns invalid payload error for json array payloads', async () => {
+    const socket = {
+      emit: jest.fn(),
+      shardClient: { log: { errors: 0 }, emit: {} },
+    };
+
+    const serviceLike = {
+      loggableEvents: [],
+      disconnectClient: jest.fn(),
+    };
+
+    await expect(Service.prototype.handleClientMessage.call(serviceLike, socket, '[]')).resolves.toBeUndefined();
+
+    expect(socket.shardClient.log.errors).toBe(1);
+    expect(socket.emit).toHaveBeenCalledWith(
+      'trpcResponse',
+      expect.objectContaining({ error: expect.stringContaining('Invalid trpc payload') })
+    );
+  });
+
   test('accepts valid json string payloads and dispatches method', async () => {
     const mutate = jest.fn().mockResolvedValue({ status: 1 });
     const socket = {
