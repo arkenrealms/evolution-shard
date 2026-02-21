@@ -15,6 +15,7 @@
 - `onPlayerUpdates` now returns `{ status: 1 }` instead of `undefined`.
 - `handleClientMessage` now:
   - normalizes Buffer/Uint8Array socket payloads to UTF-8 string before validation/JSON parse (rationale: some websocket/socket.io paths deliver binary frames even for JSON envelopes),
+  - normalizes ArrayBuffer/DataView payloads to UTF-8 before JSON parse so binary view wrappers do not misroute to invalid-method errors,
   - rejects blank/whitespace-only string payloads before decode to avoid avoidable parser noise while preserving normalized error handling,
   - rejects clearly non-JSON string payloads before decode so random socket chatter does not generate avoidable parser-error log noise,
   - parses JSON string payloads directly (`JSON.parse(message.trim())`) instead of routing through the binary decoder, because clients already send JSON envelopes and the binary path can garble text payloads/log noisy parse failures,

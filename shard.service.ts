@@ -523,6 +523,14 @@ export class Service implements Shard.Service {
         normalizedMessage = normalizedMessage.toString('utf8');
       } else if (normalizedMessage instanceof Uint8Array) {
         normalizedMessage = Buffer.from(normalizedMessage).toString('utf8');
+      } else if (normalizedMessage instanceof ArrayBuffer) {
+        normalizedMessage = Buffer.from(normalizedMessage).toString('utf8');
+      } else if (ArrayBuffer.isView(normalizedMessage)) {
+        normalizedMessage = Buffer.from(
+          normalizedMessage.buffer,
+          normalizedMessage.byteOffset,
+          normalizedMessage.byteLength
+        ).toString('utf8');
       }
 
       if (typeof normalizedMessage === 'string') {
