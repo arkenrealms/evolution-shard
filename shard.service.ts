@@ -52,6 +52,25 @@ const normalizeTrpcId = (id: unknown): string | number | null => {
   return null;
 };
 
+const safeErrorString = (error: unknown): string => {
+  if (error && typeof error === 'object') {
+    try {
+      const stack = (error as { stack?: unknown }).stack;
+      if (typeof stack === 'string' && stack) {
+        return stack;
+      }
+    } catch {
+      // fall through to String coercion
+    }
+  }
+
+  try {
+    return String(error);
+  } catch {
+    return '[unstringifiable-error]';
+  }
+};
+
 type ServiceHelpers = {
   core: CoreService;
   auth: AuthService;
@@ -655,7 +674,7 @@ export class Service implements Shard.Service {
         emitResponse({
           id: errorResponseId,
           result: {},
-          error: e?.stack ? e.stack + '' : String(e),
+          error: safeErrorString(e),
         });
       }
     }

@@ -655,4 +655,44 @@ describe('arken/evolution/shard handleClientMessage', () => {
 
     expect(socket.shardClient.log.errors).toBe(1);
   });
+
+  test('handles thrown errors with throwing stack getters on error path', async () => {
+    const mutate = jest.fn(() => {
+      const err = {} as { stack?: string };
+      Object.defineProperty(err, 'stack', {
+        get: () => {
+          throw new Error('stack getter boom');
+        },
+      });
+      throw err;
+    });
+
+    const socket = {
+      emit: jest.fn(),
+      shardClient: {
+        log: { errors: 0 },
+        emit: { onPlayerUpdates: mutate },
+      },
+    };
+
+    const serviceLike = {
+      loggableEvents: [],
+      disconnectClient: jest.fn(),
+    };
+
+    await expect(
+      Service.prototype.handleClientMessage.call(serviceLike, socket, {
+        id: 'bad-stack-1',
+        method: 'onPlayerUpdates',
+        type: 'mutation',
+        params: { hp: 1 },
+      })
+    ).resolves.toBeUndefined();
+
+    expect(socket.shardClient.log.errors).toBe(1);
+    expect(socket.emit).toHaveBeenCalledWith(
+      'trpcResponse',
+      expect.objectContaining({ id: 'bad-stack-1', error: '[object Object]' })
+    );
+  });
 });
