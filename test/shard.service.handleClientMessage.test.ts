@@ -381,6 +381,41 @@ describe('arken/evolution/shard handleClientMessage', () => {
     );
   });
 
+  test('dispatches loggable events even when params are circular', async () => {
+    const mutate = jest.fn().mockResolvedValue({ status: 1 });
+    const socket = {
+      emit: jest.fn(),
+      shardClient: {
+        log: { errors: 0 },
+        emit: { onPlayerUpdates: mutate },
+      },
+    };
+
+    const serviceLike = {
+      loggableEvents: ['onPlayerUpdates'],
+      disconnectClient: jest.fn(),
+    };
+
+    const params: any = { hp: 10 };
+    params.self = params;
+
+    await expect(
+      Service.prototype.handleClientMessage.call(serviceLike, socket, {
+        id: 'circular-loggable-1',
+        method: 'onPlayerUpdates',
+        type: 'mutation',
+        params,
+      })
+    ).resolves.toBeUndefined();
+
+    expect(mutate).toHaveBeenCalledWith(params);
+    expect(socket.emit).toHaveBeenCalledWith('trpcResponse', {
+      id: 'circular-loggable-1',
+      result: { status: 1 },
+    });
+    expect(socket.shardClient.log.errors).toBe(0);
+  });
+
   test('does not throw when socket.emit throws on success response path', async () => {
     const mutate = jest.fn().mockResolvedValue({ status: 1 });
     const socket = {

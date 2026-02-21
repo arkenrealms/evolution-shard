@@ -20,6 +20,14 @@ import { InteractionsService } from './services/interactions.service';
 
 const { getTime, shuffleArray, randomPosition, sha256, isNumeric, ipHashFromSocket } = util;
 
+const safeLogValue = (value: unknown): string => {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return '[unserializable]';
+  }
+};
+
 type ServiceHelpers = {
   core: CoreService;
   auth: AuthService;
@@ -581,7 +589,7 @@ export class Service implements Shard.Service {
 
       if (isLoggableEvent)
         log(
-          `Shard client trpc method: client.emit.${normalizedMethod}(${JSON.stringify(params)})`,
+          `Shard client trpc method: client.emit.${normalizedMethod}(${safeLogValue(params)})`,
           id,
           normalizedMethod,
           type,

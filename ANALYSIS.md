@@ -10,6 +10,7 @@
 - Kept fix scope practical: payload guards, safe dispatch, and stable return contract.
 - Added response-emitter throw containment because client socket emitters can fail transiently and should not recursively destabilize the same handler path.
 - Added optional-log-config hardening because some shard service contexts omit `loggableEvents`; dispatch should still succeed even when telemetry toggles are unset.
+- Added safe log-serialization for method params because diagnostics were still using raw `JSON.stringify`, which can throw on circular payloads and incorrectly flip successful requests into error flow.
 
 ## Fix summary
 - `onPlayerUpdates` now returns `{ status: 1 }` instead of `undefined`.
@@ -45,4 +46,5 @@
 - method-result logging now still fires when the inbound method name is whitespace-padded but normalizes to a configured loggable event.
 - throwing `socket.emit` is contained on both success and error response paths so handler execution remains stable.
 - missing `loggableEvents` configuration no longer breaks method dispatch; optional telemetry now degrades safely.
+- circular/unserializable params on loggable events no longer break dispatch; method call + response still complete while logs use a safe fallback marker.
 - `onPlayerUpdates` returns explicit success envelope.
