@@ -286,6 +286,34 @@ describe('arken/evolution/shard handleClientMessage', () => {
     expect(socket.emit).toHaveBeenCalledWith('trpcResponse', { id: 'json-1', result: { status: 1 } });
   });
 
+  test('normalizes non-primitive request ids to null on success responses', async () => {
+    const mutate = jest.fn().mockResolvedValue({ status: 1 });
+    const socket = {
+      emit: jest.fn(),
+      shardClient: {
+        log: { errors: 0 },
+        emit: { onPlayerUpdates: mutate },
+      },
+    };
+
+    const serviceLike = {
+      loggableEvents: [],
+      disconnectClient: jest.fn(),
+    };
+
+    await expect(
+      Service.prototype.handleClientMessage.call(serviceLike, socket, {
+        id: { bad: 'id-shape' },
+        method: 'onPlayerUpdates',
+        type: 'mutation',
+        params: { hp: 7 },
+      })
+    ).resolves.toBeUndefined();
+
+    expect(mutate).toHaveBeenCalledWith({ hp: 7 });
+    expect(socket.emit).toHaveBeenCalledWith('trpcResponse', { id: null, result: { status: 1 } });
+  });
+
   test('accepts valid json Buffer payloads and dispatches method', async () => {
     const mutate = jest.fn().mockResolvedValue({ status: 1 });
     const socket = {
@@ -426,6 +454,32 @@ describe('arken/evolution/shard handleClientMessage', () => {
     expect(socket.emit).toHaveBeenCalledWith(
       'trpcResponse',
       expect.objectContaining({ error: expect.any(String) })
+    );
+  });
+
+  test('normalizes non-primitive request ids to null on error responses', async () => {
+    const socket = {
+      emit: jest.fn(),
+      shardClient: { log: { errors: 0 }, emit: {} },
+    };
+
+    const serviceLike = {
+      loggableEvents: [],
+      disconnectClient: jest.fn(),
+    };
+
+    await expect(
+      Service.prototype.handleClientMessage.call(serviceLike, socket, {
+        id: { broken: true },
+        method: 'unknownMethod',
+        type: 'mutation',
+        params: { hp: 8 },
+      })
+    ).resolves.toBeUndefined();
+
+    expect(socket.emit).toHaveBeenCalledWith(
+      'trpcResponse',
+      expect.objectContaining({ id: null, error: expect.stringContaining('Invalid trpc payload') })
     );
   });
 

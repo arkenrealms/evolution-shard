@@ -12,6 +12,7 @@
 - Added optional-log-config hardening because some shard service contexts omit `loggableEvents`; dispatch should still succeed even when telemetry toggles are unset.
 - Added safe log-serialization for method params because diagnostics were still using raw `JSON.stringify`, which can throw on circular payloads and incorrectly flip successful requests into error flow.
 - Added non-object `shardClient.log` guard because error-accounting writes (`log.errors += 1`) can themselves throw if integrations accidentally mutate `log` to a primitive.
+- Added tRPC id normalization because malformed object-shaped ids can trip transport/serializer layers; shard now responds with protocol-safe ids (`string | number | null`) on both success and error paths.
 
 ## Fix summary
 - `onPlayerUpdates` now returns `{ status: 1 }` instead of `undefined`.
@@ -31,7 +32,8 @@
   - uses a socket-safe response emitter that no-ops when `socket.emit` is unavailable,
   - handles missing `socket.shardClient` on error path,
   - normalizes `log.errors` increments,
-  - logs method-call results using the normalized method name to keep telemetry consistent for whitespace-padded client method strings.
+  - logs method-call results using the normalized method name to keep telemetry consistent for whitespace-padded client method strings,
+  - normalizes response ids to protocol-safe primitive ids (`string | number | null`) before emitting `trpcResponse` envelopes on both success and error paths.
 
 ## Test coverage added
 - malformed payload (`undefined`) emits tRPC error response instead of throwing.
@@ -45,6 +47,8 @@
 - valid JSON string payloads dispatch correctly to shard emit handlers and return expected `trpcResponse` envelopes.
 - valid JSON Buffer payloads also dispatch correctly after binary-to-text normalization.
 - malformed JSON string payloads now increment error counters and emit normalized tRPC errors instead of throwing.
+- non-primitive request ids are normalized to `null` on success responses, keeping outbound envelopes protocol-safe.
+- non-primitive request ids are normalized to `null` on error responses, avoiding malformed id echoes from invalid request envelopes.
 - method-result logging now still fires when the inbound method name is whitespace-padded but normalizes to a configured loggable event.
 - throwing `socket.emit` is contained on both success and error response paths so handler execution remains stable.
 - missing `loggableEvents` configuration no longer breaks method dispatch; optional telemetry now degrades safely.

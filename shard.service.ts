@@ -32,6 +32,14 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null;
 };
 
+const normalizeTrpcId = (id: unknown): string | number | null => {
+  if (typeof id === 'string' || typeof id === 'number') {
+    return id;
+  }
+
+  return null;
+};
+
 type ServiceHelpers = {
   core: CoreService;
   auth: AuthService;
@@ -568,6 +576,7 @@ export class Service implements Shard.Service {
 
       // log('Shard client trpc pack', pack, socket.shardClient.id, socket.shardClient.id);
       const { id, method, type, params } = pack;
+      const responseId = normalizeTrpcId(id);
 
       if (!method || typeof method !== 'string') {
         throw new Error('Invalid trpc method');
@@ -611,7 +620,7 @@ export class Service implements Shard.Service {
 
       if (isLoggableEvent) log('Shard client trpc method call result', result);
 
-      emitResponse({ id: id, result });
+      emitResponse({ id: responseId, result });
     } catch (e: any) {
       log('Shard client trpc error', pack, e);
 
@@ -627,7 +636,7 @@ export class Service implements Shard.Service {
         this.disconnectClient(shardClient, 'too many errors');
       } else {
         emitResponse({
-          id: (pack as any)?.id,
+          id: normalizeTrpcId((pack as any)?.id),
           result: {},
           error: e?.stack ? e.stack + '' : String(e),
         });
