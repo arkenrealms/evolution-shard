@@ -251,3 +251,10 @@ Add an in-memory auto-mode system for dragons, with:
   - Added explicit risk register (build OOM, runtime load, policy semantics, reconnect ownership, diagnostics log volume).
 - 2026-02-26 sprint chunk: blockers check — no new code/runtime blockers introduced in this documentation chunk; existing GitHub push/PR tooling blocker still prevents opening PRs and therefore blocks reviewer-feedback chunks (43/44) until PR is posted.
 - Next chunk target: chunk 41 retry (open shard PR), then proceed to chunk 43 once reviewers can comment.
+- 2026-02-26 sprint chunk: retried chunk 41 (open shard PR) from `/media/psf/shared/arken/evolution/shard`.
+  - Verified branch context remains `nel/evolution-shard-auto-mode-20260225` with clean working tree.
+  - Retry push command: `git push -u origin nel/evolution-shard-auto-mode-20260225`.
+  - Still blocked by host auth: `fatal: could not read Username for 'https://github.com': No such device or address`.
+  - Verified PR CLI path still unavailable: `gh: command not found`.
+- 2026-02-26 sprint chunk: blocker status unchanged — cannot open shard PR until GitHub credentials are configured on this runner (or branch is pushed externally) and a PR creation path is available (web UI or `gh`).
+- Next chunk target: chunk 41 retry immediately after credentials/tooling are available; once PR exists, move to chunk 43 (reviewer feedback round 1).
