@@ -65,7 +65,7 @@ Add an in-memory auto-mode system for dragons, with:
 37. [x] Commit shard changes.
 38. [~] Push protocol branch. (blocked: missing GitHub auth in this host session)
 39. [~] Push shard branch. (blocked: missing GitHub auth in this host session)
-40. [ ] Open protocol PR.
+40. [~] Open protocol PR. (blocked: no GitHub CLI on runner and HTTPS push/auth unavailable)
 41. [ ] Open shard PR (reference protocol PR).
 42. [ ] Post PR summary + risk list.
 43. [ ] Apply reviewer feedback round 1.
@@ -81,7 +81,8 @@ Add an in-memory auto-mode system for dragons, with:
   - `NODE_OPTIONS=--max-old-space-size=4096 npx tsc -p tsconfig.auto-mode.json --noEmit` also OOMed (exit 134).
 - Git commits require explicit identity override on this host unless repo/global git identity is configured.
 - Git pushes are currently blocked in this session due to missing GitHub HTTPS credentials (`fatal: could not read Username for 'https://github.com'`) for both protocol and shard branches.
-- Next chunk should proceed with PR creation (chunks 40-41) immediately after GitHub credentials are configured on this runner.
+- GitHub CLI is not installed on this runner (`gh: command not found`), so PR creation must be done via web UI (after push) or after installing/authing `gh`.
+- Next chunk should proceed with chunk 41 (open shard PR) after credentialed pushes + available PR creation path are in place.
 
 ## PR notes (draft)
 - Added focused unit coverage in `test/auto-mode.test.ts` for auto-mode AI target validity:
@@ -233,4 +234,8 @@ Add an in-memory auto-mode system for dragons, with:
   - Push command: `git push -u origin nel/evolution-shard-auto-mode-20260225`.
   - Blocked by auth on host: `fatal: could not read Username for 'https://github.com': No such device or address`.
 - 2026-02-26 sprint chunk: blocker update — shard push is also blocked pending GitHub credential availability on this runner.
-- Next chunk target: chunk 40 (open protocol PR) once GitHub credentials are configured and both branch pushes succeed.
+- 2026-02-26 sprint chunk: attempted chunk 40 (open protocol PR) from `/media/psf/shared/arken/evolution/protocol`.
+  - Attempted CLI PR creation with `gh pr create --base main --head nel/evolution-protocol-maintenance-20260220-0332 ...`.
+  - Blocked on runner tooling: `/bin/bash: gh: command not found`.
+  - PR creation remains additionally gated by prior push/auth blocker (`fatal: could not read Username for 'https://github.com'`).
+- Next chunk target: chunk 41 (open shard PR) after GitHub credentials are configured, branches are pushed, and a PR creation path (web UI or `gh`) is available.
