@@ -324,6 +324,13 @@ export class ClientService {
       return;
     }
 
+    if (this.ctx.autoModeClients?.[client.id]) {
+      delete this.ctx.autoModeClients[client.id];
+      this.ctx.emit.onBroadcast.mutate(['Auto mode disabled due to manual movement', 0], {
+        context: { client },
+      });
+    }
+
     const now = getTime();
     if (now - client.lastUpdate < this.ctx.config.forcedLatency) return;
     if (client.name === 'Testman' && now - client.lastUpdate < 200) return;

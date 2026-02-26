@@ -7,15 +7,25 @@ describe('ClientService auto mode', () => {
     address: '0xabc',
     isSpectating: false,
     isDead: false,
+    isJoining: false,
+    lastUpdate: 0,
   });
 
   const makeCtx = () => ({
     autoModeClients: {},
+    config: {
+      isMaintenance: false,
+      forcedLatency: Number.MAX_SAFE_INTEGER,
+    },
     emit: {
       onBroadcast: {
         mutate: jest.fn(),
       },
+      onMaintenance: {
+        mutate: jest.fn(),
+      },
     },
+    disconnectClient: jest.fn(),
   });
 
   test('enables auto mode with 24h ttl and records player identity', async () => {
@@ -137,5 +147,28 @@ describe('ClientService auto mode', () => {
         pattern: 'orbit',
       })
     );
+  });
+
+  test('manual update disables auto mode session', async () => {
+    const client: any = makeClient();
+    const ctx: any = makeCtx();
+    const service = new ClientService(ctx);
+
+    ctx.autoModeClients[client.id] = {
+      clientId: client.id,
+      address: client.address,
+      name: client.name,
+      enabledAt: 100,
+      expiresAt: 200,
+      nextDecisionAt: 120,
+      pattern: 'wander',
+    };
+
+    await service.updateMyself({ position: '0:0', target: '0:0', time: '0' } as any, { client } as any);
+
+    expect(ctx.autoModeClients[client.id]).toBeUndefined();
+    expect(ctx.emit.onBroadcast.mutate).toHaveBeenCalledWith(['Auto mode disabled due to manual movement', 0], {
+      context: { client },
+    });
   });
 });
