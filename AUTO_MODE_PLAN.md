@@ -60,7 +60,7 @@ Add an in-memory auto-mode system for dragons, with:
 32. [x] Review memory growth profile for long-running auto sessions.
 33. [x] Confirm 24h expiry exactness under timer jitter.
 34. [x] Verify cleanup on disconnect and reconnect edge cases.
-35. [ ] Prepare branch hygiene and split commits by concern.
+35. [x] Prepare branch hygiene and split commits by concern.
 36. [ ] Commit protocol changes.
 37. [ ] Commit shard changes.
 38. [ ] Push protocol branch.
@@ -209,4 +209,8 @@ Add an in-memory auto-mode system for dragons, with:
   - Added focused tests for reconnect dedupe with pre-existing current-id entry and for disconnect-time auto-mode cleanup in shard service.
 - Verified with: `npm test -- test/client.service.auto-mode.test.ts test/shard.service.auto-mode-disconnect.test.ts` (pass, 10 tests).
 - 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this cleanup-edge chunk; existing full-build OOM blocker remains unchanged.
-- Next chunk target: chunk 35 (prepare branch hygiene and split commits by concern).
+- 2026-02-26 sprint chunk: completed chunk 35 by preparing branch hygiene/PR packaging notes:
+  - Added `AUTO_MODE_PR_NOTES.md` with concern-based split plan (runtime, tests, docs), touched-file mapping, and rebase prep checklist.
+  - Verified working tree cleanliness and confirmed auto-mode scope isolation to feature-related runtime/test/docs files.
+- 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this branch-hygiene chunk; existing full-build OOM blocker remains unchanged.
+- Next chunk target: chunk 36 (commit protocol changes).
