@@ -51,7 +51,7 @@ Add an in-memory auto-mode system for dragons, with:
 23. [x] Document API in shard README (route + expected payload).
 24. [x] Create integration test notes for client team.
 25. [x] Smoke test in local shard runtime with one auto client.
-26. [ ] Smoke test with multiple clients + collision areas.
+26. [x] Smoke test with multiple clients + collision areas.
 27. [ ] Tune pattern intervals and movement variance for natural motion.
 28. [ ] Tune map collision fallback frequency.
 29. [ ] Ensure no event queue flooding from auto movement.
@@ -101,6 +101,7 @@ Add an in-memory auto-mode system for dragons, with:
 - Documented `toggleAutoMode` API contract in shard `README.md` (route, payload, auth policy, lifecycle/disable conditions, and broadcast messages) for downstream integrators.
 - Added `AUTO_MODE_INTEGRATION_TEST_NOTES.md` with a client-team integration checklist covering happy-path enable/disable, manual/spectate disable triggers, maintenance policy rejection, reconnect dedupe, TTL expiry validation strategy, and multi-client sanity checks.
 - Added `test/auto-mode.smoke.single-client.test.ts` as a focused local runtime smoke test for one client auto-mode lifecycle (enable -> server tick updates target/heartbeat -> disable).
+- Added `test/auto-mode.smoke.multi-client.test.ts` for multi-client smoke coverage across collision-area behavior, validating per-client tick updates and obstructed-target fallback during concurrent auto-mode decisions.
 
 ## Progress notes
 - Implemented route + state + fast-loop AI + TTL in source.
@@ -131,4 +132,7 @@ Add an in-memory auto-mode system for dragons, with:
 - 2026-02-26 sprint chunk: completed chunk 25 by adding `test/auto-mode.smoke.single-client.test.ts` for a one-client local runtime smoke flow (enable auto mode -> fast-loop tick drives server target/heartbeat -> disable).
 - Verified with: `npm test -- test/auto-mode.smoke.single-client.test.ts` (pass, 1 test).
 - 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this smoke-test chunk; existing full-build OOM blocker remains unchanged.
-- Next chunk target: chunk 26 (smoke test with multiple clients + collision areas).
+- 2026-02-26 sprint chunk: completed chunk 26 by adding `test/auto-mode.smoke.multi-client.test.ts` to validate two concurrent auto-mode clients where one computed target intersects a collision area and correctly falls back to `getUnobstructedPosition()`, while the other continues normal wander targeting.
+- Verified with: `npm test -- test/auto-mode.smoke.multi-client.test.ts` (pass, 1 test).
+- 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this multi-client smoke chunk; existing full-build OOM blocker remains unchanged.
+- Next chunk target: chunk 27 (tune pattern intervals and movement variance for natural motion).
