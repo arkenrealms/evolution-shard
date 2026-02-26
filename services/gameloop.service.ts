@@ -694,6 +694,8 @@ export class GameloopService {
         expired: 0,
         removedInactive: 0,
         fallbackTargets: 0,
+        emittedPlayerUpdates: 0,
+        skippedPlayerUpdates: 0,
         lastLogAt: 0,
       });
 
@@ -796,8 +798,38 @@ export class GameloopService {
         expired: diagnostics.expired,
         removedInactive: diagnostics.removedInactive,
         fallbackTargets: diagnostics.fallbackTargets,
+        emittedPlayerUpdates: diagnostics.emittedPlayerUpdates,
+        skippedPlayerUpdates: diagnostics.skippedPlayerUpdates,
       });
     }
+  }
+
+  private shouldEmitPlayerUpdate(client: Shard.Client, now: number): boolean {
+    const autoState = this.app.autoModeClients?.[client.id];
+    if (!autoState) return true;
+
+    const diagnostics =
+      this.app.autoModeDiagnostics ||
+      (this.app.autoModeDiagnostics = {
+        ticks: 0,
+        decisions: 0,
+        expired: 0,
+        removedInactive: 0,
+        fallbackTargets: 0,
+        emittedPlayerUpdates: 0,
+        skippedPlayerUpdates: 0,
+        lastLogAt: 0,
+      });
+
+    const minEmitIntervalMs = 120;
+    if (autoState.lastPlayerUpdateEmitAt && now - autoState.lastPlayerUpdateEmitAt < minEmitIntervalMs) {
+      diagnostics.skippedPlayerUpdates += 1;
+      return false;
+    }
+
+    autoState.lastPlayerUpdateEmitAt = now;
+    diagnostics.emittedPlayerUpdates += 1;
+    return true;
   }
 
   async fastGameloop() {
@@ -884,6 +916,8 @@ export class GameloopService {
         if (this.app.config.gameMode === 'Pandamonium' && this.app.pandas.includes(client.address)) {
           client.avatar = 2;
         }
+
+        if (!this.shouldEmitPlayerUpdate(client, now)) continue;
 
         this.app.emitAll.onUpdatePlayer.mutate([
           client.id,

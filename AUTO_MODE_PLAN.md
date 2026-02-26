@@ -54,7 +54,7 @@ Add an in-memory auto-mode system for dragons, with:
 26. [x] Smoke test with multiple clients + collision areas.
 27. [x] Tune pattern intervals and movement variance for natural motion.
 28. [x] Tune map collision fallback frequency.
-29. [ ] Ensure no event queue flooding from auto movement.
+29. [x] Ensure no event queue flooding from auto movement.
 30. [ ] Validate no adverse effects on anti-cheat checks.
 31. [ ] Add defensive checks around missing map/collider data.
 32. [ ] Review memory growth profile for long-running auto sessions.
@@ -110,6 +110,9 @@ Add an in-memory auto-mode system for dragons, with:
 - Updated focused tests to reflect tuned movement parameter ranges (`test/auto-mode.test.ts`, `test/auto-mode.smoke.multi-client.test.ts`).
 - Tuned collision fallback frequency in `tickAutoModeClients` by reusing each session's last valid target for a short cooldown window after an invalid/obstructed decision, reducing repeated fallback churn in high-collision zones.
 - Extended auto-mode session state with fallback-tracking fields (`lastFallbackAt`, `consecutiveFallbacks`, `lastValidTarget`) and added focused coverage for cooldown-based fallback reuse.
+- Added auto-mode update emission throttle in fast loop (`shouldEmitPlayerUpdate`) to cap `onUpdatePlayer` events to once per 120ms per auto-mode client, reducing queue pressure during high-frequency loops.
+- Extended auto-mode diagnostics with `emittedPlayerUpdates` and `skippedPlayerUpdates`, and included both counters in periodic `[AUTO_MODE_DIAGNOSTICS]` logs.
+- Added focused unit test coverage for throttle behavior in `test/auto-mode.test.ts`.
 
 ## Progress notes
 - Implemented route + state + fast-loop AI + TTL in source.
@@ -155,4 +158,11 @@ Add an in-memory auto-mode system for dragons, with:
   - Preserved existing boundary/obstruction safety checks and fallback path when cooldown reuse is unavailable.
 - Verified with: `npm test -- test/auto-mode.test.ts test/auto-mode.smoke.multi-client.test.ts` (pass, 8 tests).
 - 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this fallback-frequency chunk; existing full-build OOM blocker remains unchanged.
-- Next chunk target: chunk 29 (ensure no event queue flooding from auto movement).
+- 2026-02-26 sprint chunk: completed chunk 29 by adding auto-mode player update emission throttling to reduce event queue pressure from auto movement bursts:
+  - Added `shouldEmitPlayerUpdate` guard in `services/gameloop.service.ts` to throttle auto-mode `onUpdatePlayer` events to at most once per 120ms per auto session.
+  - Extended auto-mode session state with `lastPlayerUpdateEmitAt` and diagnostics with `emittedPlayerUpdates`/`skippedPlayerUpdates` counters.
+  - Extended `[AUTO_MODE_DIAGNOSTICS]` payload to include emitted vs skipped auto-mode player updates for operational visibility.
+  - Added focused unit coverage in `test/auto-mode.test.ts` for update-throttle behavior.
+- Verified with: `npm test -- test/auto-mode.test.ts` (pass, 8 tests).
+- 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this event-queue-throttling chunk; existing full-build OOM blocker remains unchanged.
+- Next chunk target: chunk 30 (validate no adverse effects on anti-cheat checks).

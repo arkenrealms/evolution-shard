@@ -96,6 +96,7 @@ type AutoModeState = {
   lastFallbackAt?: number;
   consecutiveFallbacks?: number;
   lastValidTarget?: Position;
+  lastPlayerUpdateEmitAt?: number;
 };
 
 type AutoModeDiagnostics = {
@@ -104,6 +105,8 @@ type AutoModeDiagnostics = {
   expired: number;
   removedInactive: number;
   fallbackTargets: number;
+  emittedPlayerUpdates: number;
+  skippedPlayerUpdates: number;
   lastLogAt: number;
 };
 

@@ -336,4 +336,39 @@ describe('auto mode', () => {
       getUnobstructedSpy.mockRestore();
     });
   });
+
+  describe('GameloopService.shouldEmitPlayerUpdate', () => {
+    test('throttles auto-mode player update emissions to prevent queue flooding', () => {
+      const app: any = {
+        autoModeClients: {
+          'c-1': {
+            clientId: 'c-1',
+            expiresAt: 999999,
+            nextDecisionAt: 0,
+            pattern: 'wander',
+          },
+        },
+        autoModeDiagnostics: {
+          ticks: 0,
+          decisions: 0,
+          expired: 0,
+          removedInactive: 0,
+          fallbackTargets: 0,
+          emittedPlayerUpdates: 0,
+          skippedPlayerUpdates: 0,
+          lastLogAt: 0,
+        },
+      };
+
+      const gameloop = new GameloopService(app);
+      const client: any = { id: 'c-1' };
+
+      expect((gameloop as any).shouldEmitPlayerUpdate(client, 1000)).toBe(true);
+      expect((gameloop as any).shouldEmitPlayerUpdate(client, 1050)).toBe(false);
+      expect((gameloop as any).shouldEmitPlayerUpdate(client, 1130)).toBe(true);
+
+      expect(app.autoModeDiagnostics.emittedPlayerUpdates).toBe(2);
+      expect(app.autoModeDiagnostics.skippedPlayerUpdates).toBe(1);
+    });
+  });
 });
