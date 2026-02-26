@@ -64,7 +64,7 @@ Add an in-memory auto-mode system for dragons, with:
 36. [x] Commit protocol changes.
 37. [x] Commit shard changes.
 38. [~] Push protocol branch. (blocked: missing GitHub auth in this host session)
-39. [ ] Push shard branch.
+39. [~] Push shard branch. (blocked: missing GitHub auth in this host session)
 40. [ ] Open protocol PR.
 41. [ ] Open shard PR (reference protocol PR).
 42. [ ] Post PR summary + risk list.
@@ -80,8 +80,8 @@ Add an in-memory auto-mode system for dragons, with:
   - `NODE_OPTIONS=--max-old-space-size=8192 npm run build` was killed (exit 137).
   - `NODE_OPTIONS=--max-old-space-size=4096 npx tsc -p tsconfig.auto-mode.json --noEmit` also OOMed (exit 134).
 - Git commits require explicit identity override on this host unless repo/global git identity is configured.
-- Git pushes are currently blocked in this session due to missing GitHub HTTPS credentials (`fatal: could not read Username for 'https://github.com'`).
-- Next chunk should try a higher-memory node/runner or an incremental/project-reference build split that avoids monolithic `tsc` heap spikes.
+- Git pushes are currently blocked in this session due to missing GitHub HTTPS credentials (`fatal: could not read Username for 'https://github.com'`) for both protocol and shard branches.
+- Next chunk should proceed with PR creation (chunks 40-41) immediately after GitHub credentials are configured on this runner.
 
 ## PR notes (draft)
 - Added focused unit coverage in `test/auto-mode.test.ts` for auto-mode AI target validity:
@@ -228,4 +228,9 @@ Add an in-memory auto-mode system for dragons, with:
   - Push command: `git push -u origin nel/evolution-protocol-maintenance-20260220-0332`.
   - Blocked by auth on host: `fatal: could not read Username for 'https://github.com': No such device or address`.
 - 2026-02-26 sprint chunk: blocker update — protocol push is blocked pending GitHub credential availability on this runner.
-- Next chunk target: chunk 38 retry after credentials are configured (then continue to chunk 39).
+- 2026-02-26 sprint chunk: attempted chunk 39 (push shard branch) from `/media/psf/shared/arken/evolution/shard`.
+  - Verified branch: `nel/evolution-shard-auto-mode-20260225`.
+  - Push command: `git push -u origin nel/evolution-shard-auto-mode-20260225`.
+  - Blocked by auth on host: `fatal: could not read Username for 'https://github.com': No such device or address`.
+- 2026-02-26 sprint chunk: blocker update — shard push is also blocked pending GitHub credential availability on this runner.
+- Next chunk target: chunk 40 (open protocol PR) once GitHub credentials are configured and both branch pushes succeed.
