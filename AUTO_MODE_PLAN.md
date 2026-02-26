@@ -44,7 +44,7 @@ Add an in-memory auto-mode system for dragons, with:
 16. [x] Add focused tests for `toggleAutoMode` path and expiry behavior.
 17. [x] Add focused tests for AI target validity (boundary + unobstructed fallback).
 18. [x] Add safeguard for duplicate sessions by address reconnect handling.
-19. [ ] Consider optional policy: auto mode disabled on manual `updateMyself` (if desired).
+19. [x] Consider optional policy: auto mode disabled on manual `updateMyself` (if desired).
 20. [ ] Verify role/policy expectations (user-level vs mod-level route use).
 21. [ ] Validate behavior under maintenance mode and spectate transitions.
 22. [ ] Add logging counters/diagnostics for auto ticks and expiry events.
@@ -90,6 +90,8 @@ Add an in-memory auto-mode system for dragons, with:
 - Validation command: `npm test -- test/auto-mode.test.ts`.
 - Added reconnect dedupe safeguard: auto-mode sessions are rebound by wallet address to the latest reconnecting client id (prevents stale duplicate address sessions).
 - Added focused tests for reconnect dedupe behavior in `test/client.service.auto-mode.test.ts`.
+- Added policy: any manual `updateMyself` call now disables active auto mode for that client and broadcasts `Auto mode disabled due to manual movement`.
+- Added focused coverage for manual-update disable behavior in `test/client.service.auto-mode.test.ts`.
 
 ## Progress notes
 - Implemented route + state + fast-loop AI + TTL in source.
@@ -101,4 +103,6 @@ Add an in-memory auto-mode system for dragons, with:
 - Verified with: `npm test -- test/auto-mode.test.ts` (pass, 5 tests).
 - 2026-02-25 sprint chunk: completed chunk 18 by adding reconnect dedupe (`rebindAutoModeSessionByAddress`) and wiring it into login flow to transfer existing auto-mode session state from stale client ids to the reconnecting client id by address.
 - Verified with: `npm test -- test/client.service.auto-mode.test.ts test/auto-mode.test.ts` (pass, 10 tests).
-- Next chunk target: chunk 19 (optional policy: disable auto mode on manual `updateMyself`).
+- 2026-02-25 sprint chunk: completed chunk 19 by disabling auto-mode session on manual `updateMyself` input, including player-facing broadcast and focused unit test coverage.
+- Verified with: `npm test -- test/client.service.auto-mode.test.ts` (pass, 6 tests).
+- Next chunk target: chunk 20 (verify role/policy expectations for `toggleAutoMode` route usage).
