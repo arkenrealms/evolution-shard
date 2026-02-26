@@ -81,9 +81,11 @@ describe('auto mode smoke (multi client + collision areas)', () => {
       .mockImplementation((position: any) => Math.abs(position.x) === 3 && position.y === 0);
 
     const randomSpy = jest.spyOn(util.number, 'random').mockImplementation(((min: number, max: number) => {
-      if (min === 900 && max === 2200) return 1000;
-      if (min === 2 && max === 5) return 3;
-      if (min === -2 && max === 2) return 0;
+      if (min === 1100 && max === 2600) return 1600;
+      if (min === 800 && max === 1700) return 1000;
+      if (min === 1200 && max === 2400) return 1800;
+      if (min === 1.6 && max === 4.2) return 3;
+      if (min === -1.3 && max === 1.3) return 0;
       return min;
     }) as any);
 

@@ -136,7 +136,9 @@ describe('auto mode', () => {
         .mockReturnValue({ x: 1, y: 1 } as any);
       const obstructedSpy = jest.spyOn(gameloop as any, 'isPositionObstructed').mockReturnValue(false);
       const randomSpy = jest.spyOn(util.number, 'random').mockImplementation(((min: number, max: number) => {
-        if (min === 900 && max === 2200) return 1000;
+        if (min === 1100 && max === 2600) return 1600;
+        if (min === 800 && max === 1700) return 1200;
+        if (min === 1200 && max === 2400) return 1800;
         return min;
       }) as any);
       const mathRandomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.2);
@@ -199,8 +201,11 @@ describe('auto mode', () => {
         .mockReturnValue(fallbackTarget as any);
       const obstructedSpy = jest.spyOn(gameloop as any, 'isPositionObstructed').mockReturnValue(false);
       const randomSpy = jest.spyOn(util.number, 'random').mockImplementation(((min: number, max: number) => {
-        if (min === 900 && max === 2200) return 1200; // next decision delay
-        if (min === 1 && max === 3) return 3; // orbit radius
+        if (min === 1100 && max === 2600) return 1600;
+        if (min === 800 && max === 1700) return 1200;
+        if (min === 1200 && max === 2400) return 1800; // next decision delay (orbit)
+        if (min === 0.45 && max === 0.9) return 0.9; // orbit angle step
+        if (min === 1.1 && max === 2.6) return 2.6; // orbit radius
         return min;
       }) as any);
       const mathRandomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.9); // orbit
@@ -251,9 +256,11 @@ describe('auto mode', () => {
         .mockReturnValue(fallbackTarget as any);
       const obstructedSpy = jest.spyOn(gameloop as any, 'isPositionObstructed').mockReturnValue(true);
       const randomSpy = jest.spyOn(util.number, 'random').mockImplementation(((min: number, max: number) => {
-        if (min === 900 && max === 2200) return 1100; // next decision delay
-        if (min === 2 && max === 5) return 3;
-        if (min === -2 && max === 2) return 0;
+        if (min === 1100 && max === 2600) return 1600;
+        if (min === 800 && max === 1700) return 1100; // next decision delay (zigzag)
+        if (min === 1200 && max === 2400) return 1800;
+        if (min === 1.6 && max === 4.2) return 3;
+        if (min === -1.3 && max === 1.3) return 0;
         return min;
       }) as any);
       const mathRandomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.7); // zigzag

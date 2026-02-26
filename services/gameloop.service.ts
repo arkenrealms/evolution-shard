@@ -722,15 +722,21 @@ export class GameloopService {
       diagnostics.decisions += 1;
 
       const roll = Math.random();
-      state.pattern = roll < 0.6 ? 'wander' : roll < 0.85 ? 'zigzag' : 'orbit';
-      state.nextDecisionAt = now + util.number.random(900, 2200);
+      state.pattern = roll < 0.58 ? 'wander' : roll < 0.82 ? 'zigzag' : 'orbit';
+
+      const decisionDelayByPattern = {
+        wander: util.number.random(1100, 2600),
+        zigzag: util.number.random(800, 1700),
+        orbit: util.number.random(1200, 2400),
+      } as const;
+      state.nextDecisionAt = now + decisionDelayByPattern[state.pattern];
 
       let nextTarget = this.getUnobstructedPosition();
 
       if (state.pattern === 'orbit') {
         state.anchor = state.anchor || this.getUnobstructedPosition();
-        state.orbitAngle = (state.orbitAngle || 0) + Math.PI / 3;
-        state.orbitRadius = util.number.random(1, 3);
+        state.orbitAngle = (state.orbitAngle || 0) + util.number.random(0.45, 0.9);
+        state.orbitRadius = util.number.random(1.1, 2.6);
 
         nextTarget = {
           x: util.number.normalizeFloat(state.anchor.x + Math.cos(state.orbitAngle) * state.orbitRadius, 3),
@@ -742,8 +748,8 @@ export class GameloopService {
         state.zigzagSide = state.zigzagSide === -1 ? 1 : -1;
         const side = state.zigzagSide || 1;
         nextTarget = {
-          x: util.number.normalizeFloat(client.position.x + util.number.random(2, 5) * side, 3),
-          y: util.number.normalizeFloat(client.position.y + util.number.random(-2, 2), 3),
+          x: util.number.normalizeFloat(client.position.x + util.number.random(1.6, 4.2) * side, 3),
+          y: util.number.normalizeFloat(client.position.y + util.number.random(-1.3, 1.3), 3),
         };
       }
 

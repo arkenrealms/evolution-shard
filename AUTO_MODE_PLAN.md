@@ -52,7 +52,7 @@ Add an in-memory auto-mode system for dragons, with:
 24. [x] Create integration test notes for client team.
 25. [x] Smoke test in local shard runtime with one auto client.
 26. [x] Smoke test with multiple clients + collision areas.
-27. [ ] Tune pattern intervals and movement variance for natural motion.
+27. [x] Tune pattern intervals and movement variance for natural motion.
 28. [ ] Tune map collision fallback frequency.
 29. [ ] Ensure no event queue flooding from auto movement.
 30. [ ] Validate no adverse effects on anti-cheat checks.
@@ -102,6 +102,12 @@ Add an in-memory auto-mode system for dragons, with:
 - Added `AUTO_MODE_INTEGRATION_TEST_NOTES.md` with a client-team integration checklist covering happy-path enable/disable, manual/spectate disable triggers, maintenance policy rejection, reconnect dedupe, TTL expiry validation strategy, and multi-client sanity checks.
 - Added `test/auto-mode.smoke.single-client.test.ts` as a focused local runtime smoke test for one client auto-mode lifecycle (enable -> server tick updates target/heartbeat -> disable).
 - Added `test/auto-mode.smoke.multi-client.test.ts` for multi-client smoke coverage across collision-area behavior, validating per-client tick updates and obstructed-target fallback during concurrent auto-mode decisions.
+- Tuned auto-mode motion cadence/variance in `services/gameloop.service.ts` for more natural movement:
+  - Pattern weights adjusted to 58% wander / 24% zigzag / 18% orbit.
+  - Decision intervals now vary by pattern (wander: 1100-2600ms, zigzag: 800-1700ms, orbit: 1200-2400ms).
+  - Orbit now uses smaller, smoother angle/radius steps (`+0.45..0.9` rad, radius `1.1..2.6`).
+  - Zigzag stride/lateral variance reduced to `x: 1.6..4.2`, `y: -1.3..1.3`.
+- Updated focused tests to reflect tuned movement parameter ranges (`test/auto-mode.test.ts`, `test/auto-mode.smoke.multi-client.test.ts`).
 
 ## Progress notes
 - Implemented route + state + fast-loop AI + TTL in source.
@@ -135,4 +141,10 @@ Add an in-memory auto-mode system for dragons, with:
 - 2026-02-26 sprint chunk: completed chunk 26 by adding `test/auto-mode.smoke.multi-client.test.ts` to validate two concurrent auto-mode clients where one computed target intersects a collision area and correctly falls back to `getUnobstructedPosition()`, while the other continues normal wander targeting.
 - Verified with: `npm test -- test/auto-mode.smoke.multi-client.test.ts` (pass, 1 test).
 - 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this multi-client smoke chunk; existing full-build OOM blocker remains unchanged.
-- Next chunk target: chunk 27 (tune pattern intervals and movement variance for natural motion).
+- 2026-02-26 sprint chunk: completed chunk 27 by tuning auto-mode movement cadence and variance for more natural motion in `tickAutoModeClients`:
+  - pattern weighting adjusted (wander/zigzag/orbit = 58/24/18).
+  - per-pattern decision delays introduced (wander 1100-2600ms, zigzag 800-1700ms, orbit 1200-2400ms).
+  - orbit and zigzag movement amplitude smoothed to reduce abrupt jumps.
+- Verified with: `npm test -- test/auto-mode.test.ts test/auto-mode.smoke.multi-client.test.ts` (pass, 7 tests).
+- 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this tuning chunk; existing full-build OOM blocker remains unchanged.
+- Next chunk target: chunk 28 (tune map collision fallback frequency).
