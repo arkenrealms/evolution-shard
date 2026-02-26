@@ -72,7 +72,7 @@ Add an in-memory auto-mode system for dragons, with:
 44. [ ] Apply reviewer feedback round 2.
 45. [ ] Final QA pass.
 46. [ ] Merge readiness checklist.
-47. [ ] Handoff notes for deploy/rollback.
+47. [x] Handoff notes for deploy/rollback.
 48. [ ] Close cron cycle with completion summary.
 
 ## Known blocker
@@ -305,3 +305,8 @@ Add an in-memory auto-mode system for dragons, with:
   - Prepared to apply feedback immediately once PR link/comments are available.
 - 2026-02-26 sprint chunk: blocker status unchanged — reviewer-feedback chunks (43/44) cannot progress until shard PR is opened.
 - Next chunk target: unblock chunk 41 by restoring GitHub push/PR path; once PR is posted and comments land, continue chunk 43.
+- 2026-02-26 sprint chunk: completed chunk 47 by adding deploy/rollback handoff guidance in `AUTO_MODE_PR_NOTES.md`.
+  - Added pre-deploy checklist, ordered deploy steps, post-deploy observability watchpoints, rollback sequence, and operator kill-switch notes.
+  - No runtime code changes in this chunk; this is release-ops documentation for safe rollout.
+- 2026-02-26 sprint chunk: blocker status unchanged — PR opening/reviewer-feedback work (chunks 41/43/44) remains blocked until GitHub push/PR path is restored on this host.
+- Next chunk target: retry chunk 41 immediately after credentials/tooling availability changes; then continue reviewer-feedback chunks.

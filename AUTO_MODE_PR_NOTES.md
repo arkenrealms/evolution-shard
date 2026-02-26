@@ -73,3 +73,37 @@ Use this as the cleanup target before opening PRs.
 3. **Behavior-policy risk (low):** maintenance/spectate/manual disable semantics could differ from product expectation if UX copy/policy changes.
 4. **Reconnect edge risk (low):** same-address dedupe keeps longest-lived session by design; verify this matches expected ownership semantics on shared-wallet test setups.
 5. **Observability noise risk (low):** periodic diagnostics logs may need tuning if shard log budgets are tight.
+
+## Deploy / rollback handoff notes (chunk 47)
+### Pre-deploy checklist
+- Confirm protocol and shard branches are pushed and PRs are open/linked.
+- Run focused validation suites listed above on the merge candidate SHA.
+- Verify shard runtime has memory headroom (full compile OOM on this host is known; runtime should still be observed post-deploy).
+- Confirm maintenance policy expectation with product/ops (non-mod users cannot enable auto mode during maintenance).
+
+### Deploy steps (recommended)
+1. Deploy protocol package containing `toggleAutoMode` router + service typing.
+2. Deploy shard service with auto-mode runtime changes.
+3. Smoke check with one client:
+   - enable auto mode,
+   - observe periodic movement updates and diagnostics,
+   - disable auto mode,
+   - verify expected broadcast messages.
+4. Smoke check with two clients near collider-heavy area; verify no update-flood symptoms in logs.
+
+### Post-deploy observability
+- Watch `[AUTO_MODE_DIAGNOSTICS]` every 60s for abnormal spikes in:
+  - `fallbackTargets`
+  - `skippedPlayerUpdates`
+  - `removedInactive`
+  - `expired`
+- Spot-check support logs for unexpected `Unauthorized` on maintenance toggles.
+
+### Rollback plan
+- If severe regression appears, roll back shard deployment to previous stable image/tag.
+- If protocol and shard become version-skewed, roll back protocol package to the pre-auto-mode version in lockstep.
+- After rollback, verify `toggleAutoMode` is unavailable or safely no-op according to reverted version behavior.
+
+### Operator runbook notes
+- Existing auto-mode sessions are in-memory only; shard restart naturally clears sessions.
+- During incident response, maintenance mode + restart is a safe kill switch for active auto-mode behavior.
