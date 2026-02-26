@@ -753,19 +753,36 @@ export class GameloopService {
         };
       }
 
-      if (
+      const invalidTarget =
         !Number.isFinite(nextTarget.x) ||
         !Number.isFinite(nextTarget.y) ||
         nextTarget.x < this.app.mapBoundary.x.min ||
         nextTarget.x > this.app.mapBoundary.x.max ||
         nextTarget.y < this.app.mapBoundary.y.min ||
         nextTarget.y > this.app.mapBoundary.y.max ||
-        this.isPositionObstructed(nextTarget)
-      ) {
-        diagnostics.fallbackTargets += 1;
-        nextTarget = this.getUnobstructedPosition();
+        this.isPositionObstructed(nextTarget);
+
+      if (invalidTarget) {
+        const fallbackCooldownMs = 2200;
+        const canReusePreviousTarget =
+          !!state.lastValidTarget &&
+          !!state.lastFallbackAt &&
+          now - state.lastFallbackAt < fallbackCooldownMs;
+
+        if (canReusePreviousTarget) {
+          nextTarget = state.lastValidTarget;
+        } else {
+          diagnostics.fallbackTargets += 1;
+          state.lastFallbackAt = now;
+          state.consecutiveFallbacks = (state.consecutiveFallbacks || 0) + 1;
+          nextTarget = this.getUnobstructedPosition();
+        }
+      } else {
+        state.lastValidTarget = nextTarget;
+        state.consecutiveFallbacks = 0;
       }
 
+      state.lastValidTarget = nextTarget;
       client.clientTarget = nextTarget;
       client.target = nextTarget;
     }

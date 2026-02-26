@@ -277,5 +277,63 @@ describe('auto mode', () => {
       obstructedSpy.mockRestore();
       getUnobstructedSpy.mockRestore();
     });
+
+    test('reuses previous valid target during fallback cooldown to reduce collision fallback frequency', () => {
+      const client: any = {
+        id: 'c-1',
+        position: { x: 0, y: 0 },
+        clientTarget: { x: 0, y: 0 },
+        target: { x: 0, y: 0 },
+        isDisconnected: false,
+        isDead: false,
+        isSpectating: false,
+        isJoining: false,
+      };
+
+      const app: any = {
+        autoModeClients: {
+          'c-1': {
+            clientId: 'c-1',
+            expiresAt: 999999,
+            nextDecisionAt: 0,
+            pattern: 'wander',
+            zigzagSide: -1,
+          },
+        },
+        clientLookup: { 'c-1': client },
+        emit: { onBroadcast: { mutate: jest.fn() } },
+        mapBoundary: { x: { min: -10, max: 10 }, y: { min: -10, max: 10 } },
+      };
+
+      const gameloop = new GameloopService(app);
+      const initialFallbackTarget = { x: -2.5, y: 2.5 };
+      const getUnobstructedSpy = jest
+        .spyOn(gameloop as any, 'getUnobstructedPosition')
+        .mockReturnValue(initialFallbackTarget as any);
+      const obstructedSpy = jest.spyOn(gameloop as any, 'isPositionObstructed').mockReturnValue(true);
+      const randomSpy = jest.spyOn(util.number, 'random').mockImplementation(((min: number, max: number) => {
+        if (min === 1100 && max === 2600) return 1200;
+        if (min === 800 && max === 1700) return 800; // quick next decision
+        if (min === 1200 && max === 2400) return 1400;
+        if (min === 1.6 && max === 4.2) return 3;
+        if (min === -1.3 && max === 1.3) return 0;
+        return min;
+      }) as any);
+      const mathRandomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.7); // zigzag -> obstructed
+
+      (gameloop as any).tickAutoModeClients(100);
+      (gameloop as any).tickAutoModeClients(900); // still inside 2200ms fallback cooldown
+
+      expect(client.clientTarget).toEqual(initialFallbackTarget);
+      expect(app.autoModeDiagnostics.fallbackTargets).toBe(1);
+      expect(app.autoModeClients['c-1'].lastFallbackAt).toBe(100);
+      expect(app.autoModeClients['c-1'].consecutiveFallbacks).toBe(1);
+      expect(obstructedSpy).toHaveBeenCalled();
+
+      mathRandomSpy.mockRestore();
+      randomSpy.mockRestore();
+      obstructedSpy.mockRestore();
+      getUnobstructedSpy.mockRestore();
+    });
   });
 });

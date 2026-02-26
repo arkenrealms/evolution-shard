@@ -53,7 +53,7 @@ Add an in-memory auto-mode system for dragons, with:
 25. [x] Smoke test in local shard runtime with one auto client.
 26. [x] Smoke test with multiple clients + collision areas.
 27. [x] Tune pattern intervals and movement variance for natural motion.
-28. [ ] Tune map collision fallback frequency.
+28. [x] Tune map collision fallback frequency.
 29. [ ] Ensure no event queue flooding from auto movement.
 30. [ ] Validate no adverse effects on anti-cheat checks.
 31. [ ] Add defensive checks around missing map/collider data.
@@ -108,6 +108,8 @@ Add an in-memory auto-mode system for dragons, with:
   - Orbit now uses smaller, smoother angle/radius steps (`+0.45..0.9` rad, radius `1.1..2.6`).
   - Zigzag stride/lateral variance reduced to `x: 1.6..4.2`, `y: -1.3..1.3`.
 - Updated focused tests to reflect tuned movement parameter ranges (`test/auto-mode.test.ts`, `test/auto-mode.smoke.multi-client.test.ts`).
+- Tuned collision fallback frequency in `tickAutoModeClients` by reusing each session's last valid target for a short cooldown window after an invalid/obstructed decision, reducing repeated fallback churn in high-collision zones.
+- Extended auto-mode session state with fallback-tracking fields (`lastFallbackAt`, `consecutiveFallbacks`, `lastValidTarget`) and added focused coverage for cooldown-based fallback reuse.
 
 ## Progress notes
 - Implemented route + state + fast-loop AI + TTL in source.
@@ -147,4 +149,10 @@ Add an in-memory auto-mode system for dragons, with:
   - orbit and zigzag movement amplitude smoothed to reduce abrupt jumps.
 - Verified with: `npm test -- test/auto-mode.test.ts test/auto-mode.smoke.multi-client.test.ts` (pass, 7 tests).
 - 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this tuning chunk; existing full-build OOM blocker remains unchanged.
-- Next chunk target: chunk 28 (tune map collision fallback frequency).
+- 2026-02-26 sprint chunk: completed chunk 28 by tuning map collision fallback frequency in `services/gameloop.service.ts`:
+  - Added invalid-target fallback cooldown logic (2200ms) so repeated obstructed/out-of-bounds decisions can reuse the last valid target instead of forcing a fresh unobstructed fallback every decision.
+  - Added session-level fallback tracking (`lastFallbackAt`, `consecutiveFallbacks`, `lastValidTarget`) to stabilize movement near dense colliders and reduce fallback churn.
+  - Preserved existing boundary/obstruction safety checks and fallback path when cooldown reuse is unavailable.
+- Verified with: `npm test -- test/auto-mode.test.ts test/auto-mode.smoke.multi-client.test.ts` (pass, 8 tests).
+- 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this fallback-frequency chunk; existing full-build OOM blocker remains unchanged.
+- Next chunk target: chunk 29 (ensure no event queue flooding from auto movement).

@@ -93,6 +93,9 @@ type AutoModeState = {
   orbitAngle?: number;
   orbitRadius?: number;
   zigzagSide?: 1 | -1;
+  lastFallbackAt?: number;
+  consecutiveFallbacks?: number;
+  lastValidTarget?: Position;
 };
 
 type AutoModeDiagnostics = {
