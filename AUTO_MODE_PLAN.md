@@ -273,3 +273,10 @@ Add an in-memory auto-mode system for dragons, with:
   - GitHub CLI check: `which gh` => not installed on runner.
 - 2026-02-26 sprint chunk: blocker status remains unchanged after retry — cannot open shard PR from this host without GitHub credentials and a PR creation path.
 - Next chunk target: chunk 41 retry immediately after host GitHub auth is configured (or branch is pushed externally), then continue with chunk 43.
+- 2026-02-26 sprint chunk: executed one additional chunk on chunk 41 retry (open shard PR) from `/media/psf/shared/arken/evolution/shard`.
+  - Branch/context check: `git rev-parse --abbrev-ref HEAD` => `nel/evolution-shard-auto-mode-20260225`; working tree remained clean prior to edits.
+  - Retry push command: `git push -u origin nel/evolution-shard-auto-mode-20260225`.
+  - Result remains blocked by host auth: `fatal: could not read Username for 'https://github.com': No such device or address`.
+  - PR CLI path check: `which gh` returned no installed binary on this runner.
+- 2026-02-26 sprint chunk: blocker status unchanged — shard PR cannot be opened from this host until GitHub credentials are configured (or branch is pushed externally) and a PR creation path is available.
+- Next chunk target: chunk 41 retry immediately after credentials/tooling are available; once PR exists, proceed to chunk 43 (reviewer feedback round 1).
