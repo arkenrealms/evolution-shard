@@ -103,6 +103,52 @@ describe('auto mode', () => {
       expect(mutate).toHaveBeenCalledWith(['Auto mode expired after 24h', 0], { context: { client } });
     });
 
+    test('expires exactly at ttl boundary and is jitter-safe (no early expiry before boundary)', () => {
+      const client: any = {
+        id: 'c-1',
+        name: 'Jitter Dragon',
+        position: { x: 0, y: 0 },
+        clientPosition: { x: 0, y: 0 },
+        clientTarget: { x: 0, y: 0 },
+        target: { x: 0, y: 0 },
+        isDisconnected: false,
+        isDead: false,
+        isSpectating: false,
+        isJoining: false,
+      };
+
+      const mutate = jest.fn();
+      const app: any = {
+        autoModeClients: {
+          'c-1': {
+            clientId: 'c-1',
+            expiresAt: 86_400_000,
+            nextDecisionAt: Number.MAX_SAFE_INTEGER,
+            pattern: 'wander',
+          },
+        },
+        clientLookup: { 'c-1': client },
+        emit: { onBroadcast: { mutate } },
+      };
+
+      const gameloop = new GameloopService(app);
+
+      // Simulated loop jitter around 24h boundary: should not expire before boundary.
+      (gameloop as any).tickAutoModeClients(86_399_998);
+      expect(app.autoModeClients['c-1']).toBeDefined();
+      expect(mutate).not.toHaveBeenCalled();
+
+      (gameloop as any).tickAutoModeClients(86_399_999);
+      expect(app.autoModeClients['c-1']).toBeDefined();
+      expect(mutate).not.toHaveBeenCalled();
+
+      // Exact boundary is treated as expired.
+      (gameloop as any).tickAutoModeClients(86_400_000);
+      expect(app.autoModeClients['c-1']).toBeUndefined();
+      expect(mutate).toHaveBeenCalledTimes(1);
+      expect(mutate).toHaveBeenCalledWith(['Auto mode expired after 24h', 0], { context: { client } });
+    });
+
     test('updates diagnostics counters and emits periodic diagnostics log', () => {
       const client: any = {
         id: 'c-1',
