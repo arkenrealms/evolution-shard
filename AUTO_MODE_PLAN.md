@@ -63,7 +63,7 @@ Add an in-memory auto-mode system for dragons, with:
 35. [x] Prepare branch hygiene and split commits by concern.
 36. [x] Commit protocol changes.
 37. [x] Commit shard changes.
-38. [ ] Push protocol branch.
+38. [~] Push protocol branch. (blocked: missing GitHub auth in this host session)
 39. [ ] Push shard branch.
 40. [ ] Open protocol PR.
 41. [ ] Open shard PR (reference protocol PR).
@@ -80,6 +80,7 @@ Add an in-memory auto-mode system for dragons, with:
   - `NODE_OPTIONS=--max-old-space-size=8192 npm run build` was killed (exit 137).
   - `NODE_OPTIONS=--max-old-space-size=4096 npx tsc -p tsconfig.auto-mode.json --noEmit` also OOMed (exit 134).
 - Git commits require explicit identity override on this host unless repo/global git identity is configured.
+- Git pushes are currently blocked in this session due to missing GitHub HTTPS credentials (`fatal: could not read Username for 'https://github.com'`).
 - Next chunk should try a higher-memory node/runner or an incremental/project-reference build split that avoids monolithic `tsc` heap spikes.
 
 ## PR notes (draft)
@@ -222,4 +223,9 @@ Add an in-memory auto-mode system for dragons, with:
   - Confirmed shard auto-mode work is incrementally committed on feature branch (recent commits include `f567313`, `8cf93a1`, `d291498`, `1ab989c`, `c85fd74`, plus docs/test support commits).
   - No additional shard code edits were required in this chunk because the implementation/test/doc changes were already committed incrementally.
 - 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this shard-commit-validation chunk; existing full-build OOM blocker remains unchanged.
-- Next chunk target: chunk 38 (push protocol branch).
+- 2026-02-26 sprint chunk: attempted chunk 38 (push protocol branch) from `/media/psf/shared/arken/evolution/protocol`.
+  - Verified branch: `nel/evolution-protocol-maintenance-20260220-0332`.
+  - Push command: `git push -u origin nel/evolution-protocol-maintenance-20260220-0332`.
+  - Blocked by auth on host: `fatal: could not read Username for 'https://github.com': No such device or address`.
+- 2026-02-26 sprint chunk: blocker update — protocol push is blocked pending GitHub credential availability on this runner.
+- Next chunk target: chunk 38 retry after credentials are configured (then continue to chunk 39).
