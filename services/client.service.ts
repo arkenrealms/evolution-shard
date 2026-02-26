@@ -17,13 +17,8 @@ export class ClientService {
     const address = client.address;
     if (!address) return;
 
-    const entries = Object.values(this.ctx.autoModeClients || {}).filter(
-      (state) => state.address === address && state.clientId !== client.id
-    );
+    const entries = Object.values(this.ctx.autoModeClients || {}).filter((state) => state.address === address);
     if (!entries.length) return;
-
-    const existingCurrent = this.ctx.autoModeClients[client.id];
-    if (existingCurrent) return;
 
     const stateToKeep = entries.sort((a, b) => b.expiresAt - a.expiresAt)[0];
 

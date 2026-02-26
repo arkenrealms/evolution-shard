@@ -59,7 +59,7 @@ Add an in-memory auto-mode system for dragons, with:
 31. [x] Add defensive checks around missing map/collider data.
 32. [x] Review memory growth profile for long-running auto sessions.
 33. [x] Confirm 24h expiry exactness under timer jitter.
-34. [ ] Verify cleanup on disconnect and reconnect edge cases.
+34. [x] Verify cleanup on disconnect and reconnect edge cases.
 35. [ ] Prepare branch hygiene and split commits by concern.
 36. [ ] Commit protocol changes.
 37. [ ] Commit shard changes.
@@ -125,6 +125,10 @@ Add an in-memory auto-mode system for dragons, with:
 - Added focused expiry-boundary coverage in `test/auto-mode.test.ts` to confirm 24h TTL handling is jitter-safe:
   - no early expiry at `expiresAt - 2ms` / `expiresAt - 1ms`.
   - expiry triggers exactly at `expiresAt` with a single broadcast.
+- Hardened reconnect dedupe in `rebindAutoModeSessionByAddress` to always collapse same-address duplicates (including when the reconnecting client id already had an entry), preserving the longest-lived session and removing stale duplicates.
+- Added focused coverage for disconnect/reconnect cleanup edges:
+  - `test/client.service.auto-mode.test.ts`: verifies duplicate same-address entries are deduped on reconnect even when current client id already has state.
+  - `test/shard.service.auto-mode-disconnect.test.ts`: verifies `disconnectClient` removes in-memory auto-mode state and client lookup entries for the disconnected client.
 
 ## Progress notes
 - Implemented route + state + fast-loop AI + TTL in source.
@@ -200,4 +204,9 @@ Add an in-memory auto-mode system for dragons, with:
   - Verified expiry occurs exactly at `expiresAt` with a single expiry broadcast.
 - Verified with: `npm test -- test/auto-mode.test.ts` (pass, 11 tests).
 - 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this expiry-jitter chunk; existing full-build OOM blocker remains unchanged.
-- Next chunk target: chunk 34 (verify cleanup on disconnect and reconnect edge cases).
+- 2026-02-26 sprint chunk: completed chunk 34 by verifying auto-mode cleanup across disconnect/reconnect edge cases:
+  - Updated reconnect dedupe (`rebindAutoModeSessionByAddress`) to always collapse same-address duplicates and retain the longest-lived session even if the reconnecting client id already has an entry.
+  - Added focused tests for reconnect dedupe with pre-existing current-id entry and for disconnect-time auto-mode cleanup in shard service.
+- Verified with: `npm test -- test/client.service.auto-mode.test.ts test/shard.service.auto-mode-disconnect.test.ts` (pass, 10 tests).
+- 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this cleanup-edge chunk; existing full-build OOM blocker remains unchanged.
+- Next chunk target: chunk 35 (prepare branch hygiene and split commits by concern).

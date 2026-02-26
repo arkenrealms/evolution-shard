@@ -149,6 +149,45 @@ describe('ClientService auto mode', () => {
     );
   });
 
+  test('dedupes reconnect sessions even when current client id already has auto mode state', () => {
+    const ctx: any = makeCtx();
+    const service = new ClientService(ctx);
+
+    ctx.autoModeClients = {
+      newClientId: {
+        clientId: 'newClientId',
+        address: '0xabc',
+        name: 'Current',
+        enabledAt: 300,
+        expiresAt: 1500,
+        nextDecisionAt: 320,
+        pattern: 'wander',
+      },
+      staleClientId: {
+        clientId: 'staleClientId',
+        address: '0xabc',
+        name: 'Stale',
+        enabledAt: 100,
+        expiresAt: 2200,
+        nextDecisionAt: 120,
+        pattern: 'orbit',
+      },
+    };
+
+    service.rebindAutoModeSessionByAddress({ id: 'newClientId', address: '0xabc', name: 'Player' } as any);
+
+    expect(Object.keys(ctx.autoModeClients)).toEqual(['newClientId']);
+    expect(ctx.autoModeClients.newClientId).toEqual(
+      expect.objectContaining({
+        clientId: 'newClientId',
+        address: '0xabc',
+        name: 'Player',
+        expiresAt: 2200,
+        pattern: 'orbit',
+      })
+    );
+  });
+
   test('manual update disables auto mode session', async () => {
     const client: any = makeClient();
     const ctx: any = makeCtx();
