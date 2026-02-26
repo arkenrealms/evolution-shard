@@ -292,3 +292,10 @@ Add an in-memory auto-mode system for dragons, with:
   - PR CLI path remains unavailable on runner: `gh: command not found`.
 - 2026-02-26 sprint chunk: blocker unchanged — PR cannot be opened from this host until GitHub credentials are available (or branch is pushed externally) and a PR creation path (web UI or `gh`) is available.
 - Next chunk target: chunk 41 retry immediately after credentials/tooling availability changes; then proceed to chunk 43.
+- 2026-02-26 sprint chunk: executed one 30-minute chunk on chunk 41 (open shard PR) with live blocker re-check from `/media/psf/shared/arken/evolution/shard`.
+  - Verified branch remains `nel/evolution-shard-auto-mode-20260225`.
+  - Retry push: `git push -u origin nel/evolution-shard-auto-mode-20260225`.
+  - Result still blocked by host GitHub auth: `fatal: could not read Username for 'https://github.com': No such device or address`.
+  - Confirmed GitHub CLI is still unavailable on runner (`which gh` returned no path).
+- 2026-02-26 sprint chunk: blocker unchanged — shard PR cannot be opened from this host until GitHub credentials are configured (or branch is pushed externally) and a PR creation path is available (web UI or `gh`).
+- Next chunk target: chunk 41 retry immediately after credentials/tooling availability changes; then proceed to chunk 43.
