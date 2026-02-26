@@ -42,7 +42,7 @@ Add an in-memory auto-mode system for dragons, with:
 14. [x] Run shard tests (`npm test`).
 15. [~] Address shard TypeScript build memory pressure and validate full compile. (attempted; still blocked by OOM)
 16. [x] Add focused tests for `toggleAutoMode` path and expiry behavior.
-17. [ ] Add focused tests for AI target validity (boundary + unobstructed fallback).
+17. [x] Add focused tests for AI target validity (boundary + unobstructed fallback).
 18. [ ] Add safeguard for duplicate sessions by address reconnect handling.
 19. [ ] Consider optional policy: auto mode disabled on manual `updateMyself` (if desired).
 20. [ ] Verify role/policy expectations (user-level vs mod-level route use).
@@ -79,7 +79,7 @@ Add an in-memory auto-mode system for dragons, with:
 - Full TypeScript compile remains blocked by memory limits on this host.
   - `NODE_OPTIONS=--max-old-space-size=8192 npm run build` was killed (exit 137).
   - `NODE_OPTIONS=--max-old-space-size=4096 npx tsc -p tsconfig.auto-mode.json --noEmit` also OOMed (exit 134).
-- Git commit is currently blocked by missing repo/user identity config (`user.name` / `user.email`).
+- Git commits require explicit identity override on this host unless repo/global git identity is configured.
 - Next chunk should try a higher-memory node/runner or an incremental/project-reference build split that avoids monolithic `tsc` heap spikes.
 
 ## Progress notes
@@ -88,4 +88,6 @@ Add an in-memory auto-mode system for dragons, with:
 - Shard tests succeeded.
 - 2026-02-25 sprint chunk: attempted chunk 15 build-memory remediation; collected reproducible OOM failure modes + exit codes.
 - 2026-02-25 sprint chunk: completed chunk 16 by adding `test/auto-mode.test.ts` with focused coverage for `toggleAutoMode` enable/disable state transitions and `tickAutoModeClients` 24h expiry cleanup/broadcast.
-- Next chunk target: chunk 17 (AI target validity tests for boundary + unobstructed fallback).
+- 2026-02-25 sprint chunk: completed chunk 17 by adding focused `tickAutoModeClients` tests for (a) out-of-bounds target fallback to `getUnobstructedPosition()` and (b) obstructed target fallback, with deterministic RNG stubs.
+- Verified with: `npm test -- test/auto-mode.test.ts` (pass, 5 tests).
+- Next chunk target: chunk 18 (duplicate session safeguard by address reconnect handling).
