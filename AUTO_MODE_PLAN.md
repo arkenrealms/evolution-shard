@@ -47,7 +47,7 @@ Add an in-memory auto-mode system for dragons, with:
 19. [x] Consider optional policy: auto mode disabled on manual `updateMyself` (if desired).
 20. [x] Verify role/policy expectations (user-level vs mod-level route use).
 21. [x] Validate behavior under maintenance mode and spectate transitions.
-22. [ ] Add logging counters/diagnostics for auto ticks and expiry events.
+22. [x] Add logging counters/diagnostics for auto ticks and expiry events.
 23. [ ] Document API in shard README (route + expected payload).
 24. [ ] Create integration test notes for client team.
 25. [ ] Smoke test in local shard runtime with one auto client.
@@ -97,6 +97,7 @@ Add an in-memory auto-mode system for dragons, with:
   - Enabling `toggleAutoMode` during maintenance is now blocked for non-mod clients (`Unauthorized`).
   - Entering spectate now clears active auto-mode session and broadcasts `Auto mode disabled due to spectate`.
 - Added focused coverage in `test/client.service.auto-mode.test.ts` for maintenance-mode enable rejection and spectate transition cleanup.
+- Added in-memory auto-mode diagnostics counters (`ticks`, `decisions`, `expired`, `removedInactive`, `fallbackTargets`) plus periodic 60s summary logging via `[AUTO_MODE_DIAGNOSTICS]` in fast-loop processing.
 
 ## Progress notes
 - Implemented route + state + fast-loop AI + TTL in source.
@@ -116,4 +117,8 @@ Add an in-memory auto-mode system for dragons, with:
   - non-mod clients cannot enable auto mode during maintenance.
   - spectate transition now clears active auto-mode session and emits disable broadcast.
 - Verified with: `npm test -- test/client.service.auto-mode.test.ts` (pass, 8 tests).
-- Next chunk target: chunk 22 (add logging counters/diagnostics for auto ticks and expiry events).
+- 2026-02-25 sprint chunk: completed chunk 22 by adding auto-mode diagnostics counters on shard state and periodic `[AUTO_MODE_DIAGNOSTICS]` logs from fast loop.
+  - Added counters for tick volume, decisions, expiries, inactive removals, and fallback target usage.
+  - Added focused test coverage for diagnostics counter updates + periodic log emission.
+- Verified with: `npm test -- test/auto-mode.test.ts` (pass, 6 tests).
+- Next chunk target: chunk 23 (document API in shard README with toggleAutoMode payload/behavior).

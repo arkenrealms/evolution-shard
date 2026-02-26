@@ -686,15 +686,30 @@ export class GameloopService {
     const autoEntries = Object.values(this.app.autoModeClients || {});
     if (!autoEntries.length) return;
 
+    const diagnostics =
+      this.app.autoModeDiagnostics ||
+      (this.app.autoModeDiagnostics = {
+        ticks: 0,
+        decisions: 0,
+        expired: 0,
+        removedInactive: 0,
+        fallbackTargets: 0,
+        lastLogAt: 0,
+      });
+
+    diagnostics.ticks += autoEntries.length;
+
     for (const state of autoEntries) {
       const client = this.app.clientLookup[state.clientId];
       if (!client || client.isDisconnected || client.isDead || client.isSpectating || client.isJoining) {
         delete this.app.autoModeClients[state.clientId];
+        diagnostics.removedInactive += 1;
         continue;
       }
 
       if (now >= state.expiresAt) {
         delete this.app.autoModeClients[state.clientId];
+        diagnostics.expired += 1;
         this.app.emit.onBroadcast.mutate(['Auto mode expired after 24h', 0], { context: { client } });
         continue;
       }
@@ -703,6 +718,8 @@ export class GameloopService {
       client.lastUpdate = now;
 
       if (now < state.nextDecisionAt) continue;
+
+      diagnostics.decisions += 1;
 
       const roll = Math.random();
       state.pattern = roll < 0.6 ? 'wander' : roll < 0.85 ? 'zigzag' : 'orbit';
@@ -739,11 +756,24 @@ export class GameloopService {
         nextTarget.y > this.app.mapBoundary.y.max ||
         this.isPositionObstructed(nextTarget)
       ) {
+        diagnostics.fallbackTargets += 1;
         nextTarget = this.getUnobstructedPosition();
       }
 
       client.clientTarget = nextTarget;
       client.target = nextTarget;
+    }
+
+    if (!diagnostics.lastLogAt || now - diagnostics.lastLogAt >= 60_000) {
+      diagnostics.lastLogAt = now;
+      log('[AUTO_MODE_DIAGNOSTICS]', {
+        activeSessions: Object.keys(this.app.autoModeClients || {}).length,
+        ticks: diagnostics.ticks,
+        decisions: diagnostics.decisions,
+        expired: diagnostics.expired,
+        removedInactive: diagnostics.removedInactive,
+        fallbackTargets: diagnostics.fallbackTargets,
+      });
     }
   }
 

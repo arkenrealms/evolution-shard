@@ -1,4 +1,7 @@
+jest.mock('@arken/node/log', () => ({ log: jest.fn() }), { virtual: true });
+
 import * as util from '@arken/node/util';
+import { log } from '@arken/node/log';
 import { ClientService } from '../services/client.service';
 import { GameloopService } from '../services/gameloop.service';
 
@@ -8,6 +11,7 @@ describe('auto mode', () => {
       const mutate = jest.fn();
       const ctx: any = {
         autoModeClients: {},
+        config: { isMaintenance: false },
         emit: { onBroadcast: { mutate } },
       };
 
@@ -97,6 +101,67 @@ describe('auto mode', () => {
 
       expect(app.autoModeClients['c-1']).toBeUndefined();
       expect(mutate).toHaveBeenCalledWith(['Auto mode expired after 24h', 0], { context: { client } });
+    });
+
+    test('updates diagnostics counters and emits periodic diagnostics log', () => {
+      const client: any = {
+        id: 'c-1',
+        name: 'Test Dragon',
+        position: { x: 0, y: 0 },
+        clientTarget: { x: 0, y: 0 },
+        target: { x: 0, y: 0 },
+        isDisconnected: false,
+        isDead: false,
+        isSpectating: false,
+        isJoining: false,
+      };
+
+      const app: any = {
+        autoModeClients: {
+          'c-1': {
+            clientId: 'c-1',
+            expiresAt: 120000,
+            nextDecisionAt: 0,
+            pattern: 'wander',
+          },
+        },
+        clientLookup: { 'c-1': client },
+        emit: { onBroadcast: { mutate: jest.fn() } },
+        mapBoundary: { x: { min: -10, max: 10 }, y: { min: -10, max: 10 } },
+      };
+
+      const gameloop = new GameloopService(app);
+      const getUnobstructedSpy = jest
+        .spyOn(gameloop as any, 'getUnobstructedPosition')
+        .mockReturnValue({ x: 1, y: 1 } as any);
+      const obstructedSpy = jest.spyOn(gameloop as any, 'isPositionObstructed').mockReturnValue(false);
+      const randomSpy = jest.spyOn(util.number, 'random').mockImplementation(((min: number, max: number) => {
+        if (min === 900 && max === 2200) return 1000;
+        return min;
+      }) as any);
+      const mathRandomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.2);
+
+      (gameloop as any).tickAutoModeClients(60_000);
+
+      expect(app.autoModeDiagnostics).toEqual(
+        expect.objectContaining({
+          ticks: 1,
+          decisions: 1,
+          expired: 0,
+          removedInactive: 0,
+          fallbackTargets: 0,
+          lastLogAt: 60_000,
+        })
+      );
+      expect(log).toHaveBeenCalledWith(
+        '[AUTO_MODE_DIAGNOSTICS]',
+        expect.objectContaining({ activeSessions: 1, ticks: 1, decisions: 1 })
+      );
+
+      mathRandomSpy.mockRestore();
+      randomSpy.mockRestore();
+      obstructedSpy.mockRestore();
+      getUnobstructedSpy.mockRestore();
     });
 
     test('falls back to unobstructed target when computed target is out of map bounds', () => {

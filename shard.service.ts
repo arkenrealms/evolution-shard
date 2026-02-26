@@ -95,6 +95,15 @@ type AutoModeState = {
   zigzagSide?: 1 | -1;
 };
 
+type AutoModeDiagnostics = {
+  ticks: number;
+  decisions: number;
+  expired: number;
+  removedInactive: number;
+  fallbackTargets: number;
+  lastLogAt: number;
+};
+
 export class Service implements Shard.Service {
   services: ServiceHelpers;
 
@@ -122,6 +131,7 @@ export class Service implements Shard.Service {
   clients: Shard.Client[];
   queuedClients: Shard.Client[];
   autoModeClients: Record<string, AutoModeState>;
+  autoModeDiagnostics: AutoModeDiagnostics;
   lastReward?: Reward;
   lastLeaderName?: string;
   config: Partial<Shard.Config>;
