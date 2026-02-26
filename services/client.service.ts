@@ -271,6 +271,10 @@ export class ClientService {
       throw new Error('Cannot toggle auto mode while spectating/dead');
     }
 
+    if (input.enabled && this.ctx.config.isMaintenance && !client.isMod) {
+      throw new Error('Unauthorized');
+    }
+
     if (!input.enabled) {
       delete this.ctx.autoModeClients[client.id];
       this.ctx.emit.onBroadcast.mutate(['Auto mode disabled', 0], { context: { client } });
@@ -511,6 +515,13 @@ export class ClientService {
       client.cameraSize = 8;
       client.overrideCameraSize = 8;
       client.log.spectating += 1;
+
+      if (this.ctx.autoModeClients?.[client.id]) {
+        delete this.ctx.autoModeClients[client.id];
+        this.ctx.emit.onBroadcast.mutate(['Auto mode disabled due to spectate', 0], {
+          context: { client },
+        });
+      }
 
       this.ctx.services.gameloop.syncSprites();
       this.ctx.emitAll.onSpectate.mutate([client.id, client.speed, client.cameraSize]);

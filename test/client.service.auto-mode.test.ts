@@ -171,4 +171,51 @@ describe('ClientService auto mode', () => {
       context: { client },
     });
   });
+
+  test('rejects enabling auto mode during maintenance for non-mod clients', async () => {
+    const client: any = { ...makeClient(), isMod: false };
+    const ctx: any = makeCtx();
+    ctx.config.isMaintenance = true;
+    const service = new ClientService(ctx);
+
+    await expect(service.toggleAutoMode({ enabled: true } as any, { client } as any)).rejects.toThrow('Unauthorized');
+  });
+
+  test('spectate transition disables active auto mode', async () => {
+    const client: any = {
+      ...makeClient(),
+      log: { spectating: 0 },
+      isInvincible: false,
+      avatar: 'a',
+      speed: 5,
+      cameraSize: 4,
+      overrideSpeed: undefined,
+      overrideCameraSize: undefined,
+    };
+    const ctx: any = {
+      ...makeCtx(),
+      config: { ...makeCtx().config, startAvatar: 'starter' },
+      services: { gameloop: { syncSprites: jest.fn() } },
+      emitAll: { onSpectate: { mutate: jest.fn() } },
+    };
+    const service = new ClientService(ctx);
+
+    ctx.autoModeClients[client.id] = {
+      clientId: client.id,
+      address: client.address,
+      name: client.name,
+      enabledAt: 100,
+      expiresAt: 200,
+      nextDecisionAt: 120,
+      pattern: 'wander',
+    };
+
+    await service.spectate(null as any, { client } as any);
+
+    expect(ctx.autoModeClients[client.id]).toBeUndefined();
+    expect(ctx.emit.onBroadcast.mutate).toHaveBeenCalledWith(['Auto mode disabled due to spectate', 0], {
+      context: { client },
+    });
+    expect(client.isSpectating).toBe(true);
+  });
 });

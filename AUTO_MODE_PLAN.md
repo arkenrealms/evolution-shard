@@ -46,7 +46,7 @@ Add an in-memory auto-mode system for dragons, with:
 18. [x] Add safeguard for duplicate sessions by address reconnect handling.
 19. [x] Consider optional policy: auto mode disabled on manual `updateMyself` (if desired).
 20. [x] Verify role/policy expectations (user-level vs mod-level route use).
-21. [ ] Validate behavior under maintenance mode and spectate transitions.
+21. [x] Validate behavior under maintenance mode and spectate transitions.
 22. [ ] Add logging counters/diagnostics for auto ticks and expiry events.
 23. [ ] Document API in shard README (route + expected payload).
 24. [ ] Create integration test notes for client team.
@@ -93,6 +93,10 @@ Add an in-memory auto-mode system for dragons, with:
 - Added policy: any manual `updateMyself` call now disables active auto mode for that client and broadcasts `Auto mode disabled due to manual movement`.
 - Added focused coverage for manual-update disable behavior in `test/client.service.auto-mode.test.ts`.
 - Added protocol router policy coverage in `protocol/test/shard.router.auto-mode-policy.test.ts` to verify `toggleAutoMode` remains accessible to user/guest roles while privileged routes (e.g. `maintenance`) stay mod-only.
+- Added maintenance/spectate transition safeguards in `services/client.service.ts`:
+  - Enabling `toggleAutoMode` during maintenance is now blocked for non-mod clients (`Unauthorized`).
+  - Entering spectate now clears active auto-mode session and broadcasts `Auto mode disabled due to spectate`.
+- Added focused coverage in `test/client.service.auto-mode.test.ts` for maintenance-mode enable rejection and spectate transition cleanup.
 
 ## Progress notes
 - Implemented route + state + fast-loop AI + TTL in source.
@@ -108,4 +112,8 @@ Add an in-memory auto-mode system for dragons, with:
 - Verified with: `npm test -- test/client.service.auto-mode.test.ts` (pass, 6 tests).
 - 2026-02-25 sprint chunk: completed chunk 20 by adding protocol-level router policy tests confirming `toggleAutoMode` is callable by user/guest roles and `maintenance` remains mod-gated.
 - Verified with: `cd protocol && npm test -- test/shard.router.auto-mode-policy.test.ts` (pass, 3 tests).
-- Next chunk target: chunk 21 (validate behavior under maintenance mode and spectate transitions).
+- 2026-02-25 sprint chunk: completed chunk 21 by validating maintenance/spectate transitions and hardening behavior:
+  - non-mod clients cannot enable auto mode during maintenance.
+  - spectate transition now clears active auto-mode session and emits disable broadcast.
+- Verified with: `npm test -- test/client.service.auto-mode.test.ts` (pass, 8 tests).
+- Next chunk target: chunk 22 (add logging counters/diagnostics for auto ticks and expiry events).
