@@ -49,7 +49,7 @@ Add an in-memory auto-mode system for dragons, with:
 21. [x] Validate behavior under maintenance mode and spectate transitions.
 22. [x] Add logging counters/diagnostics for auto ticks and expiry events.
 23. [x] Document API in shard README (route + expected payload).
-24. [ ] Create integration test notes for client team.
+24. [x] Create integration test notes for client team.
 25. [ ] Smoke test in local shard runtime with one auto client.
 26. [ ] Smoke test with multiple clients + collision areas.
 27. [ ] Tune pattern intervals and movement variance for natural motion.
@@ -99,6 +99,7 @@ Add an in-memory auto-mode system for dragons, with:
 - Added focused coverage in `test/client.service.auto-mode.test.ts` for maintenance-mode enable rejection and spectate transition cleanup.
 - Added in-memory auto-mode diagnostics counters (`ticks`, `decisions`, `expired`, `removedInactive`, `fallbackTargets`) plus periodic 60s summary logging via `[AUTO_MODE_DIAGNOSTICS]` in fast-loop processing.
 - Documented `toggleAutoMode` API contract in shard `README.md` (route, payload, auth policy, lifecycle/disable conditions, and broadcast messages) for downstream integrators.
+- Added `AUTO_MODE_INTEGRATION_TEST_NOTES.md` with a client-team integration checklist covering happy-path enable/disable, manual/spectate disable triggers, maintenance policy rejection, reconnect dedupe, TTL expiry validation strategy, and multi-client sanity checks.
 
 ## Progress notes
 - Implemented route + state + fast-loop AI + TTL in source.
@@ -124,4 +125,6 @@ Add an in-memory auto-mode system for dragons, with:
 - Verified with: `npm test -- test/auto-mode.test.ts` (pass, 6 tests).
 - 2026-02-25 sprint chunk: completed chunk 23 by documenting `toggleAutoMode` API in shard `README.md`, including route name, auth policy, payload shape, lifecycle/TTL semantics, disable triggers, maintenance restriction, cleanup conditions, and user-facing broadcast messages.
 - 2026-02-25 sprint chunk: blockers check — no new blockers introduced in this documentation-only chunk; existing full-build OOM blocker remains unchanged.
-- Next chunk target: chunk 24 (create integration test notes for client team).
+- 2026-02-26 sprint chunk: completed chunk 24 by adding `AUTO_MODE_INTEGRATION_TEST_NOTES.md` and linking it from `README.md` for client-team end-to-end validation guidance.
+- 2026-02-26 sprint chunk: blockers check — no new blockers introduced; existing full-build OOM blocker remains unchanged.
+- Next chunk target: chunk 25 (smoke test in local shard runtime with one auto client).

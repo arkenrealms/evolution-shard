@@ -53,3 +53,4 @@ Shard server package for Arken Evolution Isles.
   - `Auto mode disabled due to manual movement`
   - `Auto mode disabled due to spectate`
   - `Auto mode expired`
+- Client integration QA checklist: `AUTO_MODE_INTEGRATION_TEST_NOTES.md`
