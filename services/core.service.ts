@@ -155,6 +155,7 @@ export class CoreService {
     this.ctx.orbLookup = {};
     this.ctx.eventQueue = [];
     this.ctx.clients = [];
+    this.ctx.autoModeClients = {};
     this.ctx.lastReward = undefined;
     this.ctx.lastLeaderName = undefined;
     this.ctx.eventFlushedAt = getTime();

@@ -25,6 +25,6 @@
     "noEmit": true
   },
 
-  "include": ["./services", "/index.ts"],
+  "include": ["./services", "./index.ts"],
   "exclude": ["node_modules", "build"]
 }

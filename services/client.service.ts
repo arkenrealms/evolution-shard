@@ -233,6 +233,41 @@ export class ClientService {
     this.ctx.emitAll.onAction.mutate([client.id, input]);
   }
 
+  async toggleAutoMode(
+    input: Shard.RouterInput['toggleAutoMode'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['toggleAutoMode']> {
+    if (!input) return this.throwError(client, 'Input should not be void');
+
+    if (client.isSpectating || client.isDead) {
+      throw new Error('Cannot toggle auto mode while spectating/dead');
+    }
+
+    if (!input.enabled) {
+      delete this.ctx.autoModeClients[client.id];
+      this.ctx.emit.onBroadcast.mutate(['Auto mode disabled', 0], { context: { client } });
+      return { status: 1 } as Shard.RouterOutput['toggleAutoMode'];
+    }
+
+    const now = Date.now();
+    this.ctx.autoModeClients[client.id] = {
+      clientId: client.id,
+      address: client.address || undefined,
+      name: client.name,
+      enabledAt: now,
+      expiresAt: now + 24 * 60 * 60 * 1000,
+      nextDecisionAt: now,
+      pattern: 'wander',
+      orbitAngle: 0,
+      orbitRadius: 1.5,
+      zigzagSide: 1,
+    };
+
+    this.ctx.emit.onBroadcast.mutate(['Auto mode enabled for up to 24h', 0], { context: { client } });
+
+    return { status: 1 } as Shard.RouterOutput['toggleAutoMode'];
+  }
+
   throwError(client: any, text: string) {
     client.log.errors += 1;
 

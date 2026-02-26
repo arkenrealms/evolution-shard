@@ -657,6 +657,96 @@ export class GameloopService {
     setTimeout(() => this.slowGameloop(), this.app.config.slowLoopSeconds * 1000);
   }
 
+  private isPositionObstructed(position: Position): boolean {
+    for (const gameObject of mapData) {
+      if (!gameObject.Colliders || !gameObject.Colliders.length) continue;
+      for (const gameCollider of gameObject.Colliders) {
+        const collider = {
+          minX: gameCollider.Min[0],
+          maxX: gameCollider.Max[0],
+          minY: gameCollider.Min[1],
+          maxY: gameCollider.Max[1],
+        };
+
+        if (
+          position.x >= collider.minX &&
+          position.x <= collider.maxX &&
+          position.y >= collider.minY &&
+          position.y <= collider.maxY
+        ) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  private tickAutoModeClients(now: number): void {
+    const autoEntries = Object.values(this.app.autoModeClients || {});
+    if (!autoEntries.length) return;
+
+    for (const state of autoEntries) {
+      const client = this.app.clientLookup[state.clientId];
+      if (!client || client.isDisconnected || client.isDead || client.isSpectating || client.isJoining) {
+        delete this.app.autoModeClients[state.clientId];
+        continue;
+      }
+
+      if (now >= state.expiresAt) {
+        delete this.app.autoModeClients[state.clientId];
+        this.app.emit.onBroadcast.mutate(['Auto mode expired after 24h', 0], { context: { client } });
+        continue;
+      }
+
+      client.lastReportedTime = now;
+      client.lastUpdate = now;
+
+      if (now < state.nextDecisionAt) continue;
+
+      const roll = Math.random();
+      state.pattern = roll < 0.6 ? 'wander' : roll < 0.85 ? 'zigzag' : 'orbit';
+      state.nextDecisionAt = now + util.number.random(900, 2200);
+
+      let nextTarget = this.getUnobstructedPosition();
+
+      if (state.pattern === 'orbit') {
+        state.anchor = state.anchor || this.getUnobstructedPosition();
+        state.orbitAngle = (state.orbitAngle || 0) + Math.PI / 3;
+        state.orbitRadius = util.number.random(1, 3);
+
+        nextTarget = {
+          x: util.number.normalizeFloat(state.anchor.x + Math.cos(state.orbitAngle) * state.orbitRadius, 3),
+          y: util.number.normalizeFloat(state.anchor.y + Math.sin(state.orbitAngle) * state.orbitRadius, 3),
+        };
+      }
+
+      if (state.pattern === 'zigzag') {
+        state.zigzagSide = state.zigzagSide === -1 ? 1 : -1;
+        const side = state.zigzagSide || 1;
+        nextTarget = {
+          x: util.number.normalizeFloat(client.position.x + util.number.random(2, 5) * side, 3),
+          y: util.number.normalizeFloat(client.position.y + util.number.random(-2, 2), 3),
+        };
+      }
+
+      if (
+        !Number.isFinite(nextTarget.x) ||
+        !Number.isFinite(nextTarget.y) ||
+        nextTarget.x < this.app.mapBoundary.x.min ||
+        nextTarget.x > this.app.mapBoundary.x.max ||
+        nextTarget.y < this.app.mapBoundary.y.min ||
+        nextTarget.y > this.app.mapBoundary.y.max ||
+        this.isPositionObstructed(nextTarget)
+      ) {
+        nextTarget = this.getUnobstructedPosition();
+      }
+
+      client.clientTarget = nextTarget;
+      client.target = nextTarget;
+    }
+  }
+
   async fastGameloop() {
     if (!this.app.realm) {
       setTimeout(() => this.fastGameloop(), this.app.config.fastLoopSeconds * 1000);
@@ -668,6 +758,7 @@ export class GameloopService {
     try {
       const now = Date.now();
 
+      this.tickAutoModeClients(now);
       this.detectCollisions();
 
       if (FF.MASTER_MODE) {

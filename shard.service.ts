@@ -81,6 +81,20 @@ type ServiceHelpers = {
   interactions: InteractionsService;
 };
 
+type AutoModeState = {
+  clientId: string;
+  address?: string;
+  name: string;
+  enabledAt: number;
+  expiresAt: number;
+  nextDecisionAt: number;
+  pattern: 'wander' | 'orbit' | 'zigzag';
+  anchor?: Position;
+  orbitAngle?: number;
+  orbitRadius?: number;
+  zigzagSide?: 1 | -1;
+};
+
 export class Service implements Shard.Service {
   services: ServiceHelpers;
 
@@ -107,6 +121,7 @@ export class Service implements Shard.Service {
   eventQueue: Event[];
   clients: Shard.Client[];
   queuedClients: Shard.Client[];
+  autoModeClients: Record<string, AutoModeState>;
   lastReward?: Reward;
   lastLeaderName?: string;
   config: Partial<Shard.Config>;
@@ -390,6 +405,13 @@ export class Service implements Shard.Service {
     return this.services.client.action(input, ctx);
   }
 
+  async toggleAutoMode(
+    input: Shard.RouterInput['toggleAutoMode'],
+    ctx: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['toggleAutoMode']> {
+    return this.services.client.toggleAutoMode(input, ctx);
+  }
+
   async updateMyself(
     input: Shard.RouterInput['updateMyself'],
     ctx: Shard.ServiceContext
@@ -495,6 +517,7 @@ export class Service implements Shard.Service {
     this.clients = this.clients.filter((c) => c.id !== client.id);
 
     delete this.clientLookup[client.id];
+    delete this.autoModeClients[client.id];
 
     if (this.config.gameMode === 'Pandamonium') {
       this.emitAll.onBroadcast.mutate([
