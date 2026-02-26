@@ -66,7 +66,7 @@ Add an in-memory auto-mode system for dragons, with:
 38. [~] Push protocol branch. (blocked: missing GitHub auth in this host session)
 39. [~] Push shard branch. (blocked: missing GitHub auth in this host session)
 40. [~] Open protocol PR. (blocked: no GitHub CLI on runner and HTTPS push/auth unavailable)
-41. [ ] Open shard PR (reference protocol PR).
+41. [~] Open shard PR (reference protocol PR). (attempted; blocked by missing push auth + no gh CLI)
 42. [ ] Post PR summary + risk list.
 43. [ ] Apply reviewer feedback round 1.
 44. [ ] Apply reviewer feedback round 2.
@@ -238,4 +238,10 @@ Add an in-memory auto-mode system for dragons, with:
   - Attempted CLI PR creation with `gh pr create --base main --head nel/evolution-protocol-maintenance-20260220-0332 ...`.
   - Blocked on runner tooling: `/bin/bash: gh: command not found`.
   - PR creation remains additionally gated by prior push/auth blocker (`fatal: could not read Username for 'https://github.com'`).
-- Next chunk target: chunk 41 (open shard PR) after GitHub credentials are configured, branches are pushed, and a PR creation path (web UI or `gh`) is available.
+- 2026-02-26 sprint chunk: attempted chunk 41 (open shard PR) from `/media/psf/shared/arken/evolution/shard`.
+  - Verified branch: `nel/evolution-shard-auto-mode-20260225`.
+  - Push command: `git push -u origin nel/evolution-shard-auto-mode-20260225`.
+  - Blocked by auth on host: `fatal: could not read Username for 'https://github.com': No such device or address`.
+  - Attempted CLI PR creation with `gh pr create --base main --head nel/evolution-shard-auto-mode-20260225 ...`.
+  - Blocked on runner tooling: `/bin/bash: gh: command not found`.
+- Next chunk target: chunk 41 retry (open shard PR) once GitHub credentials are available and a PR creation path (web UI or `gh`) is available.
