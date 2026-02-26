@@ -82,6 +82,13 @@ Add an in-memory auto-mode system for dragons, with:
 - Git commits require explicit identity override on this host unless repo/global git identity is configured.
 - Next chunk should try a higher-memory node/runner or an incremental/project-reference build split that avoids monolithic `tsc` heap spikes.
 
+## PR notes (draft)
+- Added focused unit coverage in `test/auto-mode.test.ts` for auto-mode AI target validity:
+  - Out-of-bounds computed targets now verified to fallback to `getUnobstructedPosition()`.
+  - Obstructed computed targets now verified to fallback to `getUnobstructedPosition()`.
+- Maintains deterministic behavior in tests via stubs for `Math.random` and `util.number.random`.
+- Validation command: `npm test -- test/auto-mode.test.ts`.
+
 ## Progress notes
 - Implemented route + state + fast-loop AI + TTL in source.
 - Protocol build succeeded.
