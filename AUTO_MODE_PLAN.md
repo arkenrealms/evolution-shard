@@ -67,7 +67,7 @@ Add an in-memory auto-mode system for dragons, with:
 39. [~] Push shard branch. (blocked: missing GitHub auth in this host session)
 40. [~] Open protocol PR. (blocked: no GitHub CLI on runner and HTTPS push/auth unavailable)
 41. [~] Open shard PR (reference protocol PR). (attempted; blocked by missing push auth + no gh CLI)
-42. [ ] Post PR summary + risk list.
+42. [x] Post PR summary + risk list.
 43. [ ] Apply reviewer feedback round 1.
 44. [ ] Apply reviewer feedback round 2.
 45. [ ] Final QA pass.
@@ -245,3 +245,9 @@ Add an in-memory auto-mode system for dragons, with:
   - Attempted CLI PR creation with `gh pr create --base main --head nel/evolution-shard-auto-mode-20260225 ...`.
   - Blocked on runner tooling: `/bin/bash: gh: command not found`.
 - Next chunk target: chunk 41 retry (open shard PR) once GitHub credentials are available and a PR creation path (web UI or `gh`) is available.
+- 2026-02-26 sprint chunk: completed chunk 42 by drafting consolidated PR summary + risk list in `AUTO_MODE_PR_NOTES.md`:
+  - Added PR-ready "What changed" bullets spanning runtime, policy, diagnostics, tests, and docs.
+  - Added validation runbook commands for shard + protocol focused suites.
+  - Added explicit risk register (build OOM, runtime load, policy semantics, reconnect ownership, diagnostics log volume).
+- 2026-02-26 sprint chunk: blockers check — no new code/runtime blockers introduced in this documentation chunk; existing GitHub push/PR tooling blocker still prevents opening PRs and therefore blocks reviewer-feedback chunks (43/44) until PR is posted.
+- Next chunk target: chunk 41 retry (open shard PR), then proceed to chunk 43 once reviewers can comment.
