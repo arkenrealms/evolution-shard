@@ -280,6 +280,51 @@ describe('auto mode', () => {
       getUnobstructedSpy.mockRestore();
     });
 
+    test('handles missing map boundary defensively during auto tick decisions', () => {
+      const client: any = {
+        id: 'c-1',
+        position: { x: 0, y: 0 },
+        clientPosition: { x: 0, y: 0 },
+        clientTarget: { x: 0, y: 0 },
+        target: { x: 0, y: 0 },
+        isDisconnected: false,
+        isDead: false,
+        isSpectating: false,
+        isJoining: false,
+      };
+
+      const app: any = {
+        autoModeClients: {
+          'c-1': {
+            clientId: 'c-1',
+            expiresAt: 999999,
+            nextDecisionAt: 0,
+            pattern: 'wander',
+          },
+        },
+        clientLookup: { 'c-1': client },
+        emit: { onBroadcast: { mutate: jest.fn() } },
+        mapBoundary: undefined,
+      };
+
+      const gameloop = new GameloopService(app);
+      const fallbackTarget = { x: 2, y: 3 };
+      const getUnobstructedSpy = jest
+        .spyOn(gameloop as any, 'getUnobstructedPosition')
+        .mockReturnValue(fallbackTarget as any);
+      const obstructedSpy = jest.spyOn(gameloop as any, 'isPositionObstructed').mockReturnValue(false);
+      const randomSpy = jest.spyOn(util.number, 'random').mockImplementation(((min: number) => min) as any);
+      const mathRandomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.2);
+
+      expect(() => (gameloop as any).tickAutoModeClients(100)).not.toThrow();
+      expect(client.clientTarget).toEqual(fallbackTarget);
+
+      mathRandomSpy.mockRestore();
+      randomSpy.mockRestore();
+      obstructedSpy.mockRestore();
+      getUnobstructedSpy.mockRestore();
+    });
+
     test('reuses previous valid target during fallback cooldown to reduce collision fallback frequency', () => {
       const client: any = {
         id: 'c-1',

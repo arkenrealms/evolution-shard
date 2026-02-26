@@ -56,7 +56,7 @@ Add an in-memory auto-mode system for dragons, with:
 28. [x] Tune map collision fallback frequency.
 29. [x] Ensure no event queue flooding from auto movement.
 30. [x] Validate no adverse effects on anti-cheat checks.
-31. [ ] Add defensive checks around missing map/collider data.
+31. [x] Add defensive checks around missing map/collider data.
 32. [ ] Review memory growth profile for long-running auto sessions.
 33. [ ] Confirm 24h expiry exactness under timer jitter.
 34. [ ] Verify cleanup on disconnect and reconnect edge cases.
@@ -115,6 +115,12 @@ Add an in-memory auto-mode system for dragons, with:
 - Added focused unit test coverage for throttle behavior in `test/auto-mode.test.ts`.
 - Hardened auto-mode anti-cheat compatibility in `services/gameloop.service.ts` by syncing `client.clientPosition` to authoritative `client.position` on each auto tick, preventing false drift/phasing signals from stale manual-report position data.
 - Extended `test/auto-mode.test.ts` to assert auto-mode tick re-aligns `client.clientPosition`, validating the anti-cheat drift safeguard.
+- Added defensive map/collider handling in `services/gameloop.service.ts`:
+  - Introduced `getSafeMapBoundary()` fallback when `mapBoundary` is missing/malformed.
+  - Introduced `getMapColliders()` sanitizer that skips malformed collider entries instead of assuming valid `Min/Max` arrays.
+  - Updated collision and auto-target validation paths to use sanitized boundary/collider helpers.
+  - Added capped attempts + center fallback in `getUnobstructedPosition()` to avoid indefinite loops under bad map data.
+- Added focused coverage in `test/auto-mode.test.ts` for missing `mapBoundary` defensive behavior during auto ticks.
 
 ## Progress notes
 - Implemented route + state + fast-loop AI + TTL in source.
@@ -173,4 +179,11 @@ Add an in-memory auto-mode system for dragons, with:
 - Verified with: `npm test -- test/auto-mode.test.ts` (pass, 8 tests).
 - Additional regression check: `npm test -- test/client.service.auto-mode.test.ts` (pass, 8 tests).
 - 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this anti-cheat-validation chunk; existing full-build OOM blocker remains unchanged.
-- Next chunk target: chunk 31 (add defensive checks around missing map/collider data).
+- 2026-02-26 sprint chunk: completed chunk 31 by adding defensive map/collider safeguards in `services/gameloop.service.ts`:
+  - Added `getSafeMapBoundary()` fallback to protect auto-mode and collision logic from missing/malformed boundary objects.
+  - Added `getMapColliders()` sanitizer to tolerate missing/invalid collider entries.
+  - Updated `detectCollisions`, `isPositionObstructed`, `tickAutoModeClients`, and `getUnobstructedPosition` to reuse safe helpers.
+  - Added bounded retry logic in `getUnobstructedPosition` with center-point fallback to prevent infinite loop risk when collider data is pathological.
+- Verified with: `npm test -- test/auto-mode.test.ts` (pass, 9 tests).
+- 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this defensive-checks chunk; existing full-build OOM blocker remains unchanged.
+- Next chunk target: chunk 32 (review memory growth profile for long-running auto sessions).

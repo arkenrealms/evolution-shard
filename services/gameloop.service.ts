@@ -139,46 +139,38 @@ export class GameloopService {
   }
 
   getUnobstructedPosition(): Position {
-    const spawnBoundary = this.app.config.level2open ? this.app.spawnBoundary2 : this.app.spawnBoundary1;
-    let res: Position | null = null;
-    while (!res) {
+    const mapBoundary = this.getSafeMapBoundary();
+    const spawnBoundary =
+      (this.app.config.level2open ? this.app.spawnBoundary2 : this.app.spawnBoundary1) || mapBoundary;
+
+    const colliders = this.getMapColliders();
+    for (let attempt = 0; attempt < 100; attempt++) {
       let collided = false;
       const position = {
         x: randomPosition(spawnBoundary.x.min, spawnBoundary.x.max),
         y: randomPosition(spawnBoundary.y.min, spawnBoundary.y.max),
       };
-      for (const gameObject of mapData) {
-        if (!gameObject.Colliders || !gameObject.Colliders.length) continue;
-        for (const gameCollider of gameObject.Colliders) {
-          const collider = {
-            minX: gameCollider.Min[0],
-            maxX: gameCollider.Max[0],
-            minY: gameCollider.Min[1],
-            maxY: gameCollider.Max[1],
-          };
-          if (this.app.config.level2open && gameObject.Name === 'Level2Divider') {
-            continue;
-            // const diff = 25;
-            // collider.minY -= diff;
-            // collider.maxY -= diff;
-          }
-          if (
-            position.x >= collider.minX &&
-            position.x <= collider.maxX &&
-            position.y >= collider.minY &&
-            position.y <= collider.maxY
-          ) {
-            collided = true;
-            break;
-          }
+
+      for (const collider of colliders) {
+        if (this.app.config.level2open && collider.name === 'Level2Divider') continue;
+        if (
+          position.x >= collider.minX &&
+          position.x <= collider.maxX &&
+          position.y >= collider.minY &&
+          position.y <= collider.maxY
+        ) {
+          collided = true;
+          break;
         }
-        if (collided) break;
       }
-      if (!collided) {
-        res = position;
-      }
+
+      if (!collided) return position;
     }
-    return res;
+
+    return {
+      x: util.number.normalizeFloat((spawnBoundary.x.min + spawnBoundary.x.max) / 2, 3),
+      y: util.number.normalizeFloat((spawnBoundary.y.min + spawnBoundary.y.max) / 2, 3),
+    };
   }
 
   spawnSprites(amount: number): void {
@@ -325,6 +317,8 @@ export class GameloopService {
         1: this.app.config.avatarTouchDistance0,
         2: this.app.config.avatarTouchDistance0,
       };
+      const mapBoundary = this.getSafeMapBoundary();
+      const mapColliders = this.getMapColliders();
 
       for (const client of this.app.clients) {
         if (client.isDead || client.isSpectating || client.isJoining) continue;
@@ -348,20 +342,20 @@ export class GameloopService {
         );
 
         let outOfBounds = false;
-        if (position.x > this.app.mapBoundary.x.max) {
-          position.x = this.app.mapBoundary.x.max;
+        if (position.x > mapBoundary.x.max) {
+          position.x = mapBoundary.x.max;
           outOfBounds = true;
         }
-        if (position.x < this.app.mapBoundary.x.min) {
-          position.x = this.app.mapBoundary.x.min;
+        if (position.x < mapBoundary.x.min) {
+          position.x = mapBoundary.x.min;
           outOfBounds = true;
         }
-        if (position.y > this.app.mapBoundary.y.max) {
-          position.y = this.app.mapBoundary.y.max;
+        if (position.y > mapBoundary.y.max) {
+          position.y = mapBoundary.y.max;
           outOfBounds = true;
         }
-        if (position.y < this.app.mapBoundary.y.min) {
-          position.y = this.app.mapBoundary.y.min;
+        if (position.y < mapBoundary.y.min) {
+          position.y = mapBoundary.y.min;
           outOfBounds = true;
         }
 
@@ -372,39 +366,28 @@ export class GameloopService {
         let collided = false;
         let stuck = false;
 
-        for (const gameObject of mapData) {
-          if (!gameObject.Colliders || !gameObject.Colliders.length) continue;
-
-          for (const gameCollider of gameObject.Colliders) {
-            const collider = {
-              minX: gameCollider.Min[0],
-              maxX: gameCollider.Max[0],
-              minY: gameCollider.Min[1],
-              maxY: gameCollider.Max[1],
-            };
-
-            if (
-              position.x >= collider.minX &&
-              position.x <= collider.maxX &&
-              position.y >= collider.minY &&
-              position.y <= collider.maxY
-            ) {
-              if (gameObject.Name.startsWith('Land')) {
+        for (const collider of mapColliders) {
+          if (
+            position.x >= collider.minX &&
+            position.x <= collider.maxX &&
+            position.y >= collider.minY &&
+            position.y <= collider.maxY
+          ) {
+            if (collider.name.startsWith('Land')) {
+              stuck = true;
+            } else if (collider.name.startsWith('Island')) {
+              if (this.app.config.stickyIslands) {
                 stuck = true;
-              } else if (gameObject.Name.startsWith('Island')) {
-                if (this.app.config.stickyIslands) {
-                  stuck = true;
-                } else {
-                  collided = true;
-                }
-              } else if (gameObject.Name.indexOf('Collider') === 0) {
-                stuck = true;
-              } else if (gameObject.Name.indexOf('Level2Divider') === 0) {
-                if (!this.app.config.level2open) stuck = true;
+              } else {
+                collided = true;
               }
-
-              if (stuck) console.log('collide', gameObject.Name);
+            } else if (collider.name.indexOf('Collider') === 0) {
+              stuck = true;
+            } else if (collider.name.indexOf('Level2Divider') === 0) {
+              if (!this.app.config.level2open) stuck = true;
             }
+
+            if (stuck) console.log('collide', collider.name);
           }
 
           if (stuck || collided) break;
@@ -657,25 +640,60 @@ export class GameloopService {
     setTimeout(() => this.slowGameloop(), this.app.config.slowLoopSeconds * 1000);
   }
 
-  private isPositionObstructed(position: Position): boolean {
-    for (const gameObject of mapData) {
-      if (!gameObject.Colliders || !gameObject.Colliders.length) continue;
-      for (const gameCollider of gameObject.Colliders) {
-        const collider = {
-          minX: gameCollider.Min[0],
-          maxX: gameCollider.Max[0],
-          minY: gameCollider.Min[1],
-          maxY: gameCollider.Max[1],
-        };
+  private getSafeMapBoundary(): Boundary {
+    const fallback: Boundary = { x: { min: -50, max: 50 }, y: { min: -50, max: 50 } };
+    const source = this.app?.mapBoundary;
 
-        if (
-          position.x >= collider.minX &&
-          position.x <= collider.maxX &&
-          position.y >= collider.minY &&
-          position.y <= collider.maxY
-        ) {
-          return true;
-        }
+    if (
+      source &&
+      Number.isFinite(source?.x?.min) &&
+      Number.isFinite(source?.x?.max) &&
+      Number.isFinite(source?.y?.min) &&
+      Number.isFinite(source?.y?.max)
+    ) {
+      return source;
+    }
+
+    return fallback;
+  }
+
+  private getMapColliders(): Array<{ name: string; minX: number; maxX: number; minY: number; maxY: number }> {
+    const colliders: Array<{ name: string; minX: number; maxX: number; minY: number; maxY: number }> = [];
+    if (!Array.isArray(mapData)) return colliders;
+
+    for (const gameObject of mapData as any[]) {
+      if (!gameObject?.Colliders || !Array.isArray(gameObject.Colliders)) continue;
+
+      for (const gameCollider of gameObject.Colliders) {
+        const minX = gameCollider?.Min?.[0];
+        const minY = gameCollider?.Min?.[1];
+        const maxX = gameCollider?.Max?.[0];
+        const maxY = gameCollider?.Max?.[1];
+
+        if (![minX, minY, maxX, maxY].every(Number.isFinite)) continue;
+
+        colliders.push({
+          name: String(gameObject?.Name || ''),
+          minX,
+          maxX,
+          minY,
+          maxY,
+        });
+      }
+    }
+
+    return colliders;
+  }
+
+  private isPositionObstructed(position: Position): boolean {
+    for (const collider of this.getMapColliders()) {
+      if (
+        position.x >= collider.minX &&
+        position.x <= collider.maxX &&
+        position.y >= collider.minY &&
+        position.y <= collider.maxY
+      ) {
+        return true;
       }
     }
 
@@ -761,13 +779,14 @@ export class GameloopService {
         };
       }
 
+      const mapBoundary = this.getSafeMapBoundary();
       const invalidTarget =
         !Number.isFinite(nextTarget.x) ||
         !Number.isFinite(nextTarget.y) ||
-        nextTarget.x < this.app.mapBoundary.x.min ||
-        nextTarget.x > this.app.mapBoundary.x.max ||
-        nextTarget.y < this.app.mapBoundary.y.min ||
-        nextTarget.y > this.app.mapBoundary.y.max ||
+        nextTarget.x < mapBoundary.x.min ||
+        nextTarget.x > mapBoundary.x.max ||
+        nextTarget.y < mapBoundary.y.min ||
+        nextTarget.y > mapBoundary.y.max ||
         this.isPositionObstructed(nextTarget);
 
       if (invalidTarget) {
