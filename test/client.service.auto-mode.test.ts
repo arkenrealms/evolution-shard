@@ -1,6 +1,6 @@
 import { ClientService } from '../services/client.service';
 
-describe('ClientService.toggleAutoMode', () => {
+describe('ClientService auto mode', () => {
   const makeClient = () => ({
     id: 'c1',
     name: 'AutoDragon',
@@ -67,6 +67,75 @@ describe('ClientService.toggleAutoMode', () => {
 
     await expect(service.toggleAutoMode({ enabled: true } as any, { client } as any)).rejects.toThrow(
       'Cannot toggle auto mode while spectating/dead'
+    );
+  });
+
+  test('rebinds auto mode session to reconnecting client with same address', () => {
+    const ctx: any = makeCtx();
+    const service = new ClientService(ctx);
+
+    ctx.autoModeClients = {
+      oldClientId: {
+        clientId: 'oldClientId',
+        address: '0xabc',
+        name: 'OldName',
+        enabledAt: 100,
+        expiresAt: 200,
+        nextDecisionAt: 120,
+        pattern: 'wander',
+      },
+    };
+
+    service.rebindAutoModeSessionByAddress({ id: 'newClientId', address: '0xabc', name: 'NewName' } as any);
+
+    expect(ctx.autoModeClients.oldClientId).toBeUndefined();
+    expect(ctx.autoModeClients.newClientId).toEqual(
+      expect.objectContaining({
+        clientId: 'newClientId',
+        address: '0xabc',
+        name: 'NewName',
+        enabledAt: 100,
+        expiresAt: 200,
+      })
+    );
+  });
+
+  test('keeps longest-lived session when multiple stale entries share same address', () => {
+    const ctx: any = makeCtx();
+    const service = new ClientService(ctx);
+
+    ctx.autoModeClients = {
+      older: {
+        clientId: 'older',
+        address: '0xabc',
+        name: 'A',
+        enabledAt: 100,
+        expiresAt: 1000,
+        nextDecisionAt: 120,
+        pattern: 'wander',
+      },
+      newer: {
+        clientId: 'newer',
+        address: '0xabc',
+        name: 'B',
+        enabledAt: 200,
+        expiresAt: 2000,
+        nextDecisionAt: 220,
+        pattern: 'orbit',
+      },
+    };
+
+    service.rebindAutoModeSessionByAddress({ id: 'reconnected', address: '0xabc', name: 'Player' } as any);
+
+    expect(Object.keys(ctx.autoModeClients)).toEqual(['reconnected']);
+    expect(ctx.autoModeClients.reconnected).toEqual(
+      expect.objectContaining({
+        clientId: 'reconnected',
+        address: '0xabc',
+        name: 'Player',
+        expiresAt: 2000,
+        pattern: 'orbit',
+      })
     );
   });
 });

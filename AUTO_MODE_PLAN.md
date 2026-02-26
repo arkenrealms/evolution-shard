@@ -43,7 +43,7 @@ Add an in-memory auto-mode system for dragons, with:
 15. [~] Address shard TypeScript build memory pressure and validate full compile. (attempted; still blocked by OOM)
 16. [x] Add focused tests for `toggleAutoMode` path and expiry behavior.
 17. [x] Add focused tests for AI target validity (boundary + unobstructed fallback).
-18. [ ] Add safeguard for duplicate sessions by address reconnect handling.
+18. [x] Add safeguard for duplicate sessions by address reconnect handling.
 19. [ ] Consider optional policy: auto mode disabled on manual `updateMyself` (if desired).
 20. [ ] Verify role/policy expectations (user-level vs mod-level route use).
 21. [ ] Validate behavior under maintenance mode and spectate transitions.
@@ -88,6 +88,8 @@ Add an in-memory auto-mode system for dragons, with:
   - Obstructed computed targets now verified to fallback to `getUnobstructedPosition()`.
 - Maintains deterministic behavior in tests via stubs for `Math.random` and `util.number.random`.
 - Validation command: `npm test -- test/auto-mode.test.ts`.
+- Added reconnect dedupe safeguard: auto-mode sessions are rebound by wallet address to the latest reconnecting client id (prevents stale duplicate address sessions).
+- Added focused tests for reconnect dedupe behavior in `test/client.service.auto-mode.test.ts`.
 
 ## Progress notes
 - Implemented route + state + fast-loop AI + TTL in source.
@@ -97,4 +99,6 @@ Add an in-memory auto-mode system for dragons, with:
 - 2026-02-25 sprint chunk: completed chunk 16 by adding `test/auto-mode.test.ts` with focused coverage for `toggleAutoMode` enable/disable state transitions and `tickAutoModeClients` 24h expiry cleanup/broadcast.
 - 2026-02-25 sprint chunk: completed chunk 17 by adding focused `tickAutoModeClients` tests for (a) out-of-bounds target fallback to `getUnobstructedPosition()` and (b) obstructed target fallback, with deterministic RNG stubs.
 - Verified with: `npm test -- test/auto-mode.test.ts` (pass, 5 tests).
-- Next chunk target: chunk 18 (duplicate session safeguard by address reconnect handling).
+- 2026-02-25 sprint chunk: completed chunk 18 by adding reconnect dedupe (`rebindAutoModeSessionByAddress`) and wiring it into login flow to transfer existing auto-mode session state from stale client ids to the reconnecting client id by address.
+- Verified with: `npm test -- test/client.service.auto-mode.test.ts test/auto-mode.test.ts` (pass, 10 tests).
+- Next chunk target: chunk 19 (optional policy: disable auto mode on manual `updateMyself`).

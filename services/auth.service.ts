@@ -133,6 +133,8 @@ export class AuthService {
       client.log.connects += 1;
     }
 
+    this.ctx.services.client.rebindAutoModeSessionByAddress(client);
+
     this.ctx.emit.onLogin.mutate([client.id, client.name, client.network, client.address, client.device], {
       context: { client },
     });

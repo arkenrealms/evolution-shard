@@ -13,6 +13,34 @@ export class ClientService {
 
   init() {}
 
+  rebindAutoModeSessionByAddress(client: Pick<Shard.Client, 'id' | 'address' | 'name'>): void {
+    const address = client.address;
+    if (!address) return;
+
+    const entries = Object.values(this.ctx.autoModeClients || {}).filter(
+      (state) => state.address === address && state.clientId !== client.id
+    );
+    if (!entries.length) return;
+
+    const existingCurrent = this.ctx.autoModeClients[client.id];
+    if (existingCurrent) return;
+
+    const stateToKeep = entries.sort((a, b) => b.expiresAt - a.expiresAt)[0];
+
+    for (const [key, state] of Object.entries(this.ctx.autoModeClients || {})) {
+      if (state.address === address) {
+        delete this.ctx.autoModeClients[key];
+      }
+    }
+
+    this.ctx.autoModeClients[client.id] = {
+      ...stateToKeep,
+      clientId: client.id,
+      address,
+      name: client.name,
+    };
+  }
+
   async forceJoin(
     input: Shard.RouterInput['forceJoin'],
     { client }: Shard.ServiceContext
