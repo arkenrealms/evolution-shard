@@ -83,6 +83,7 @@ Add an in-memory auto-mode system for dragons, with:
 - Git pushes are currently blocked in this session due to missing GitHub HTTPS credentials (`fatal: could not read Username for 'https://github.com'`) for both protocol and shard branches.
 - GitHub CLI is not installed on this runner (`gh: command not found`), so PR creation must be done via web UI (after push) or after installing/authing `gh`.
 - Next chunk should proceed with chunk 41 (open shard PR) after credentialed pushes + available PR creation path are in place.
+- 2026-02-26 recheck: chunk 38 push retry confirms blocker still active in current host session.
 
 ## PR notes (draft)
 - Added focused unit coverage in `test/auto-mode.test.ts` for auto-mode AI target validity:
@@ -218,6 +219,10 @@ Add an in-memory auto-mode system for dragons, with:
 - 2026-02-26 sprint chunk: completed chunk 36 by committing protocol auto-mode surface changes in `/media/psf/shared/arken/evolution/protocol`:
   - Commit: `7c78c46` (`feat(shard-protocol): add toggleAutoMode route and service typing`).
   - Scope: added `toggleAutoMode` router mutation input contract and `Service.toggleAutoMode` typing.
+- 2026-02-26 sprint chunk: executed chunk 38 (push protocol branch) by retrying push from `/media/psf/shared/arken/evolution/protocol`.
+  - Result: still blocked by missing GitHub HTTPS credentials in this host session (`fatal: could not read Username for 'https://github.com': No such device or address`).
+  - No code changes were required for this chunk; implementation state remains unchanged.
+  - Next chunk remains blocked on credentialed push/PR path (38 -> 41 dependency chain).
 - 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this protocol-commit chunk; existing full-build OOM blocker remains unchanged.
 - 2026-02-26 sprint chunk: completed chunk 37 by validating shard branch commit state in `/media/psf/shared/arken/evolution/shard`:
   - Confirmed clean working tree (`git status --short` produced no pending changes).
