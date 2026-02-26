@@ -33,3 +33,23 @@ Shard server package for Arken Evolution Isles.
 ## Test harness status
 - Added package-level `test` script so `rushx test` is available.
 - Added local Jest config (`jest.config.cjs`) for TypeScript unit tests in `test/*.test.ts`.
+
+## Auto mode API (`toggleAutoMode`)
+- Route: `shard.toggleAutoMode` (tRPC mutation).
+- Auth policy: available to user-level and guest-level clients (not mod-only).
+- Payload:
+  - `enabled: boolean` — `true` enables auto mode, `false` disables it.
+- Behavior:
+  - On enable, the shard creates/updates an in-memory auto-mode session for the calling client.
+  - Session TTL is 24 hours from enable time.
+  - While active, server-side movement AI updates the client target automatically (no per-frame movement RPC required).
+  - Any manual movement update (`updateMyself`) disables active auto mode for that client.
+  - Entering spectate disables active auto mode.
+  - Enabling during maintenance is rejected for non-mod clients.
+  - On expiry, disconnect, or explicit disable, session state is cleaned up.
+- Broadcasts:
+  - `Auto mode enabled`
+  - `Auto mode disabled`
+  - `Auto mode disabled due to manual movement`
+  - `Auto mode disabled due to spectate`
+  - `Auto mode expired`

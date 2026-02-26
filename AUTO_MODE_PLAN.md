@@ -48,7 +48,7 @@ Add an in-memory auto-mode system for dragons, with:
 20. [x] Verify role/policy expectations (user-level vs mod-level route use).
 21. [x] Validate behavior under maintenance mode and spectate transitions.
 22. [x] Add logging counters/diagnostics for auto ticks and expiry events.
-23. [ ] Document API in shard README (route + expected payload).
+23. [x] Document API in shard README (route + expected payload).
 24. [ ] Create integration test notes for client team.
 25. [ ] Smoke test in local shard runtime with one auto client.
 26. [ ] Smoke test with multiple clients + collision areas.
@@ -121,4 +121,6 @@ Add an in-memory auto-mode system for dragons, with:
   - Added counters for tick volume, decisions, expiries, inactive removals, and fallback target usage.
   - Added focused test coverage for diagnostics counter updates + periodic log emission.
 - Verified with: `npm test -- test/auto-mode.test.ts` (pass, 6 tests).
-- Next chunk target: chunk 23 (document API in shard README with toggleAutoMode payload/behavior).
+- 2026-02-25 sprint chunk: completed chunk 23 by documenting `toggleAutoMode` API in shard `README.md`, including route name, auth policy, payload shape, lifecycle/TTL semantics, disable triggers, maintenance restriction, cleanup conditions, and user-facing broadcast messages.
+- 2026-02-25 sprint chunk: blockers check — no new blockers introduced in this documentation-only chunk; existing full-build OOM blocker remains unchanged.
+- Next chunk target: chunk 24 (create integration test notes for client team).
