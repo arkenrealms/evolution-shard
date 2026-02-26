@@ -58,7 +58,7 @@ Add an in-memory auto-mode system for dragons, with:
 30. [x] Validate no adverse effects on anti-cheat checks.
 31. [x] Add defensive checks around missing map/collider data.
 32. [x] Review memory growth profile for long-running auto sessions.
-33. [ ] Confirm 24h expiry exactness under timer jitter.
+33. [x] Confirm 24h expiry exactness under timer jitter.
 34. [ ] Verify cleanup on disconnect and reconnect edge cases.
 35. [ ] Prepare branch hygiene and split commits by concern.
 36. [ ] Commit protocol changes.
@@ -122,6 +122,9 @@ Add an in-memory auto-mode system for dragons, with:
   - Updated collision and auto-target validation paths to use sanitized boundary/collider helpers.
   - Added capped attempts + center fallback in `getUnobstructedPosition()` to avoid indefinite loops under bad map data.
 - Added focused coverage in `test/auto-mode.test.ts` for missing `mapBoundary` defensive behavior during auto ticks.
+- Added focused expiry-boundary coverage in `test/auto-mode.test.ts` to confirm 24h TTL handling is jitter-safe:
+  - no early expiry at `expiresAt - 2ms` / `expiresAt - 1ms`.
+  - expiry triggers exactly at `expiresAt` with a single broadcast.
 
 ## Progress notes
 - Implemented route + state + fast-loop AI + TTL in source.
@@ -192,4 +195,9 @@ Add an in-memory auto-mode system for dragons, with:
   - Verified inactive/disconnected cleanup still removes the session entry after long-run ticking, limiting retained map size.
 - Verified with: `npm test -- test/auto-mode.test.ts` (pass, 10 tests).
 - 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this memory-profile chunk; existing full-build OOM blocker remains unchanged.
-- Next chunk target: chunk 33 (confirm 24h expiry exactness under timer jitter).
+- 2026-02-26 sprint chunk: completed chunk 33 by confirming 24h expiry exactness under timer jitter in `test/auto-mode.test.ts`:
+  - Added boundary checks proving no early expiry just before TTL boundary (`expiresAt - 2ms`, `expiresAt - 1ms`).
+  - Verified expiry occurs exactly at `expiresAt` with a single expiry broadcast.
+- Verified with: `npm test -- test/auto-mode.test.ts` (pass, 11 tests).
+- 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this expiry-jitter chunk; existing full-build OOM blocker remains unchanged.
+- Next chunk target: chunk 34 (verify cleanup on disconnect and reconnect edge cases).
