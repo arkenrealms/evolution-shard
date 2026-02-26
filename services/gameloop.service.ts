@@ -718,6 +718,12 @@ export class GameloopService {
 
       client.lastReportedTime = now;
       client.lastUpdate = now;
+      // Keep client-reported position aligned with authoritative position while in auto mode,
+      // so anti-cheat distance drift checks do not falsely mark phased state.
+      client.clientPosition = {
+        x: util.number.normalizeFloat(client.position.x, 4),
+        y: util.number.normalizeFloat(client.position.y, 4),
+      };
 
       if (now < state.nextDecisionAt) continue;
 

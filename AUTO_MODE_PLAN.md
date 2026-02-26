@@ -55,7 +55,7 @@ Add an in-memory auto-mode system for dragons, with:
 27. [x] Tune pattern intervals and movement variance for natural motion.
 28. [x] Tune map collision fallback frequency.
 29. [x] Ensure no event queue flooding from auto movement.
-30. [ ] Validate no adverse effects on anti-cheat checks.
+30. [x] Validate no adverse effects on anti-cheat checks.
 31. [ ] Add defensive checks around missing map/collider data.
 32. [ ] Review memory growth profile for long-running auto sessions.
 33. [ ] Confirm 24h expiry exactness under timer jitter.
@@ -113,6 +113,8 @@ Add an in-memory auto-mode system for dragons, with:
 - Added auto-mode update emission throttle in fast loop (`shouldEmitPlayerUpdate`) to cap `onUpdatePlayer` events to once per 120ms per auto-mode client, reducing queue pressure during high-frequency loops.
 - Extended auto-mode diagnostics with `emittedPlayerUpdates` and `skippedPlayerUpdates`, and included both counters in periodic `[AUTO_MODE_DIAGNOSTICS]` logs.
 - Added focused unit test coverage for throttle behavior in `test/auto-mode.test.ts`.
+- Hardened auto-mode anti-cheat compatibility in `services/gameloop.service.ts` by syncing `client.clientPosition` to authoritative `client.position` on each auto tick, preventing false drift/phasing signals from stale manual-report position data.
+- Extended `test/auto-mode.test.ts` to assert auto-mode tick re-aligns `client.clientPosition`, validating the anti-cheat drift safeguard.
 
 ## Progress notes
 - Implemented route + state + fast-loop AI + TTL in source.
@@ -165,4 +167,10 @@ Add an in-memory auto-mode system for dragons, with:
   - Added focused unit coverage in `test/auto-mode.test.ts` for update-throttle behavior.
 - Verified with: `npm test -- test/auto-mode.test.ts` (pass, 8 tests).
 - 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this event-queue-throttling chunk; existing full-build OOM blocker remains unchanged.
-- Next chunk target: chunk 30 (validate no adverse effects on anti-cheat checks).
+- 2026-02-26 sprint chunk: completed chunk 30 by validating/guarding anti-cheat behavior for auto-mode ticks:
+  - Synced `client.clientPosition` to authoritative `client.position` during `tickAutoModeClients` heartbeat updates so drift checks in collision processing do not produce false phased signals from stale manual report data.
+  - Extended focused coverage in `test/auto-mode.test.ts` to assert client-position re-alignment during auto ticks.
+- Verified with: `npm test -- test/auto-mode.test.ts` (pass, 8 tests).
+- Additional regression check: `npm test -- test/client.service.auto-mode.test.ts` (pass, 8 tests).
+- 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this anti-cheat-validation chunk; existing full-build OOM blocker remains unchanged.
+- Next chunk target: chunk 31 (add defensive checks around missing map/collider data).

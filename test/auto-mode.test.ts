@@ -108,6 +108,7 @@ describe('auto mode', () => {
         id: 'c-1',
         name: 'Test Dragon',
         position: { x: 0, y: 0 },
+        clientPosition: { x: -9, y: -9 },
         clientTarget: { x: 0, y: 0 },
         target: { x: 0, y: 0 },
         isDisconnected: false,
@@ -155,6 +156,7 @@ describe('auto mode', () => {
           lastLogAt: 60_000,
         })
       );
+      expect(client.clientPosition).toEqual({ x: 0, y: 0 });
       expect(log).toHaveBeenCalledWith(
         '[AUTO_MODE_DIAGNOSTICS]',
         expect.objectContaining({ activeSessions: 1, ticks: 1, decisions: 1 })
