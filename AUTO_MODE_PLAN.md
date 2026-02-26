@@ -70,7 +70,7 @@ Add an in-memory auto-mode system for dragons, with:
 42. [x] Post PR summary + risk list.
 43. [~] Apply reviewer feedback round 1. (blocked: shard PR not open yet, so no reviewer comments available)
 44. [ ] Apply reviewer feedback round 2.
-45. [ ] Final QA pass.
+45. [x] Final QA pass.
 46. [ ] Merge readiness checklist.
 47. [x] Handoff notes for deploy/rollback.
 48. [ ] Close cron cycle with completion summary.
@@ -310,3 +310,9 @@ Add an in-memory auto-mode system for dragons, with:
   - No runtime code changes in this chunk; this is release-ops documentation for safe rollout.
 - 2026-02-26 sprint chunk: blocker status unchanged — PR opening/reviewer-feedback work (chunks 41/43/44) remains blocked until GitHub push/PR path is restored on this host.
 - Next chunk target: retry chunk 41 immediately after credentials/tooling availability changes; then continue reviewer-feedback chunks.
+- 2026-02-26 sprint chunk: completed chunk 45 (Final QA pass) by running the focused shard + protocol validation matrix on current feature branches.
+  - Shard: `npm test -- test/auto-mode.test.ts test/client.service.auto-mode.test.ts test/shard.service.auto-mode-disconnect.test.ts test/auto-mode.smoke.single-client.test.ts test/auto-mode.smoke.multi-client.test.ts` (pass: 5 suites, 23 tests).
+  - Protocol: `npm test -- test/shard.router.auto-mode-policy.test.ts` (pass: 1 suite, 3 tests).
+  - Outcome: no new regressions found; implementation remains QA-green at focused-suite level.
+- 2026-02-26 sprint chunk: blocker status unchanged after chunk 45 — GitHub push/auth + PR creation path are still unavailable on this host, so merge/PR workflow chunks remain gated.
+- Next chunk target: chunk 46 (merge readiness checklist), with PR-opening dependency caveat noted until credentials/tooling are restored.

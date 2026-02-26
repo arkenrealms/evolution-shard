@@ -107,3 +107,12 @@ Use this as the cleanup target before opening PRs.
 ### Operator runbook notes
 - Existing auto-mode sessions are in-memory only; shard restart naturally clears sessions.
 - During incident response, maintenance mode + restart is a safe kill switch for active auto-mode behavior.
+
+## Final QA pass (chunk 45)
+- ✅ Shard focused matrix passed:
+  - `npm test -- test/auto-mode.test.ts test/client.service.auto-mode.test.ts test/shard.service.auto-mode-disconnect.test.ts test/auto-mode.smoke.single-client.test.ts test/auto-mode.smoke.multi-client.test.ts`
+  - Result: **5 suites / 23 tests passed**
+- ✅ Protocol policy test passed:
+  - `npm test -- test/shard.router.auto-mode-policy.test.ts`
+  - Result: **1 suite / 3 tests passed**
+- QA verdict: no focused-suite regressions detected; ready to proceed to merge-readiness checklist once PR/push path is unblocked.
