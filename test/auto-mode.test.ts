@@ -382,6 +382,83 @@ describe('auto mode', () => {
       obstructedSpy.mockRestore();
       getUnobstructedSpy.mockRestore();
     });
+
+    test('keeps auto-mode session state bounded over long-running ticks and cleans up inactive clients', () => {
+      const client: any = {
+        id: 'c-1',
+        name: 'LongRunner',
+        position: { x: 1, y: 1 },
+        clientPosition: { x: 1, y: 1 },
+        clientTarget: { x: 1, y: 1 },
+        target: { x: 1, y: 1 },
+        isDisconnected: false,
+        isDead: false,
+        isSpectating: false,
+        isJoining: false,
+      };
+
+      const app: any = {
+        autoModeClients: {
+          'c-1': {
+            clientId: 'c-1',
+            address: '0xabc',
+            name: 'LongRunner',
+            enabledAt: 0,
+            expiresAt: 24 * 60 * 60 * 1000,
+            nextDecisionAt: 0,
+            pattern: 'wander',
+          },
+        },
+        clientLookup: { 'c-1': client },
+        emit: { onBroadcast: { mutate: jest.fn() } },
+        mapBoundary: { x: { min: -10, max: 10 }, y: { min: -10, max: 10 } },
+      };
+
+      const gameloop = new GameloopService(app);
+      const getUnobstructedSpy = jest
+        .spyOn(gameloop as any, 'getUnobstructedPosition')
+        .mockReturnValue({ x: 2, y: 2 } as any);
+      const obstructedSpy = jest.spyOn(gameloop as any, 'isPositionObstructed').mockReturnValue(false);
+      const randomSpy = jest.spyOn(util.number, 'random').mockImplementation(((min: number, max: number) => {
+        if (min === 1100 && max === 2600) return 1300;
+        if (min === 800 && max === 1700) return 900;
+        if (min === 1200 && max === 2400) return 1500;
+        if (min === 0.45 && max === 0.9) return 0.5;
+        if (min === 1.1 && max === 2.6) return 1.4;
+        if (min === 1.6 && max === 4.2) return 2;
+        if (min === -1.3 && max === 1.3) return 0.1;
+        return min;
+      }) as any);
+      const mathRandomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.2);
+
+      for (let now = 1_000; now <= 300_000; now += 1_000) {
+        (gameloop as any).tickAutoModeClients(now);
+      }
+
+      const state = app.autoModeClients['c-1'];
+      expect(Object.keys(state).sort()).toEqual([
+        'address',
+        'clientId',
+        'consecutiveFallbacks',
+        'enabledAt',
+        'expiresAt',
+        'lastValidTarget',
+        'name',
+        'nextDecisionAt',
+        'pattern',
+      ]);
+      expect(Object.keys(app.autoModeClients)).toEqual(['c-1']);
+
+      client.isDisconnected = true;
+      (gameloop as any).tickAutoModeClients(301_000);
+      expect(app.autoModeClients['c-1']).toBeUndefined();
+      expect(app.autoModeDiagnostics.removedInactive).toBeGreaterThanOrEqual(1);
+
+      mathRandomSpy.mockRestore();
+      randomSpy.mockRestore();
+      obstructedSpy.mockRestore();
+      getUnobstructedSpy.mockRestore();
+    });
   });
 
   describe('GameloopService.shouldEmitPlayerUpdate', () => {

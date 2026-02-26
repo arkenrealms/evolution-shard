@@ -57,7 +57,7 @@ Add an in-memory auto-mode system for dragons, with:
 29. [x] Ensure no event queue flooding from auto movement.
 30. [x] Validate no adverse effects on anti-cheat checks.
 31. [x] Add defensive checks around missing map/collider data.
-32. [ ] Review memory growth profile for long-running auto sessions.
+32. [x] Review memory growth profile for long-running auto sessions.
 33. [ ] Confirm 24h expiry exactness under timer jitter.
 34. [ ] Verify cleanup on disconnect and reconnect edge cases.
 35. [ ] Prepare branch hygiene and split commits by concern.
@@ -113,6 +113,7 @@ Add an in-memory auto-mode system for dragons, with:
 - Added auto-mode update emission throttle in fast loop (`shouldEmitPlayerUpdate`) to cap `onUpdatePlayer` events to once per 120ms per auto-mode client, reducing queue pressure during high-frequency loops.
 - Extended auto-mode diagnostics with `emittedPlayerUpdates` and `skippedPlayerUpdates`, and included both counters in periodic `[AUTO_MODE_DIAGNOSTICS]` logs.
 - Added focused unit test coverage for throttle behavior in `test/auto-mode.test.ts`.
+- Added long-run bounded-state coverage in `test/auto-mode.test.ts` to profile memory-growth risk: repeated auto ticks keep a single session's keyset stable (no unbounded per-tick field accumulation) and session entries are removed once client becomes inactive/disconnected.
 - Hardened auto-mode anti-cheat compatibility in `services/gameloop.service.ts` by syncing `client.clientPosition` to authoritative `client.position` on each auto tick, preventing false drift/phasing signals from stale manual-report position data.
 - Extended `test/auto-mode.test.ts` to assert auto-mode tick re-aligns `client.clientPosition`, validating the anti-cheat drift safeguard.
 - Added defensive map/collider handling in `services/gameloop.service.ts`:
@@ -186,4 +187,9 @@ Add an in-memory auto-mode system for dragons, with:
   - Added bounded retry logic in `getUnobstructedPosition` with center-point fallback to prevent infinite loop risk when collider data is pathological.
 - Verified with: `npm test -- test/auto-mode.test.ts` (pass, 9 tests).
 - 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this defensive-checks chunk; existing full-build OOM blocker remains unchanged.
-- Next chunk target: chunk 32 (review memory growth profile for long-running auto sessions).
+- 2026-02-26 sprint chunk: completed chunk 32 by reviewing memory-growth behavior for long-running auto-mode sessions via focused coverage in `test/auto-mode.test.ts`:
+  - Added a long-run tick simulation (300 iterations) that validates auto-mode session state remains bounded to a stable keyset (no per-tick key accumulation).
+  - Verified inactive/disconnected cleanup still removes the session entry after long-run ticking, limiting retained map size.
+- Verified with: `npm test -- test/auto-mode.test.ts` (pass, 10 tests).
+- 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this memory-profile chunk; existing full-build OOM blocker remains unchanged.
+- Next chunk target: chunk 33 (confirm 24h expiry exactness under timer jitter).
