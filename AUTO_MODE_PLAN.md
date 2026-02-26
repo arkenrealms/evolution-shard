@@ -45,7 +45,7 @@ Add an in-memory auto-mode system for dragons, with:
 17. [x] Add focused tests for AI target validity (boundary + unobstructed fallback).
 18. [x] Add safeguard for duplicate sessions by address reconnect handling.
 19. [x] Consider optional policy: auto mode disabled on manual `updateMyself` (if desired).
-20. [ ] Verify role/policy expectations (user-level vs mod-level route use).
+20. [x] Verify role/policy expectations (user-level vs mod-level route use).
 21. [ ] Validate behavior under maintenance mode and spectate transitions.
 22. [ ] Add logging counters/diagnostics for auto ticks and expiry events.
 23. [ ] Document API in shard README (route + expected payload).
@@ -92,6 +92,7 @@ Add an in-memory auto-mode system for dragons, with:
 - Added focused tests for reconnect dedupe behavior in `test/client.service.auto-mode.test.ts`.
 - Added policy: any manual `updateMyself` call now disables active auto mode for that client and broadcasts `Auto mode disabled due to manual movement`.
 - Added focused coverage for manual-update disable behavior in `test/client.service.auto-mode.test.ts`.
+- Added protocol router policy coverage in `protocol/test/shard.router.auto-mode-policy.test.ts` to verify `toggleAutoMode` remains accessible to user/guest roles while privileged routes (e.g. `maintenance`) stay mod-only.
 
 ## Progress notes
 - Implemented route + state + fast-loop AI + TTL in source.
@@ -105,4 +106,6 @@ Add an in-memory auto-mode system for dragons, with:
 - Verified with: `npm test -- test/client.service.auto-mode.test.ts test/auto-mode.test.ts` (pass, 10 tests).
 - 2026-02-25 sprint chunk: completed chunk 19 by disabling auto-mode session on manual `updateMyself` input, including player-facing broadcast and focused unit test coverage.
 - Verified with: `npm test -- test/client.service.auto-mode.test.ts` (pass, 6 tests).
-- Next chunk target: chunk 20 (verify role/policy expectations for `toggleAutoMode` route usage).
+- 2026-02-25 sprint chunk: completed chunk 20 by adding protocol-level router policy tests confirming `toggleAutoMode` is callable by user/guest roles and `maintenance` remains mod-gated.
+- Verified with: `cd protocol && npm test -- test/shard.router.auto-mode-policy.test.ts` (pass, 3 tests).
+- Next chunk target: chunk 21 (validate behavior under maintenance mode and spectate transitions).
