@@ -258,3 +258,18 @@ Add an in-memory auto-mode system for dragons, with:
   - Verified PR CLI path still unavailable: `gh: command not found`.
 - 2026-02-26 sprint chunk: blocker status unchanged — cannot open shard PR until GitHub credentials are configured on this runner (or branch is pushed externally) and a PR creation path is available (web UI or `gh`).
 - Next chunk target: chunk 41 retry immediately after credentials/tooling are available; once PR exists, move to chunk 43 (reviewer feedback round 1).
+- 2026-02-26 sprint chunk: retried chunk 41 (open shard PR) from `/media/psf/shared/arken/evolution/shard`.
+  - Verified branch `nel/evolution-shard-auto-mode-20260225` and clean working tree (`git status --short` empty).
+  - Confirmed remote configuration is present for `origin` (`https://github.com/arkenrealms/evolution-shard.git`).
+  - Retry push command: `git push -u origin nel/evolution-shard-auto-mode-20260225`.
+  - Still blocked by host auth: `fatal: could not read Username for 'https://github.com': No such device or address`.
+  - Confirmed no GitHub CLI on runner (`which gh` returned no path).
+- 2026-02-26 sprint chunk: blocker status unchanged — shard PR creation remains blocked until GitHub credentials are configured on this runner (or branch is pushed externally) and a PR creation path is available (web UI or `gh`).
+- Next chunk target: chunk 41 retry after credentials/tooling are available; then proceed to chunk 43.
+- 2026-02-26 sprint chunk: executed chunk 41 retry (open shard PR) again to validate whether host auth/tooling availability changed.
+  - Branch check: `git rev-parse --abbrev-ref HEAD` => `nel/evolution-shard-auto-mode-20260225`.
+  - Retry push command: `git push -u origin nel/evolution-shard-auto-mode-20260225`.
+  - Result unchanged: `fatal: could not read Username for 'https://github.com': No such device or address`.
+  - GitHub CLI check: `which gh` => not installed on runner.
+- 2026-02-26 sprint chunk: blocker status remains unchanged after retry — cannot open shard PR from this host without GitHub credentials and a PR creation path.
+- Next chunk target: chunk 41 retry immediately after host GitHub auth is configured (or branch is pushed externally), then continue with chunk 43.
