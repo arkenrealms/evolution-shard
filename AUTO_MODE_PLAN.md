@@ -61,7 +61,7 @@ Add an in-memory auto-mode system for dragons, with:
 33. [x] Confirm 24h expiry exactness under timer jitter.
 34. [x] Verify cleanup on disconnect and reconnect edge cases.
 35. [x] Prepare branch hygiene and split commits by concern.
-36. [ ] Commit protocol changes.
+36. [x] Commit protocol changes.
 37. [ ] Commit shard changes.
 38. [ ] Push protocol branch.
 39. [ ] Push shard branch.
@@ -213,4 +213,8 @@ Add an in-memory auto-mode system for dragons, with:
   - Added `AUTO_MODE_PR_NOTES.md` with concern-based split plan (runtime, tests, docs), touched-file mapping, and rebase prep checklist.
   - Verified working tree cleanliness and confirmed auto-mode scope isolation to feature-related runtime/test/docs files.
 - 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this branch-hygiene chunk; existing full-build OOM blocker remains unchanged.
-- Next chunk target: chunk 36 (commit protocol changes).
+- 2026-02-26 sprint chunk: completed chunk 36 by committing protocol auto-mode surface changes in `/media/psf/shared/arken/evolution/protocol`:
+  - Commit: `7c78c46` (`feat(shard-protocol): add toggleAutoMode route and service typing`).
+  - Scope: added `toggleAutoMode` router mutation input contract and `Service.toggleAutoMode` typing.
+- 2026-02-26 sprint chunk: blockers check — no new blockers introduced in this protocol-commit chunk; existing full-build OOM blocker remains unchanged.
+- Next chunk target: chunk 37 (commit shard changes).
