@@ -98,6 +98,7 @@ Add an in-memory auto-mode system for dragons, with:
   - Entering spectate now clears active auto-mode session and broadcasts `Auto mode disabled due to spectate`.
 - Added focused coverage in `test/client.service.auto-mode.test.ts` for maintenance-mode enable rejection and spectate transition cleanup.
 - Added in-memory auto-mode diagnostics counters (`ticks`, `decisions`, `expired`, `removedInactive`, `fallbackTargets`) plus periodic 60s summary logging via `[AUTO_MODE_DIAGNOSTICS]` in fast-loop processing.
+- Documented `toggleAutoMode` API contract in shard `README.md` (route, payload, auth policy, lifecycle/disable conditions, and broadcast messages) for downstream integrators.
 
 ## Progress notes
 - Implemented route + state + fast-loop AI + TTL in source.
