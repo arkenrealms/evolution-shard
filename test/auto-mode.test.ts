@@ -1,0 +1,209 @@
+import * as util from '@arken/node/util';
+import { ClientService } from '../services/client.service';
+import { GameloopService } from '../services/gameloop.service';
+
+describe('auto mode', () => {
+  describe('ClientService.toggleAutoMode', () => {
+    test('enables auto mode with 24h expiry and broadcasts confirmation', async () => {
+      const mutate = jest.fn();
+      const ctx: any = {
+        autoModeClients: {},
+        emit: { onBroadcast: { mutate } },
+      };
+
+      const service = new ClientService(ctx);
+      const client: any = {
+        id: 'c-1',
+        address: '0xabc',
+        name: 'Test Dragon',
+        isSpectating: false,
+        isDead: false,
+      };
+
+      const now = 1_700_000_000_000;
+      const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(now);
+
+      const result = await service.toggleAutoMode({ enabled: true } as any, { client } as any);
+
+      expect(result).toEqual({ status: 1 });
+      expect(ctx.autoModeClients['c-1']).toEqual(
+        expect.objectContaining({
+          clientId: 'c-1',
+          address: '0xabc',
+          name: 'Test Dragon',
+          enabledAt: now,
+          expiresAt: now + 24 * 60 * 60 * 1000,
+          pattern: 'wander',
+          nextDecisionAt: now,
+        })
+      );
+      expect(mutate).toHaveBeenCalledWith(['Auto mode enabled for up to 24h', 0], { context: { client } });
+
+      dateNowSpy.mockRestore();
+    });
+
+    test('disables auto mode and broadcasts confirmation', async () => {
+      const mutate = jest.fn();
+      const ctx: any = {
+        autoModeClients: {
+          'c-1': { clientId: 'c-1' },
+        },
+        emit: { onBroadcast: { mutate } },
+      };
+
+      const service = new ClientService(ctx);
+      const client: any = {
+        id: 'c-1',
+        name: 'Test Dragon',
+        isSpectating: false,
+        isDead: false,
+      };
+
+      const result = await service.toggleAutoMode({ enabled: false } as any, { client } as any);
+
+      expect(result).toEqual({ status: 1 });
+      expect(ctx.autoModeClients['c-1']).toBeUndefined();
+      expect(mutate).toHaveBeenCalledWith(['Auto mode disabled', 0], { context: { client } });
+    });
+  });
+
+  describe('GameloopService.tickAutoModeClients', () => {
+    test('expires auto mode sessions and broadcasts expiry', () => {
+      const client: any = {
+        id: 'c-1',
+        name: 'Test Dragon',
+        isDisconnected: false,
+        isDead: false,
+        isSpectating: false,
+        isJoining: false,
+      };
+
+      const mutate = jest.fn();
+      const app: any = {
+        autoModeClients: {
+          'c-1': {
+            clientId: 'c-1',
+            expiresAt: 1000,
+            nextDecisionAt: 1000,
+            pattern: 'wander',
+          },
+        },
+        clientLookup: { 'c-1': client },
+        emit: { onBroadcast: { mutate } },
+      };
+
+      const gameloop = new GameloopService(app);
+      (gameloop as any).tickAutoModeClients(1001);
+
+      expect(app.autoModeClients['c-1']).toBeUndefined();
+      expect(mutate).toHaveBeenCalledWith(['Auto mode expired after 24h', 0], { context: { client } });
+    });
+
+    test('falls back to unobstructed target when computed target is out of map bounds', () => {
+      const client: any = {
+        id: 'c-1',
+        position: { x: 0, y: 0 },
+        clientTarget: { x: 0, y: 0 },
+        target: { x: 0, y: 0 },
+        isDisconnected: false,
+        isDead: false,
+        isSpectating: false,
+        isJoining: false,
+      };
+
+      const app: any = {
+        autoModeClients: {
+          'c-1': {
+            clientId: 'c-1',
+            expiresAt: 999999,
+            nextDecisionAt: 0,
+            pattern: 'wander',
+            anchor: { x: 10, y: 10 },
+            orbitAngle: 0,
+          },
+        },
+        clientLookup: { 'c-1': client },
+        emit: { onBroadcast: { mutate: jest.fn() } },
+        mapBoundary: { x: { min: -10, max: 10 }, y: { min: -10, max: 10 } },
+      };
+
+      const gameloop = new GameloopService(app);
+      const fallbackTarget = { x: 1.234, y: -4.321 };
+      const getUnobstructedSpy = jest
+        .spyOn(gameloop as any, 'getUnobstructedPosition')
+        .mockReturnValue(fallbackTarget as any);
+      const obstructedSpy = jest.spyOn(gameloop as any, 'isPositionObstructed').mockReturnValue(false);
+      const randomSpy = jest.spyOn(util.number, 'random').mockImplementation(((min: number, max: number) => {
+        if (min === 900 && max === 2200) return 1200; // next decision delay
+        if (min === 1 && max === 3) return 3; // orbit radius
+        return min;
+      }) as any);
+      const mathRandomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.9); // orbit
+
+      (gameloop as any).tickAutoModeClients(100);
+
+      expect(client.clientTarget).toEqual(fallbackTarget);
+      expect(client.target).toEqual(fallbackTarget);
+      expect(getUnobstructedSpy).toHaveBeenCalled();
+
+      mathRandomSpy.mockRestore();
+      randomSpy.mockRestore();
+      obstructedSpy.mockRestore();
+      getUnobstructedSpy.mockRestore();
+    });
+
+    test('falls back to unobstructed target when computed target is obstructed', () => {
+      const client: any = {
+        id: 'c-1',
+        position: { x: 0, y: 0 },
+        clientTarget: { x: 0, y: 0 },
+        target: { x: 0, y: 0 },
+        isDisconnected: false,
+        isDead: false,
+        isSpectating: false,
+        isJoining: false,
+      };
+
+      const app: any = {
+        autoModeClients: {
+          'c-1': {
+            clientId: 'c-1',
+            expiresAt: 999999,
+            nextDecisionAt: 0,
+            pattern: 'wander',
+            zigzagSide: -1,
+          },
+        },
+        clientLookup: { 'c-1': client },
+        emit: { onBroadcast: { mutate: jest.fn() } },
+        mapBoundary: { x: { min: -10, max: 10 }, y: { min: -10, max: 10 } },
+      };
+
+      const gameloop = new GameloopService(app);
+      const fallbackTarget = { x: -2.5, y: 2.5 };
+      const getUnobstructedSpy = jest
+        .spyOn(gameloop as any, 'getUnobstructedPosition')
+        .mockReturnValue(fallbackTarget as any);
+      const obstructedSpy = jest.spyOn(gameloop as any, 'isPositionObstructed').mockReturnValue(true);
+      const randomSpy = jest.spyOn(util.number, 'random').mockImplementation(((min: number, max: number) => {
+        if (min === 900 && max === 2200) return 1100; // next decision delay
+        if (min === 2 && max === 5) return 3;
+        if (min === -2 && max === 2) return 0;
+        return min;
+      }) as any);
+      const mathRandomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.7); // zigzag
+
+      (gameloop as any).tickAutoModeClients(100);
+
+      expect(client.clientTarget).toEqual(fallbackTarget);
+      expect(client.target).toEqual(fallbackTarget);
+      expect(getUnobstructedSpy).toHaveBeenCalled();
+      expect(obstructedSpy).toHaveBeenCalled();
+
+      mathRandomSpy.mockRestore();
+      randomSpy.mockRestore();
+      obstructedSpy.mockRestore();
+      getUnobstructedSpy.mockRestore();
+    });
+  });
+});
