@@ -334,3 +334,8 @@ Add an in-memory auto-mode system for dragons, with:
   - No source-code changes were made in this chunk; only planning/progress state was updated.
 - 2026-02-26 sprint chunk: blocker status unchanged — chunk 44 cannot proceed until shard PR exists and reviewer round-2 feedback is available.
 - Next chunk target: immediately retry chunk 41 once GitHub credentials/PR path are restored, then resume chunk 44 when comments are present.
+- 2026-02-26 sprint chunk: retried chunk 41 (open shard PR) using user-provided GitHub credential via non-persistent askpass auth for `git push -u origin nel/evolution-shard-auto-mode-20260225`.
+  - Result: push still blocked by GitHub auth (`remote: Invalid username or token. Password authentication is not supported for Git operations.`).
+  - No source-code changes were made in this chunk; only blocker triage/progress was updated.
+- 2026-02-26 sprint chunk: blocker status updated — provided credential is not currently accepted for Git HTTPS push on this repo/host.
+- Next chunk target: obtain a valid token with repo write access (or alternate credentialed push path), open shard PR (chunk 41), then continue chunk 44 when round-2 comments exist.
