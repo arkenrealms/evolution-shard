@@ -69,7 +69,7 @@ Add an in-memory auto-mode system for dragons, with:
 41. [~] Open shard PR (reference protocol PR). (attempted; blocked by missing push auth + no gh CLI)
 42. [x] Post PR summary + risk list.
 43. [~] Apply reviewer feedback round 1. (blocked: shard PR not open yet, so no reviewer comments available)
-44. [ ] Apply reviewer feedback round 2.
+44. [~] Apply reviewer feedback round 2. (blocked: shard PR still not open / no reviewer comments yet)
 45. [x] Final QA pass.
 46. [x] Merge readiness checklist.
 47. [x] Handoff notes for deploy/rollback.
@@ -329,3 +329,8 @@ Add an in-memory auto-mode system for dragons, with:
   - Prepared PR notes are in `AUTO_MODE_PR_NOTES.md`; branch is ready to open PR once credentials/tooling are available.
 - 2026-02-26 sprint chunk: blocker status unchanged after chunk 48 — PR/review flow remains blocked by missing GitHub auth and missing PR CLI on this runner.
 - Next chunk target: unblock push/PR path (chunk 41 dependency), open shard PR, then proceed to chunk 44 when reviewer round-2 comments exist.
+- 2026-02-26 sprint chunk: executed chunk 44 triage (apply reviewer feedback round 2) by checking for outstanding round-2 review comments.
+  - Result: blocked because shard PR is still not open from this runner (push/auth + PR tooling blockers), so there are no round-2 comments to apply.
+  - No source-code changes were made in this chunk; only planning/progress state was updated.
+- 2026-02-26 sprint chunk: blocker status unchanged — chunk 44 cannot proceed until shard PR exists and reviewer round-2 feedback is available.
+- Next chunk target: immediately retry chunk 41 once GitHub credentials/PR path are restored, then resume chunk 44 when comments are present.
