@@ -71,7 +71,7 @@ Add an in-memory auto-mode system for dragons, with:
 43. [~] Apply reviewer feedback round 1. (blocked: shard PR not open yet, so no reviewer comments available)
 44. [ ] Apply reviewer feedback round 2.
 45. [x] Final QA pass.
-46. [ ] Merge readiness checklist.
+46. [x] Merge readiness checklist.
 47. [x] Handoff notes for deploy/rollback.
 48. [ ] Close cron cycle with completion summary.
 
@@ -316,3 +316,9 @@ Add an in-memory auto-mode system for dragons, with:
   - Outcome: no new regressions found; implementation remains QA-green at focused-suite level.
 - 2026-02-26 sprint chunk: blocker status unchanged after chunk 45 — GitHub push/auth + PR creation path are still unavailable on this host, so merge/PR workflow chunks remain gated.
 - Next chunk target: chunk 46 (merge readiness checklist), with PR-opening dependency caveat noted until credentials/tooling are restored.
+- 2026-02-26 sprint chunk: completed chunk 46 (merge readiness checklist) by adding a structured go/no-go checklist in `AUTO_MODE_PR_NOTES.md`.
+  - Marked technical, release/ops, and PR/process readiness items with explicit status.
+  - Recorded conditional gate outcome as **READY WHEN UNBLOCKED** due to unchanged push/PR tooling blockers.
+  - Documented concrete unblock actions: credentialed branch push + PR creation via web UI/`gh`, then proceed with reviewer-feedback chunks (43/44).
+- 2026-02-26 sprint chunk: blocker status unchanged after chunk 46 — merge is still gated by unavailable GitHub auth and missing PR creation path on this runner.
+- Next chunk target: chunk 48 (close cron cycle with completion summary), unless push/PR blocker is cleared first to allow reviewer-feedback flow.

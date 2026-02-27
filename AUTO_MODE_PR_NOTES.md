@@ -116,3 +116,26 @@ Use this as the cleanup target before opening PRs.
   - `npm test -- test/shard.router.auto-mode-policy.test.ts`
   - Result: **1 suite / 3 tests passed**
 - QA verdict: no focused-suite regressions detected; ready to proceed to merge-readiness checklist once PR/push path is unblocked.
+
+## Merge readiness checklist (chunk 46)
+### Technical readiness
+- ✅ Auto-mode runtime behavior implemented and covered by focused unit + smoke suites.
+- ✅ Protocol route/type surface for `toggleAutoMode` is in place with policy test coverage.
+- ✅ Docs package prepared (`README.md`, `AUTO_MODE_INTEGRATION_TEST_NOTES.md`, `AUTO_MODE_PR_NOTES.md`).
+- ⚠️ Full repo TypeScript build remains host-memory blocked (known OOM constraint); focused validation is green.
+
+### Release/ops readiness
+- ✅ Deploy and rollback runbook documented (see handoff section above).
+- ✅ Diagnostics/watchpoints defined for post-deploy monitoring (`[AUTO_MODE_DIAGNOSTICS]` counters).
+- ✅ Auto-mode kill-switch behavior documented (maintenance + restart clears in-memory sessions).
+
+### PR/process readiness
+- ⚠️ Branch push and PR creation are still blocked on this runner (`git` HTTPS credentials unavailable; `gh` CLI absent).
+- ⛔ Merge readiness is **conditionally complete** pending:
+  1. credentialed push of protocol + shard branches,
+  2. protocol and shard PR creation/linking,
+  3. reviewer feedback pass (chunks 43/44) once comments exist.
+
+### Merge gate decision
+- Status: **READY WHEN UNBLOCKED**
+- Action to unblock: restore GitHub auth (or push externally) and open PRs via web UI/`gh`, then continue reviewer-feedback chunks.
