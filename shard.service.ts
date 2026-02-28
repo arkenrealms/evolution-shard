@@ -18,7 +18,58 @@ import { ModService } from './services/mod.service';
 import { GameloopService } from './services/gameloop.service';
 import { InteractionsService } from './services/interactions.service';
 
-const { getTime, shuffleArray, randomPosition, sha256, decodePayload, isNumeric, ipHashFromSocket } = util;
+const { getTime, shuffleArray, randomPosition, sha256, isNumeric, ipHashFromSocket } = util;
+
+const safeLogValue = (value: unknown): string => {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return '[unserializable]';
+  }
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === 'object' && value !== null;
+};
+
+const safeGet = (record: Record<string, unknown>, key: string): unknown => {
+  try {
+    return record[key];
+  } catch {
+    return undefined;
+  }
+};
+
+const normalizeTrpcId = (id: unknown): string | number | null => {
+  if (typeof id === 'string') {
+    return id;
+  }
+
+  if (typeof id === 'number' && Number.isFinite(id)) {
+    return id;
+  }
+
+  return null;
+};
+
+const safeErrorString = (error: unknown): string => {
+  if (error && typeof error === 'object') {
+    try {
+      const stack = (error as { stack?: unknown }).stack;
+      if (typeof stack === 'string' && stack) {
+        return stack;
+      }
+    } catch {
+      // fall through to String coercion
+    }
+  }
+
+  try {
+    return String(error);
+  } catch {
+    return '[unstringifiable-error]';
+  }
+};
 
 type ServiceHelpers = {
   core: CoreService;
@@ -28,6 +79,35 @@ type ServiceHelpers = {
   mod: ModService;
   gameloop: GameloopService;
   interactions: InteractionsService;
+};
+
+type AutoModeState = {
+  clientId: string;
+  address?: string;
+  name: string;
+  enabledAt: number;
+  expiresAt: number;
+  nextDecisionAt: number;
+  pattern: 'wander' | 'orbit' | 'zigzag';
+  anchor?: Position;
+  orbitAngle?: number;
+  orbitRadius?: number;
+  zigzagSide?: 1 | -1;
+  lastFallbackAt?: number;
+  consecutiveFallbacks?: number;
+  lastValidTarget?: Position;
+  lastPlayerUpdateEmitAt?: number;
+};
+
+type AutoModeDiagnostics = {
+  ticks: number;
+  decisions: number;
+  expired: number;
+  removedInactive: number;
+  fallbackTargets: number;
+  emittedPlayerUpdates: number;
+  skippedPlayerUpdates: number;
+  lastLogAt: number;
 };
 
 export class Service implements Shard.Service {
@@ -56,6 +136,8 @@ export class Service implements Shard.Service {
   eventQueue: Event[];
   clients: Shard.Client[];
   queuedClients: Shard.Client[];
+  autoModeClients: Record<string, AutoModeState>;
+  autoModeDiagnostics: AutoModeDiagnostics;
   lastReward?: Reward;
   lastLeaderName?: string;
   config: Partial<Shard.Config>;
@@ -339,6 +421,13 @@ export class Service implements Shard.Service {
     return this.services.client.action(input, ctx);
   }
 
+  async toggleAutoMode(
+    input: Shard.RouterInput['toggleAutoMode'],
+    ctx: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['toggleAutoMode']> {
+    return this.services.client.toggleAutoMode(input, ctx);
+  }
+
   async updateMyself(
     input: Shard.RouterInput['updateMyself'],
     ctx: Shard.ServiceContext
@@ -444,6 +533,7 @@ export class Service implements Shard.Service {
     this.clients = this.clients.filter((c) => c.id !== client.id);
 
     delete this.clientLookup[client.id];
+    delete this.autoModeClients[client.id];
 
     if (this.config.gameMode === 'Pandamonium') {
       this.emitAll.onBroadcast.mutate([
@@ -505,19 +595,61 @@ export class Service implements Shard.Service {
     // log('Shard client trpc message', message);
     let pack: any;
     const emitResponse = (payload: any) => {
-      if (typeof socket?.emit === 'function') {
+      if (typeof socket?.emit !== 'function') {
+        return;
+      }
+
+      try {
         socket.emit('trpcResponse', payload);
+      } catch (emitError) {
+        log('Shard client trpc response emit error', emitError);
       }
     };
 
     try {
-      pack = typeof message === 'string' ? decodePayload(message) : message;
-      if (!pack || typeof pack !== 'object') {
+      let normalizedMessage = message;
+
+      if (Buffer.isBuffer(normalizedMessage)) {
+        normalizedMessage = normalizedMessage.toString('utf8');
+      } else if (normalizedMessage instanceof Uint8Array) {
+        normalizedMessage = Buffer.from(normalizedMessage).toString('utf8');
+      } else if (normalizedMessage instanceof ArrayBuffer) {
+        normalizedMessage = Buffer.from(normalizedMessage).toString('utf8');
+      } else if (ArrayBuffer.isView(normalizedMessage)) {
+        normalizedMessage = Buffer.from(
+          normalizedMessage.buffer,
+          normalizedMessage.byteOffset,
+          normalizedMessage.byteLength
+        ).toString('utf8');
+      }
+
+      if (typeof normalizedMessage === 'string') {
+        const trimmedMessage = normalizedMessage.trim();
+        const sanitizedMessage =
+          trimmedMessage.charCodeAt(0) === 0xfeff ? trimmedMessage.slice(1).trimStart() : trimmedMessage;
+
+        if (!sanitizedMessage) {
+          throw new Error('Invalid trpc payload');
+        }
+
+        if (!sanitizedMessage.startsWith('{') && !sanitizedMessage.startsWith('[')) {
+          throw new Error('Invalid trpc payload');
+        }
+
+        normalizedMessage = sanitizedMessage;
+      }
+
+      pack = typeof normalizedMessage === 'string' ? JSON.parse(normalizedMessage) : normalizedMessage;
+      if (!pack || typeof pack !== 'object' || Array.isArray(pack)) {
         throw new Error('Invalid trpc payload');
       }
 
       // log('Shard client trpc pack', pack, socket.shardClient.id, socket.shardClient.id);
-      const { id, method, type, params } = pack;
+      const id = safeGet(pack, 'id');
+      const method = safeGet(pack, 'method');
+      const type = safeGet(pack, 'type');
+      const params = safeGet(pack, 'params');
+      const responseId = normalizeTrpcId(id);
 
       if (!method || typeof method !== 'string') {
         throw new Error('Invalid trpc method');
@@ -543,9 +675,11 @@ export class Service implements Shard.Service {
         throw new Error('Invalid trpc payload');
       }
 
-      if (this.loggableEvents.includes(normalizedMethod))
+      const isLoggableEvent = Array.isArray(this.loggableEvents) && this.loggableEvents.includes(normalizedMethod);
+
+      if (isLoggableEvent)
         log(
-          `Shard client trpc method: client.emit.${normalizedMethod}(${JSON.stringify(params)})`,
+          `Shard client trpc method: client.emit.${normalizedMethod}(${safeLogValue(params)})`,
           id,
           normalizedMethod,
           type,
@@ -557,26 +691,29 @@ export class Service implements Shard.Service {
           ? await emitMethod.call(emitClient)
           : await emitMethod.call(emitClient, params);
 
-      if (this.loggableEvents.includes(normalizedMethod)) log('Shard client trpc method call result', result);
+      if (isLoggableEvent) log('Shard client trpc method call result', result);
 
-      emitResponse({ id: id, result });
+      emitResponse({ id: responseId, result });
     } catch (e: any) {
       log('Shard client trpc error', pack, e);
 
       const shardClient = socket?.shardClient;
-      const previousErrors = Number(shardClient?.log?.errors);
+      const shardClientLog = isRecord(shardClient?.log) ? shardClient.log : undefined;
+      const previousErrors = Number(shardClientLog?.errors);
 
-      if (shardClient?.log) {
-        shardClient.log.errors = Number.isFinite(previousErrors) ? previousErrors + 1 : 1;
+      if (shardClientLog) {
+        shardClientLog.errors = Number.isFinite(previousErrors) ? previousErrors + 1 : 1;
       }
 
-      if (shardClient?.log?.errors > 50) {
+      if (typeof shardClientLog?.errors === 'number' && shardClientLog.errors > 50) {
         this.disconnectClient(shardClient, 'too many errors');
       } else {
+        const errorResponseId = isRecord(pack) ? normalizeTrpcId(safeGet(pack, 'id')) : null;
+
         emitResponse({
-          id: (pack as any)?.id,
+          id: errorResponseId,
           result: {},
-          error: e?.stack ? e.stack + '' : String(e),
+          error: safeErrorString(e),
         });
       }
     }

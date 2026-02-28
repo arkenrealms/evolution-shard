@@ -139,46 +139,38 @@ export class GameloopService {
   }
 
   getUnobstructedPosition(): Position {
-    const spawnBoundary = this.app.config.level2open ? this.app.spawnBoundary2 : this.app.spawnBoundary1;
-    let res: Position | null = null;
-    while (!res) {
+    const mapBoundary = this.getSafeMapBoundary();
+    const spawnBoundary =
+      (this.app.config.level2open ? this.app.spawnBoundary2 : this.app.spawnBoundary1) || mapBoundary;
+
+    const colliders = this.getMapColliders();
+    for (let attempt = 0; attempt < 100; attempt++) {
       let collided = false;
       const position = {
         x: randomPosition(spawnBoundary.x.min, spawnBoundary.x.max),
         y: randomPosition(spawnBoundary.y.min, spawnBoundary.y.max),
       };
-      for (const gameObject of mapData) {
-        if (!gameObject.Colliders || !gameObject.Colliders.length) continue;
-        for (const gameCollider of gameObject.Colliders) {
-          const collider = {
-            minX: gameCollider.Min[0],
-            maxX: gameCollider.Max[0],
-            minY: gameCollider.Min[1],
-            maxY: gameCollider.Max[1],
-          };
-          if (this.app.config.level2open && gameObject.Name === 'Level2Divider') {
-            continue;
-            // const diff = 25;
-            // collider.minY -= diff;
-            // collider.maxY -= diff;
-          }
-          if (
-            position.x >= collider.minX &&
-            position.x <= collider.maxX &&
-            position.y >= collider.minY &&
-            position.y <= collider.maxY
-          ) {
-            collided = true;
-            break;
-          }
+
+      for (const collider of colliders) {
+        if (this.app.config.level2open && collider.name === 'Level2Divider') continue;
+        if (
+          position.x >= collider.minX &&
+          position.x <= collider.maxX &&
+          position.y >= collider.minY &&
+          position.y <= collider.maxY
+        ) {
+          collided = true;
+          break;
         }
-        if (collided) break;
       }
-      if (!collided) {
-        res = position;
-      }
+
+      if (!collided) return position;
     }
-    return res;
+
+    return {
+      x: util.number.normalizeFloat((spawnBoundary.x.min + spawnBoundary.x.max) / 2, 3),
+      y: util.number.normalizeFloat((spawnBoundary.y.min + spawnBoundary.y.max) / 2, 3),
+    };
   }
 
   spawnSprites(amount: number): void {
@@ -325,6 +317,8 @@ export class GameloopService {
         1: this.app.config.avatarTouchDistance0,
         2: this.app.config.avatarTouchDistance0,
       };
+      const mapBoundary = this.getSafeMapBoundary();
+      const mapColliders = this.getMapColliders();
 
       for (const client of this.app.clients) {
         if (client.isDead || client.isSpectating || client.isJoining) continue;
@@ -348,20 +342,20 @@ export class GameloopService {
         );
 
         let outOfBounds = false;
-        if (position.x > this.app.mapBoundary.x.max) {
-          position.x = this.app.mapBoundary.x.max;
+        if (position.x > mapBoundary.x.max) {
+          position.x = mapBoundary.x.max;
           outOfBounds = true;
         }
-        if (position.x < this.app.mapBoundary.x.min) {
-          position.x = this.app.mapBoundary.x.min;
+        if (position.x < mapBoundary.x.min) {
+          position.x = mapBoundary.x.min;
           outOfBounds = true;
         }
-        if (position.y > this.app.mapBoundary.y.max) {
-          position.y = this.app.mapBoundary.y.max;
+        if (position.y > mapBoundary.y.max) {
+          position.y = mapBoundary.y.max;
           outOfBounds = true;
         }
-        if (position.y < this.app.mapBoundary.y.min) {
-          position.y = this.app.mapBoundary.y.min;
+        if (position.y < mapBoundary.y.min) {
+          position.y = mapBoundary.y.min;
           outOfBounds = true;
         }
 
@@ -372,39 +366,28 @@ export class GameloopService {
         let collided = false;
         let stuck = false;
 
-        for (const gameObject of mapData) {
-          if (!gameObject.Colliders || !gameObject.Colliders.length) continue;
-
-          for (const gameCollider of gameObject.Colliders) {
-            const collider = {
-              minX: gameCollider.Min[0],
-              maxX: gameCollider.Max[0],
-              minY: gameCollider.Min[1],
-              maxY: gameCollider.Max[1],
-            };
-
-            if (
-              position.x >= collider.minX &&
-              position.x <= collider.maxX &&
-              position.y >= collider.minY &&
-              position.y <= collider.maxY
-            ) {
-              if (gameObject.Name.startsWith('Land')) {
+        for (const collider of mapColliders) {
+          if (
+            position.x >= collider.minX &&
+            position.x <= collider.maxX &&
+            position.y >= collider.minY &&
+            position.y <= collider.maxY
+          ) {
+            if (collider.name.startsWith('Land')) {
+              stuck = true;
+            } else if (collider.name.startsWith('Island')) {
+              if (this.app.config.stickyIslands) {
                 stuck = true;
-              } else if (gameObject.Name.startsWith('Island')) {
-                if (this.app.config.stickyIslands) {
-                  stuck = true;
-                } else {
-                  collided = true;
-                }
-              } else if (gameObject.Name.indexOf('Collider') === 0) {
-                stuck = true;
-              } else if (gameObject.Name.indexOf('Level2Divider') === 0) {
-                if (!this.app.config.level2open) stuck = true;
+              } else {
+                collided = true;
               }
-
-              if (stuck) console.log('collide', gameObject.Name);
+            } else if (collider.name.indexOf('Collider') === 0) {
+              stuck = true;
+            } else if (collider.name.indexOf('Level2Divider') === 0) {
+              if (!this.app.config.level2open) stuck = true;
             }
+
+            if (stuck) console.log('collide', collider.name);
           }
 
           if (stuck || collided) break;
@@ -657,6 +640,223 @@ export class GameloopService {
     setTimeout(() => this.slowGameloop(), this.app.config.slowLoopSeconds * 1000);
   }
 
+  private getSafeMapBoundary(): Boundary {
+    const fallback: Boundary = { x: { min: -50, max: 50 }, y: { min: -50, max: 50 } };
+    const source = this.app?.mapBoundary;
+
+    if (
+      source &&
+      Number.isFinite(source?.x?.min) &&
+      Number.isFinite(source?.x?.max) &&
+      Number.isFinite(source?.y?.min) &&
+      Number.isFinite(source?.y?.max)
+    ) {
+      return source;
+    }
+
+    return fallback;
+  }
+
+  private getMapColliders(): Array<{ name: string; minX: number; maxX: number; minY: number; maxY: number }> {
+    const colliders: Array<{ name: string; minX: number; maxX: number; minY: number; maxY: number }> = [];
+    if (!Array.isArray(mapData)) return colliders;
+
+    for (const gameObject of mapData as any[]) {
+      if (!gameObject?.Colliders || !Array.isArray(gameObject.Colliders)) continue;
+
+      for (const gameCollider of gameObject.Colliders) {
+        const minX = gameCollider?.Min?.[0];
+        const minY = gameCollider?.Min?.[1];
+        const maxX = gameCollider?.Max?.[0];
+        const maxY = gameCollider?.Max?.[1];
+
+        if (![minX, minY, maxX, maxY].every(Number.isFinite)) continue;
+
+        colliders.push({
+          name: String(gameObject?.Name || ''),
+          minX,
+          maxX,
+          minY,
+          maxY,
+        });
+      }
+    }
+
+    return colliders;
+  }
+
+  private isPositionObstructed(position: Position): boolean {
+    for (const collider of this.getMapColliders()) {
+      if (
+        position.x >= collider.minX &&
+        position.x <= collider.maxX &&
+        position.y >= collider.minY &&
+        position.y <= collider.maxY
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private tickAutoModeClients(now: number): void {
+    const autoEntries = Object.values(this.app.autoModeClients || {});
+    if (!autoEntries.length) return;
+
+    const diagnostics =
+      this.app.autoModeDiagnostics ||
+      (this.app.autoModeDiagnostics = {
+        ticks: 0,
+        decisions: 0,
+        expired: 0,
+        removedInactive: 0,
+        fallbackTargets: 0,
+        emittedPlayerUpdates: 0,
+        skippedPlayerUpdates: 0,
+        lastLogAt: 0,
+      });
+
+    diagnostics.ticks += autoEntries.length;
+
+    for (const state of autoEntries) {
+      const client = this.app.clientLookup[state.clientId];
+      if (!client || client.isDisconnected || client.isDead || client.isSpectating || client.isJoining) {
+        delete this.app.autoModeClients[state.clientId];
+        diagnostics.removedInactive += 1;
+        continue;
+      }
+
+      if (now >= state.expiresAt) {
+        delete this.app.autoModeClients[state.clientId];
+        diagnostics.expired += 1;
+        this.app.emit.onBroadcast.mutate(['Auto mode expired after 24h', 0], { context: { client } });
+        continue;
+      }
+
+      client.lastReportedTime = now;
+      client.lastUpdate = now;
+      // Keep client-reported position aligned with authoritative position while in auto mode,
+      // so anti-cheat distance drift checks do not falsely mark phased state.
+      client.clientPosition = {
+        x: util.number.normalizeFloat(client.position.x, 4),
+        y: util.number.normalizeFloat(client.position.y, 4),
+      };
+
+      if (now < state.nextDecisionAt) continue;
+
+      diagnostics.decisions += 1;
+
+      const roll = Math.random();
+      state.pattern = roll < 0.58 ? 'wander' : roll < 0.82 ? 'zigzag' : 'orbit';
+
+      const decisionDelayByPattern = {
+        wander: util.number.random(1100, 2600),
+        zigzag: util.number.random(800, 1700),
+        orbit: util.number.random(1200, 2400),
+      } as const;
+      state.nextDecisionAt = now + decisionDelayByPattern[state.pattern];
+
+      let nextTarget = this.getUnobstructedPosition();
+
+      if (state.pattern === 'orbit') {
+        state.anchor = state.anchor || this.getUnobstructedPosition();
+        state.orbitAngle = (state.orbitAngle || 0) + util.number.random(0.45, 0.9);
+        state.orbitRadius = util.number.random(1.1, 2.6);
+
+        nextTarget = {
+          x: util.number.normalizeFloat(state.anchor.x + Math.cos(state.orbitAngle) * state.orbitRadius, 3),
+          y: util.number.normalizeFloat(state.anchor.y + Math.sin(state.orbitAngle) * state.orbitRadius, 3),
+        };
+      }
+
+      if (state.pattern === 'zigzag') {
+        state.zigzagSide = state.zigzagSide === -1 ? 1 : -1;
+        const side = state.zigzagSide || 1;
+        nextTarget = {
+          x: util.number.normalizeFloat(client.position.x + util.number.random(1.6, 4.2) * side, 3),
+          y: util.number.normalizeFloat(client.position.y + util.number.random(-1.3, 1.3), 3),
+        };
+      }
+
+      const mapBoundary = this.getSafeMapBoundary();
+      const invalidTarget =
+        !Number.isFinite(nextTarget.x) ||
+        !Number.isFinite(nextTarget.y) ||
+        nextTarget.x < mapBoundary.x.min ||
+        nextTarget.x > mapBoundary.x.max ||
+        nextTarget.y < mapBoundary.y.min ||
+        nextTarget.y > mapBoundary.y.max ||
+        this.isPositionObstructed(nextTarget);
+
+      if (invalidTarget) {
+        const fallbackCooldownMs = 2200;
+        const canReusePreviousTarget =
+          !!state.lastValidTarget &&
+          !!state.lastFallbackAt &&
+          now - state.lastFallbackAt < fallbackCooldownMs;
+
+        if (canReusePreviousTarget) {
+          nextTarget = state.lastValidTarget;
+        } else {
+          diagnostics.fallbackTargets += 1;
+          state.lastFallbackAt = now;
+          state.consecutiveFallbacks = (state.consecutiveFallbacks || 0) + 1;
+          nextTarget = this.getUnobstructedPosition();
+        }
+      } else {
+        state.lastValidTarget = nextTarget;
+        state.consecutiveFallbacks = 0;
+      }
+
+      state.lastValidTarget = nextTarget;
+      client.clientTarget = nextTarget;
+      client.target = nextTarget;
+    }
+
+    if (!diagnostics.lastLogAt || now - diagnostics.lastLogAt >= 60_000) {
+      diagnostics.lastLogAt = now;
+      log('[AUTO_MODE_DIAGNOSTICS]', {
+        activeSessions: Object.keys(this.app.autoModeClients || {}).length,
+        ticks: diagnostics.ticks,
+        decisions: diagnostics.decisions,
+        expired: diagnostics.expired,
+        removedInactive: diagnostics.removedInactive,
+        fallbackTargets: diagnostics.fallbackTargets,
+        emittedPlayerUpdates: diagnostics.emittedPlayerUpdates,
+        skippedPlayerUpdates: diagnostics.skippedPlayerUpdates,
+      });
+    }
+  }
+
+  private shouldEmitPlayerUpdate(client: Shard.Client, now: number): boolean {
+    const autoState = this.app.autoModeClients?.[client.id];
+    if (!autoState) return true;
+
+    const diagnostics =
+      this.app.autoModeDiagnostics ||
+      (this.app.autoModeDiagnostics = {
+        ticks: 0,
+        decisions: 0,
+        expired: 0,
+        removedInactive: 0,
+        fallbackTargets: 0,
+        emittedPlayerUpdates: 0,
+        skippedPlayerUpdates: 0,
+        lastLogAt: 0,
+      });
+
+    const minEmitIntervalMs = 120;
+    if (autoState.lastPlayerUpdateEmitAt && now - autoState.lastPlayerUpdateEmitAt < minEmitIntervalMs) {
+      diagnostics.skippedPlayerUpdates += 1;
+      return false;
+    }
+
+    autoState.lastPlayerUpdateEmitAt = now;
+    diagnostics.emittedPlayerUpdates += 1;
+    return true;
+  }
+
   async fastGameloop() {
     if (!this.app.realm) {
       setTimeout(() => this.fastGameloop(), this.app.config.fastLoopSeconds * 1000);
@@ -668,6 +868,7 @@ export class GameloopService {
     try {
       const now = Date.now();
 
+      this.tickAutoModeClients(now);
       this.detectCollisions();
 
       if (FF.MASTER_MODE) {
@@ -740,6 +941,8 @@ export class GameloopService {
         if (this.app.config.gameMode === 'Pandamonium' && this.app.pandas.includes(client.address)) {
           client.avatar = 2;
         }
+
+        if (!this.shouldEmitPlayerUpdate(client, now)) continue;
 
         this.app.emitAll.onUpdatePlayer.mutate([
           client.id,

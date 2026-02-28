@@ -13,6 +13,29 @@ export class ClientService {
 
   init() {}
 
+  rebindAutoModeSessionByAddress(client: Pick<Shard.Client, 'id' | 'address' | 'name'>): void {
+    const address = client.address;
+    if (!address) return;
+
+    const entries = Object.values(this.ctx.autoModeClients || {}).filter((state) => state.address === address);
+    if (!entries.length) return;
+
+    const stateToKeep = entries.sort((a, b) => b.expiresAt - a.expiresAt)[0];
+
+    for (const [key, state] of Object.entries(this.ctx.autoModeClients || {})) {
+      if (state.address === address) {
+        delete this.ctx.autoModeClients[key];
+      }
+    }
+
+    this.ctx.autoModeClients[client.id] = {
+      ...stateToKeep,
+      clientId: client.id,
+      address,
+      name: client.name,
+    };
+  }
+
   async forceJoin(
     input: Shard.RouterInput['forceJoin'],
     { client }: Shard.ServiceContext
@@ -233,6 +256,45 @@ export class ClientService {
     this.ctx.emitAll.onAction.mutate([client.id, input]);
   }
 
+  async toggleAutoMode(
+    input: Shard.RouterInput['toggleAutoMode'],
+    { client }: Shard.ServiceContext
+  ): Promise<Shard.RouterOutput['toggleAutoMode']> {
+    if (!input) return this.throwError(client, 'Input should not be void');
+
+    if (client.isSpectating || client.isDead) {
+      throw new Error('Cannot toggle auto mode while spectating/dead');
+    }
+
+    if (input.enabled && this.ctx.config.isMaintenance && !client.isMod) {
+      throw new Error('Unauthorized');
+    }
+
+    if (!input.enabled) {
+      delete this.ctx.autoModeClients[client.id];
+      this.ctx.emit.onBroadcast.mutate(['Auto mode disabled', 0], { context: { client } });
+      return { status: 1 } as Shard.RouterOutput['toggleAutoMode'];
+    }
+
+    const now = Date.now();
+    this.ctx.autoModeClients[client.id] = {
+      clientId: client.id,
+      address: client.address || undefined,
+      name: client.name,
+      enabledAt: now,
+      expiresAt: now + 24 * 60 * 60 * 1000,
+      nextDecisionAt: now,
+      pattern: 'wander',
+      orbitAngle: 0,
+      orbitRadius: 1.5,
+      zigzagSide: 1,
+    };
+
+    this.ctx.emit.onBroadcast.mutate(['Auto mode enabled for up to 24h', 0], { context: { client } });
+
+    return { status: 1 } as Shard.RouterOutput['toggleAutoMode'];
+  }
+
   throwError(client: any, text: string) {
     client.log.errors += 1;
 
@@ -259,6 +321,13 @@ export class ClientService {
       this.ctx.disconnectClient(client, 'maintenance');
       // throw new Error('Invalid at this time');
       return;
+    }
+
+    if (this.ctx.autoModeClients?.[client.id]) {
+      delete this.ctx.autoModeClients[client.id];
+      this.ctx.emit.onBroadcast.mutate(['Auto mode disabled due to manual movement', 0], {
+        context: { client },
+      });
     }
 
     const now = getTime();
@@ -441,6 +510,13 @@ export class ClientService {
       client.cameraSize = 8;
       client.overrideCameraSize = 8;
       client.log.spectating += 1;
+
+      if (this.ctx.autoModeClients?.[client.id]) {
+        delete this.ctx.autoModeClients[client.id];
+        this.ctx.emit.onBroadcast.mutate(['Auto mode disabled due to spectate', 0], {
+          context: { client },
+        });
+      }
 
       this.ctx.services.gameloop.syncSprites();
       this.ctx.emitAll.onSpectate.mutate([client.id, client.speed, client.cameraSize]);

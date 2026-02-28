@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "./services/client.service.ts",
+    "./services/core.service.ts",
+    "./services/gameloop.service.ts",
+    "./shard.service.ts"
+  ]
+}
